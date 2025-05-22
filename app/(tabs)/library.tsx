@@ -9,6 +9,7 @@ import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
+import { Audio } from "expo-av";
 import {
   ActivityIndicator,
   Alert,
@@ -25,7 +26,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 
-export default function ArtistDashboardScreen() {
+export default function LibraryScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const [activeTab, setActiveTab] = useState("published");
@@ -41,7 +42,10 @@ export default function ArtistDashboardScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuthStore();
-
+  const [sound, setSound] = useState(null);
+  const [playingTrackId, setPlayingTrackId] = useState(null);
+  const [editingTrack, setEditingTrack] = useState(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
   // Mock data for all tracks
   useEffect(() => {
     fetchTracks();
@@ -58,17 +62,36 @@ export default function ArtistDashboardScreen() {
       );
       console.log("API Response----:", response.data); // Log the API response for debugging
       // Transform the API response to match our app's data structure if needed
-      const formattedTracks = response.data.map((track) => ({
+      const tracksWithoutDuration = response.data.map((track) => ({
         id: track._id,
         title: track.title,
         plays: track.play_count || 0,
         likes: track.like_count || 0,
-        coverUrl: track.backgroundImage,
+        coverUrl: track.backgroundImage, // Change this to use backgroundImage from API
+        audioUrl: track.audioFile,
         date: formatDate(track.createdAt),
         isPublic: track.is_public,
-        status: track.is_public ? "published" : "in-process",
+        status: track.is_public ? "published" : "draft",
+        duration: null,
       }));
 
+      const tracksPromises = tracksWithoutDuration.map(async (track) => {
+        if (track.audioUrl) {
+          try {
+            const duration = await calculateAudioDuration(track.audioUrl);
+            return { ...track, duration };
+          } catch (err) {
+            console.error(
+              `Error calculating duration for track ${track.id}:`,
+              err
+            );
+            return { ...track, duration: "--:--" };
+          }
+        }
+        return track;
+      });
+
+      const formattedTracks = await Promise.all(tracksPromises);
       setTracks(formattedTracks);
       setError(null);
     } catch (err) {
@@ -76,6 +99,27 @@ export default function ArtistDashboardScreen() {
       setError("Failed to load tracks. Please try again later.");
     } finally {
       setIsLoading(false);
+    }
+  };
+  const calculateAudioDuration = async (audioUri) => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: audioUri },
+        { shouldPlay: false }
+      );
+
+      const status = await sound.getStatusAsync();
+      await sound.unloadAsync(); // Clean up
+
+      // Format duration from milliseconds to MM:SS
+      const totalSeconds = Math.floor(status.durationMillis / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+
+      return `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+    } catch (error) {
+      console.error("Error calculating audio duration:", error);
+      return "--:--"; // Return placeholder if duration can't be calculated
     }
   };
   const formatDate = (dateString) => {
@@ -94,7 +138,7 @@ export default function ArtistDashboardScreen() {
     (track) => track.status === "published"
   );
   const inProcessTracks = tracks.filter(
-    (track) => track.status === "in-process"
+    (track) => track.status === "draft"
   );
 
   const pickImage = async () => {
@@ -123,14 +167,10 @@ export default function ArtistDashboardScreen() {
       if (result.assets && result.assets.length > 0) {
         // For newer versions of expo-document-picker
         const asset = result.assets[0];
-        console.log("Audio file selected:", asset.uri);
-        console.log("Audio file details:", asset);
+
         setAudioFile(asset.uri);
         Alert.alert("Success", `Audio file selected: ${asset.name}`);
       } else if (result.type === "success") {
-        // For older versions of expo-document-picker
-        console.log("Audio file selected:", result.uri);
-        console.log("Audio file details:", result);
         setAudioFile(result.uri);
         Alert.alert("Success", `Audio file selected: ${result.name}`);
       } else {
@@ -142,6 +182,7 @@ export default function ArtistDashboardScreen() {
     }
   };
 
+  // Replace the uploadTrack function with this fixed implementation
   const uploadTrack = async () => {
     if (!trackTitle) {
       Alert.alert("Error", "Please enter a track title");
@@ -161,61 +202,70 @@ export default function ArtistDashboardScreen() {
       formData.append("title", trackTitle);
       formData.append("genre", trackGenre);
       formData.append("description", trackDescription);
-      formData.append("is_public", isPublic);
+      formData.append("is_public", isPublic.toString()); // Convert boolean to string
 
       // Add audio file
-     if (audioFile) {
-       try {
-         // Get file info
-         const fileInfo = await FileSystem.getInfoAsync(audioFile);
+      if (audioFile) {
+        try {
+          // Get file info
+          const fileInfo = await FileSystem.getInfoAsync(audioFile);
 
-         if (!fileInfo.exists) {
-           console.error(`Audio file doesn't exist at path: ${audioFile}`);
-           Alert.alert(
-             "Error",
-             "The selected audio file cannot be found. Please select again."
-           );
-           return;
-         }
+          if (!fileInfo.exists) {
+            console.error(`Audio file doesn't exist at path: ${audioFile}`);
+            Alert.alert(
+              "Error",
+              "The selected audio file cannot be found. Please select again."
+            );
+            setIsUploading(false);
+            return;
+          }
 
-         console.log("Audio file exists:", fileInfo);
+          console.log("Audio file exists:", fileInfo);
 
-         // Get file extension from uri or use default
-         const fileExtension = audioFile.split(".").pop() || "mp3";
-         const mimeType =
-           fileExtension === "mp3" ? "audio/mpeg" : `audio/${fileExtension}`;
+          // Get file extension from uri or use default
+          const fileExtension = audioFile.split(".").pop() || "mp3";
+          const mimeType =
+            fileExtension === "mp3" ? "audio/mpeg" : `audio/${fileExtension}`;
 
-         formData.append("audio_file", {
-           uri:
-             Platform.OS === "android"
-               ? audioFile
-               : audioFile.replace("file://", ""),
-           name: `track_${Date.now()}.${fileExtension}`,
-           type: mimeType,
-         });
-       } catch (fileError) {
-         console.error("Error processing audio file:", fileError);
-         Alert.alert(
-           "Error",
-           "Failed to process the audio file. Please try selecting it again."
-         );
-         return;
-       }
-     } else {
-       Alert.alert("Error", "Please select an audio file");
-       return;
-     }
+          // Use the correct field name expected by the backend: audio_file
+          formData.append("audio_file", {
+            uri:
+              Platform.OS === "android"
+                ? audioFile
+                : audioFile.replace("file://", ""),
+            name: `track_${Date.now()}.${fileExtension}`,
+            type: mimeType,
+          });
+        } catch (fileError) {
+          console.error("Error processing audio file:", fileError);
+          Alert.alert(
+            "Error",
+            "Failed to process the audio file. Please try selecting it again."
+          );
+          setIsUploading(false);
+          return;
+        }
+      }
 
-      // Add cover image if it exists
+      // Add cover image if it exists - use the correct field name: cover_image
       if (coverImage) {
+        const imageExtension = coverImage.split(".").pop() || "jpg";
         formData.append("cover_image", {
           uri: coverImage,
-          name: `cover_${Date.now()}.jpg`,
-          type: "image/jpeg",
+          name: `cover_${Date.now()}.${imageExtension}`,
+          type: `image/${imageExtension}`,
         });
       }
+
       const token = await AsyncStorage.getItem("auth_token");
-      console.log("Token from formData:", formData); // Log the token for debugging
+      if (!token) {
+        Alert.alert("Authentication Error", "Please log in again");
+        setIsUploading(false);
+        return;
+      }
+
+      console.log("Form data being sent:", JSON.stringify(formData));
+
       // Make API request
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/music`,
@@ -228,16 +278,20 @@ export default function ArtistDashboardScreen() {
         }
       );
 
+      console.log("Upload response:", response.data);
+
       // Get the newly created track from response
       const newTrack = {
-        id: response.data.id,
+        id: response.data.id || response.data._id, // Accommodate different API response formats
         title: trackTitle,
         plays: 0,
         likes: 0,
-        coverUrl: coverImage,
+        coverUrl: response.data.backgroundImage || coverImage, // Use API response or fallback
+        audioUrl: response.data.audioFile || audioFile, // Add audio URL
         date: "Just now",
         isPublic: isPublic,
-        status: isPublic ? "published" : "in-process",
+        status: isPublic ? "published" : "draft",
+        duration: "--:--", // We'll calculate this later
       };
 
       // Update local state
@@ -254,8 +308,14 @@ export default function ArtistDashboardScreen() {
           (isPublic ? "published" : "saved as draft") +
           "!"
       );
+
+      // Refresh the tracks list
+      fetchTracks();
     } catch (err) {
-      console.error("Error uploading track:", err);
+      console.error(
+        "Error uploading track:",
+        err.response?.data || err.message || err
+      );
       Alert.alert(
         "Upload Failed",
         "There was a problem uploading your track. Please try again."
@@ -264,14 +324,57 @@ export default function ArtistDashboardScreen() {
       setIsUploading(false);
     }
   };
+  const playAudio = async (trackAudioUrl, trackId) => {
+    try {
+      // If there's already a sound playing, stop it
+      if (sound) {
+        await sound.unloadAsync();
+        setSound(null);
+      }
+
+      // If we're clicking on the already playing track, just stop it
+      if (playingTrackId === trackId) {
+        setPlayingTrackId(null);
+        return;
+      }
+
+      // Load the audio file
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: trackAudioUrl },
+        { shouldPlay: true }
+      );
+
+      setSound(newSound);
+      setPlayingTrackId(trackId);
+
+      // When playback finishes
+      newSound.setOnPlaybackStatusUpdate((status) => {
+        if (status.didJustFinish) {
+          setPlayingTrackId(null);
+        }
+      });
+    } catch (error) {
+      console.error("Error playing audio:", error);
+      Alert.alert(
+        "Playback Error",
+        "Unable to play this track. Please try again later."
+      );
+    }
+  };
 
   const handlePublishTrack = async (trackId) => {
     try {
+      const token = await AsyncStorage.getItem("auth_token");
+      if (!token) {
+        Alert.alert("Authentication Error", "Please log in again");
+        return;
+      }
       // API call to publish the track
       await axios.put(
-        `${API_BASE_URL}/tracks/${trackId}`,
-        { is_public: true },
-        { headers: { Authorization: "Bearer YOUR_AUTH_TOKEN" } }
+        `${API_BASE_URL}/api/v1/music/${trackId}/publish`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
       // Update local state
@@ -294,6 +397,13 @@ export default function ArtistDashboardScreen() {
   };
   const handleDeleteTrack = async (trackId) => {
     try {
+      // Retrieve auth token
+      const token = await AsyncStorage.getItem("auth_token");
+      if (!token) {
+        Alert.alert("Authentication Error", "Please log in again");
+        return;
+      }
+
       // Show confirmation dialog
       Alert.alert(
         "Delete Track",
@@ -307,28 +417,164 @@ export default function ArtistDashboardScreen() {
             text: "Delete",
             style: "destructive",
             onPress: async () => {
-              // API call to delete the track
-              await axios.delete(`${API_URL}/tracks/${trackId}`, {
-                headers: { Authorization: "Bearer YOUR_AUTH_TOKEN" },
-              });
+              try {
+                // API call to delete the track with proper Bearer token
+                const response = await axios.delete(
+                  `${API_BASE_URL}/api/v1/music/${trackId}`,
+                  {
+                    headers: { Authorization: `Bearer ${token}` },
+                  }
+                );
 
-              // Update local state
-              setTracks(tracks.filter((track) => track.id !== trackId));
+                console.log(
+                  "Delete API response:",
+                  response.status,
+                  response.data
+                );
 
-              Alert.alert("Success", "Track has been deleted.");
+                // Update local state only if delete was successful
+                setTracks(tracks.filter((track) => track.id !== trackId));
+                Alert.alert("Success", "Track has been deleted.");
+              } catch (err) {
+                console.error("Error in delete operation:", err);
+
+                Alert.alert(
+                  "Deletion Failed",
+                  "There was a problem deleting your track. Please try again later."
+                );
+              }
             },
           },
         ]
       );
     } catch (err) {
-      console.error("Error deleting track:", err);
-      Alert.alert(
-        "Deletion Failed",
-        "There was a problem deleting your track. Please try again."
-      );
+      console.error("Error initiating delete process:", err);
+      Alert.alert("Error", "Something went wrong. Please try again later.");
     }
   };
-
+  const handleOpenEditModal = (track) => {
+    console.log("rrrrrrr",track)
+    setEditingTrack(track);
+    setTrackTitle(track.title);
+    setTrackGenre(track.genre || "");
+    setTrackDescription(track.description || "");
+    setCoverImage(track.coverUrl);
+    setAudioFile(track.audioUrl);
+    setIsPublic(track.isPublic);
+    setEditModalVisible(true);
+  };
+  
+  // Add this function to handle the track update API call
+  const updateTrack = async () => {
+    if (!trackTitle) {
+      Alert.alert("Error", "Please enter a track title");
+      return;
+    }
+  
+    setIsUploading(true);
+  
+    try {
+      // Prepare form data for multipart upload
+      const formData = new FormData();
+      formData.append("title", trackTitle);
+      formData.append("genre", trackGenre);
+      formData.append("description", trackDescription);
+      formData.append("is_public", isPublic.toString());
+  
+      // Add cover image if it's changed and not a URL (meaning it's a local file path)
+      if (coverImage && !coverImage.startsWith("http")) {
+        const imageExtension = coverImage.split(".").pop() || "jpg";
+        formData.append("cover_image", {
+          uri: coverImage,
+          name: `cover_${Date.now()}.${imageExtension}`,
+          type: `image/${imageExtension}`,
+        });
+      }
+  
+      // Add audio file if it's changed and not a URL
+      if (audioFile && !audioFile.startsWith("http")) {
+        try {
+          const fileInfo = await FileSystem.getInfoAsync(audioFile);
+          if (fileInfo.exists) {
+            const fileExtension = audioFile.split(".").pop() || "mp3";
+            const mimeType = fileExtension === "mp3" ? "audio/mpeg" : `audio/${fileExtension}`;
+            
+            formData.append("audio_file", {
+              uri: Platform.OS === "android" ? audioFile : audioFile.replace("file://", ""),
+              name: `track_${Date.now()}.${fileExtension}`,
+              type: mimeType,
+            });
+          }
+        } catch (fileError) {
+          console.error("Error processing audio file:", fileError);
+        }
+      }
+  
+      const token = await AsyncStorage.getItem("auth_token");
+      if (!token) {
+        Alert.alert("Authentication Error", "Please log in again");
+        setIsUploading(false);
+        return;
+      }
+  
+      // Make API request to update the track
+      const response = await axios.put(
+        `${API_BASE_URL}/api/v1/music/${editingTrack.id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      console.log("Update response:", response.data);
+  
+      // Update the track in the local state
+      setTracks(
+        tracks.map((track) =>
+          track.id === editingTrack.id
+            ? {
+                ...track,
+                title: trackTitle,
+                genre: trackGenre,
+                description: trackDescription,
+                isPublic: isPublic,
+                status: isPublic ? "published" : "draft",
+                coverUrl: response.data.backgroundImage || coverImage,
+                audioUrl: response.data.audioFile || audioFile,
+              }
+            : track
+        )
+      );
+  
+      // Reset form and close modal
+      resetForm();
+      setEditingTrack(null);
+      setEditModalVisible(false);
+  
+      // Show success message
+      Alert.alert(
+        "Success",
+        "Your track has been updated successfully!"
+      );
+  
+      // Refresh tracks list to get the latest data
+      fetchTracks();
+    } catch (err) {
+      console.error(
+        "Error updating track:",
+        err.response?.data || err.message || err
+      );
+      Alert.alert(
+        "Update Failed",
+        "There was a problem updating your track. Please try again."
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
   {
     isLoading && (
       <View style={styles.loadingContainer}>
@@ -360,6 +606,8 @@ export default function ArtistDashboardScreen() {
     setAudioFile(null);
     setIsPublic(true);
     setModalVisible(false);
+    setEditModalVisible(false);
+    setEditingTrack(null);
   };
 
   const tintColor = isDark ? "#2C9CFF" : "#007AFF";
@@ -369,10 +617,12 @@ export default function ArtistDashboardScreen() {
   const borderColor = isDark ? "#333333" : "#E1E1E1";
 
   const renderTrackCard = (track, showPublishButton = false) => (
-    <View
+    <TouchableOpacity
       key={track.id}
+      onPress={() => playAudio(track.audioUrl, track.id)}
       style={[styles.trackCard, { backgroundColor: cardBgColor }]}
     >
+      {/* Keep existing image container code */}
       <View style={styles.trackImageContainer}>
         {track.coverUrl ? (
           <Image source={{ uri: track.coverUrl }} style={styles.trackImage} />
@@ -386,8 +636,14 @@ export default function ArtistDashboardScreen() {
             <IconSymbol name="music.note" size={24} color="#FFFFFF" />
           </View>
         )}
+        {playingTrackId === track.id && (
+          <View style={styles.playingIndicator}>
+            <IconSymbol name="waveform" size={16} color="#FFFFFF" />
+          </View>
+        )}
       </View>
 
+      {/* Keep existing track info code */}
       <View style={styles.trackInfo}>
         <Text style={[styles.trackTitle, { color: textColor }]}>
           {track.title}
@@ -409,33 +665,61 @@ export default function ArtistDashboardScreen() {
                   {track.likes.toLocaleString()}
                 </Text>
               </View>
+              <View style={styles.trackStatItem}>
+                <IconSymbol name="clock" size={12} color="#999" />
+                <Text style={styles.trackStatText}>
+                  {track.duration || "3:45"}
+                </Text>
+              </View>
             </>
           )}
-          {track.status === "in-process" && (
+          {track.status === "draft" && (
             <Text style={styles.draftLabel}>Draft</Text>
           )}
         </View>
       </View>
 
+      {/* Improved track actions section */}
       <View style={styles.trackActions}>
         {showPublishButton && (
           <TouchableOpacity
             style={[styles.publishButton, { backgroundColor: tintColor }]}
-            onPress={() => handlePublishTrack(track.id)}
+            onPress={(e) => {
+              e.stopPropagation();
+              handlePublishTrack(track.id);
+            }}
           >
             <Text style={styles.publishButtonText}>Publish</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
-          style={styles.trackOptionsButton}
-          onPress={() => handleDeleteTrack(track.id)}
+          style={styles.actionButton}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleOpenEditModal(track);
+          }}
+        >
+          <IconSymbol name="pencil" size={20} color={tintColor} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleDeleteTrack(track.id);
+          }}
         >
           <IconSymbol name="trash" size={20} color="#FF3B30" />
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
-
+  useEffect(() => {
+    return sound
+      ? () => {
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
       <StatusBar style={isDark ? "light" : "dark"} />
@@ -504,28 +788,6 @@ export default function ArtistDashboardScreen() {
             In Process
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === "insights" && styles.activeTab,
-            { borderBottomColor: tintColor },
-          ]}
-          onPress={() => setActiveTab("insights")}
-        >
-          <IconSymbol
-            name="chart.bar"
-            size={18}
-            color={activeTab === "insights" ? tintColor : "#999"}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              { color: activeTab === "insights" ? tintColor : "#999" },
-            ]}
-          >
-            Insights
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {/* Content */}
@@ -539,11 +801,11 @@ export default function ArtistDashboardScreen() {
                 <Text style={styles.statLabel}>Published</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>18.2K</Text>
+                <Text style={styles.statValue}>_</Text>
                 <Text style={styles.statLabel}>Total Plays</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>2.1K</Text>
+                <Text style={styles.statValue}>_</Text>
                 <Text style={styles.statLabel}>Likes</Text>
               </View>
             </View>
@@ -627,64 +889,6 @@ export default function ArtistDashboardScreen() {
             ) : (
               inProcessTracks.map((track) => renderTrackCard(track, true))
             )}
-          </View>
-        )}
-
-        {activeTab === "insights" && (
-          <View style={styles.insightsContainer}>
-            {/* Insights Summary */}
-            <View
-              style={[styles.insightCard, { backgroundColor: cardBgColor }]}
-            >
-              <Text style={[styles.insightCardTitle, { color: textColor }]}>
-                Audience Growth
-              </Text>
-              <View style={styles.graphPlaceholder}>
-                <Text style={styles.graphPlaceholderText}>+24% this month</Text>
-              </View>
-            </View>
-
-            {/* Top Tracks */}
-            <View
-              style={[styles.insightCard, { backgroundColor: cardBgColor }]}
-            >
-              <Text style={[styles.insightCardTitle, { color: textColor }]}>
-                Top Performing Tracks
-              </Text>
-              <View style={styles.topTrackItem}>
-                <Text style={[styles.topTrackTitle, { color: textColor }]}>
-                  1. Midnight Groove
-                </Text>
-                <Text style={styles.topTrackStats}>12.4K plays</Text>
-              </View>
-              <View style={styles.topTrackItem}>
-                <Text style={[styles.topTrackTitle, { color: textColor }]}>
-                  2. Urban Echo
-                </Text>
-                <Text style={styles.topTrackStats}>5.6K plays</Text>
-              </View>
-            </View>
-
-            {/* Audience Demographics */}
-            <View
-              style={[styles.insightCard, { backgroundColor: cardBgColor }]}
-            >
-              <Text style={[styles.insightCardTitle, { color: textColor }]}>
-                Audience Demographics
-              </Text>
-              <View style={styles.demographicItem}>
-                <Text style={styles.demographicLabel}>Top Locations</Text>
-                <Text style={[styles.demographicValue, { color: textColor }]}>
-                  New York, London, Tokyo
-                </Text>
-              </View>
-              <View style={styles.demographicItem}>
-                <Text style={styles.demographicLabel}>Age Group</Text>
-                <Text style={[styles.demographicValue, { color: textColor }]}>
-                  18-34 (68%)
-                </Text>
-              </View>
-            </View>
           </View>
         )}
       </ScrollView>
@@ -869,6 +1073,187 @@ export default function ArtistDashboardScreen() {
           </View>
         </View>
       </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editModalVisible}
+        onRequestClose={() => {
+          setEditModalVisible(false);
+          resetForm();
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: bgColor }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: textColor }]}>
+                Edit Track
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setEditModalVisible(false);
+                  resetForm();
+                }}
+              >
+                <IconSymbol name="xmark" size={24} color={textColor} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalScrollView}>
+              {/* Cover Image Selector */}
+              <TouchableOpacity
+                style={[
+                  styles.coverSelector,
+                  { backgroundColor: cardBgColor, borderColor: borderColor },
+                ]}
+                onPress={pickImage}
+              >
+                {coverImage ? (
+                  <Image
+                    source={{ uri: coverImage }}
+                    style={styles.coverPreview}
+                  />
+                ) : (
+                  <>
+                    <IconSymbol name="photo" size={32} color={tintColor} />
+                    <Text
+                      style={[styles.coverSelectorText, { color: textColor }]}
+                    >
+                      Select Cover Art
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              {/* Track Details Form */}
+              <View style={styles.formContainer}>
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: textColor }]}>
+                    Title *
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.textInput,
+                      {
+                        backgroundColor: cardBgColor,
+                        color: textColor,
+                        borderColor: borderColor,
+                      },
+                    ]}
+                    placeholder="Enter track title"
+                    placeholderTextColor="#999"
+                    value={trackTitle}
+                    onChangeText={setTrackTitle}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: textColor }]}>
+                    Genre
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.textInput,
+                      {
+                        backgroundColor: cardBgColor,
+                        color: textColor,
+                        borderColor: borderColor,
+                      },
+                    ]}
+                    placeholder="Enter genre (e.g., Hip-Hop, R&B)"
+                    placeholderTextColor="#999"
+                    value={trackGenre}
+                    onChangeText={setTrackGenre}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: textColor }]}>
+                    Description
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.textArea,
+                      {
+                        backgroundColor: cardBgColor,
+                        color: textColor,
+                        borderColor: borderColor,
+                      },
+                    ]}
+                    placeholder="Add a description for your track"
+                    placeholderTextColor="#999"
+                    multiline={true}
+                    numberOfLines={4}
+                    value={trackDescription}
+                    onChangeText={setTrackDescription}
+                  />
+                </View>
+
+                {/* Audio File Selector */}
+                <TouchableOpacity
+                  style={[
+                    styles.audioSelector,
+                    { backgroundColor: cardBgColor, borderColor: borderColor },
+                  ]}
+                  onPress={pickAudio}
+                >
+                  <IconSymbol name="music.note" size={24} color={tintColor} />
+                  <Text
+                    style={[styles.audioSelectorText, { color: textColor }]}
+                  >
+                    {audioFile
+                      ? `Current Audio: ${audioFile.split("/").pop()}`
+                      : "Select Audio File *"}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Visibility Toggle */}
+                <View style={styles.visibilityContainer}>
+                  <Text style={[styles.visibilityText, { color: textColor }]}>
+                    Publish this track
+                  </Text>
+                  <TouchableOpacity
+                    style={[
+                      styles.toggleButton,
+                      { backgroundColor: isPublic ? tintColor : "#999" },
+                    ]}
+                    onPress={() => setIsPublic(!isPublic)}
+                  >
+                    <View
+                      style={[styles.toggleCircle, { left: isPublic ? 22 : 2 }]}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Update Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.uploadButton,
+                    {
+                      backgroundColor: tintColor,
+                      opacity: isUploading ? 0.7 : 1,
+                    },
+                  ]}
+                  onPress={updateTrack}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <>
+                      <IconSymbol
+                        name="arrow.up.circle"
+                        size={18}
+                        color="#FFFFFF"
+                      />
+                      <Text style={styles.uploadButtonText}>Update Track</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -876,6 +1261,32 @@ export default function ArtistDashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  trackActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    paddingLeft: 8,
+  },
+ 
+  actionButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 2,
+    borderRadius: 20,
+  },
+  playingIndicator: {
+    position: "absolute",
+    right: 5,
+    bottom: 5,
+    backgroundColor: "rgba(0, 122, 255, 0.8)",
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     flexDirection: "row",
@@ -1026,6 +1437,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 8,
   },
+
+  trackOptionsButton: {
+    width: 36,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   trackStatItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -1041,10 +1459,7 @@ const styles = StyleSheet.create({
     color: "#FF9500",
     fontWeight: "500",
   },
-  trackActions: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+
   publishButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -1056,12 +1471,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "500",
   },
-  trackOptionsButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+
   insightsContainer: {
     padding: 20,
   },
@@ -1275,5 +1685,12 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: "#FFFFFF",
     fontWeight: "600",
+  },
+  editButton: {
+    width: 36,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 5,
   },
 });

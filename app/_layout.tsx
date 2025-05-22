@@ -12,6 +12,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
 import { View, ActivityIndicator } from "react-native";
+import ChatBot from "../components/chatbot";
 
 export default function RootLayout(): React.ReactNode {
   const colorScheme = useColorScheme();
@@ -57,19 +58,34 @@ export default function RootLayout(): React.ReactNode {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="auth"
-            options={{ headerShown: false, gestureEnabled: false }}
-          />
-          <Stack.Screen
-            name="(tabs)"
-            options={{ headerShown: false, gestureEnabled: false }}
-          />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
+        <View style={{ flex: 1 }}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="auth"
+              options={{ headerShown: false, gestureEnabled: false }}
+            />
+            <Stack.Screen
+              name="(tabs)"
+              options={{ headerShown: false, gestureEnabled: false }}
+            />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="auto" />
+          {/* ChatBot positioned as an absolute overlay */}
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              pointerEvents: "box-none",
+            }}
+          >
+            <ChatBot />
+          </View>
+        </View>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

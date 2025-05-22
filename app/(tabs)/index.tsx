@@ -8,6 +8,7 @@ import {
   ImageSourcePropType,
   StyleSheet,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import Animated, { FadeIn, FadeInRight } from "react-native-reanimated";
 
@@ -17,78 +18,128 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useAuth } from "@/store/AuthContext";
 import useAuthStore from "@/store/useAuthStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { API_BASE_URL } from "@/constants";
+import { Audio } from "expo-av";
 
 // Define types for our data
 interface Song {
   id: string;
   title: string;
   artist: string;
-  coverArt: ImageSourcePropType;
+  coverArt: ImageSourcePropType | { uri: string };
+  audioUrl: string;
+  duration?: string;
 }
 
-// interface User {
-//   username?: string;
-//   isArtist?: boolean;
-//   [key: string]: any;
-// }
-
-// Mock data for featured and trending songs
-const FEATURED_SONGS: Song[] = [
-  {
-    id: "1",
-    title: "Summer Vibes",
-    artist: "DJ Harmony",
-    coverArt: require("@/assets/images/album1.png"),
-  },
-  {
-    id: "2",
-    title: "Midnight Dreams",
-    artist: "Luna Kay",
-    coverArt: require("@/assets/images/album1.png"),
-  },
-  {
-    id: "3",
-    title: "Urban Echoes",
-    artist: "City Beats",
-    coverArt: require("@/assets/images/album1.png"),
-  },
-];
-
-const TRENDING_SONGS: Song[] = [
-  {
-    id: "1",
-    title: "Neon Lights",
-    artist: "Electro Pulse",
-    coverArt: require("@/assets/images/album1.png"),
-  },
-  {
-    id: "2",
-    title: "Ocean Waves",
-    artist: "Coastal Dreams",
-    coverArt: require("@/assets/images/album1.png"),
-  },
-  {
-    id: "3",
-    title: "Mountain High",
-    artist: "Peak Performance",
-    coverArt: require("@/assets/images/album1.png"),
-  },
-  {
-    id: "4",
-    title: "Desert Rose",
-    artist: "Sandy Tunes",
-    coverArt: require("@/assets/images/album1.png"),
-  },
-];
-
 export default function HomeScreen(): React.ReactElement {
- 
   const router = useRouter();
   const colorScheme = useColorScheme();
   const [greeting, setGreeting] = useState<string>("");
   const [currentTrack, setCurrentTrack] = useState<Song | null>(null);
-   const {  user } = useAuthStore();
-console.log("USER", user)
+  const [currentTrackIndex, setCurrentTrackIndex] = useState<number>(-1);
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackPosition, setPlaybackPosition] = useState<string>("0:00");
+  const [playbackDuration, setPlaybackDuration] = useState<string>("0:00");
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    fetchTracks();
+    return () => {
+      // Clean up audio on unmount
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, []);
+
+  // Set up interval for updating playback position
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (isPlaying && sound) {
+      interval = setInterval(async () => {
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded) {
+          // Format position from milliseconds to MM:SS
+          const positionMs = status.positionMillis;
+          const durationMs = status.durationMillis || 0;
+          setPlaybackPosition(formatTime(positionMs));
+          setPlaybackDuration(formatTime(durationMs));
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isPlaying, sound]);
+
+  const formatTime = (milliseconds: number): string => {
+    if (!milliseconds) return "0:00";
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+  };
+
+  const fetchTracks = async () => {
+    setIsLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("auth_token");
+      const response = await axios.get(`${API_BASE_URL}/api/v1/music`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Fetch duration for each track
+      const fetchedSongs = await Promise.all(
+        response.data.map(async (track) => {
+          const duration = await calculateAudioDuration(track.audioFile);
+          return {
+            id: track._id,
+            title: track.title,
+            artist: track.user.name || "Unknown Artist",
+            audioUrl: track.audioFile,
+            coverArt: { uri: track.backgroundImage },
+            duration: duration,
+          };
+        })
+      );
+
+      setSongs(fetchedSongs);
+    } catch (err) {
+      console.error("Error fetching songs:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const calculateAudioDuration = async (audioUri: string): Promise<string> => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: audioUri },
+        { shouldPlay: false }
+      );
+
+      const status = await sound.getStatusAsync();
+      await sound.unloadAsync(); // Clean up
+
+      // Format duration from milliseconds to MM:SS
+      const totalSeconds = Math.floor((status.durationMillis || 0) / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+
+      return `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+    } catch (error) {
+      console.error("Error calculating audio duration:", error);
+      return "--:--"; // Return placeholder if duration can't be calculated
+    }
+  };
+
   useEffect(() => {
     // Set greeting based on time of day
     const hour = new Date().getHours();
@@ -101,15 +152,92 @@ console.log("USER", user)
     }
   }, []);
 
-  const handlePlaySong = (song: Song): void => {
-    setCurrentTrack(song);
-    // In a real app, you would play the song here
+  const playAudio = async (song: Song) => {
+    try {
+      // Find index of the song in the songs array
+      const songIndex = songs.findIndex((s) => s.id === song.id);
+
+      // If we're clicking on the already playing track, toggle pause/play
+      if (currentTrack?.id === song.id) {
+        if (isPlaying) {
+          await sound?.pauseAsync();
+          setIsPlaying(false);
+        } else {
+          await sound?.playAsync();
+          setIsPlaying(true);
+        }
+        return;
+      }
+
+      // Stop any currently playing sound
+      if (sound) {
+        await sound.unloadAsync();
+      }
+
+      // Load and play the new sound
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: song.audioUrl },
+        { shouldPlay: true }
+      );
+
+      setSound(newSound);
+      setCurrentTrack(song);
+      setCurrentTrackIndex(songIndex);
+      setIsPlaying(true);
+
+      // Set up playback status updates
+      newSound.setOnPlaybackStatusUpdate((status) => {
+        if (status.didJustFinish) {
+          setIsPlaying(false);
+          // Auto-play next song if available
+          playNextTrack();
+        }
+      });
+    } catch (error) {
+      console.error("Error playing audio:", error);
+      Alert.alert("Error", "Could not play the audio file");
+    }
+  };
+
+  const pauseAudio = async () => {
+    if (sound) {
+      await sound.pauseAsync();
+      setIsPlaying(false);
+    }
+  };
+
+  const playNextTrack = async () => {
+    if (songs.length === 0 || currentTrackIndex === -1) return;
+
+    const nextIndex = (currentTrackIndex + 1) % songs.length;
+    const nextSong = songs[nextIndex];
+
+    await playAudio(nextSong);
+  };
+
+  const playPreviousTrack = async () => {
+    if (songs.length === 0 || currentTrackIndex === -1) return;
+
+    // If current position is more than 3 seconds, restart current song
+    // instead of going to previous track
+    if (sound) {
+      const status = await sound.getStatusAsync();
+      if (status.positionMillis > 3000) {
+        await sound.setPositionAsync(0);
+        return;
+      }
+    }
+
+    const prevIndex = (currentTrackIndex - 1 + songs.length) % songs.length;
+    const prevSong = songs[prevIndex];
+
+    await playAudio(prevSong);
   };
 
   const renderFeaturedItem = ({ item }: { item: Song }): React.ReactElement => (
     <TouchableOpacity
       style={styles.featuredItem}
-      onPress={() => handlePlaySong(item)}
+      onPress={() => playAudio(item)}
     >
       <Image source={item.coverArt} style={styles.featuredCover} />
       <LinearGradient
@@ -118,24 +246,40 @@ console.log("USER", user)
       >
         <ThemedText style={styles.featuredTitle}>{item.title}</ThemedText>
         <ThemedText style={styles.featuredArtist}>{item.artist}</ThemedText>
+        <ThemedText style={styles.featuredDuration}>
+          {item.duration || "--:--"}
+        </ThemedText>
       </LinearGradient>
     </TouchableOpacity>
   );
 
   const renderTrendingItem = ({ item }: { item: Song }): React.ReactElement => (
     <Animated.View
-      entering={FadeInRight.delay(parseInt(item.id) * 100).duration(600)}
+      entering={FadeInRight.delay(
+        Number(item.id?.toString()?.slice(-3)) || 0
+      ).duration(600)}
     >
       <TouchableOpacity
         style={styles.trendingItem}
-        onPress={() => handlePlaySong(item)}
+        onPress={() => playAudio(item)}
       >
         <Image source={item.coverArt} style={styles.trendingCover} />
         <ThemedView style={styles.trendingInfo}>
           <ThemedText style={styles.trendingTitle}>{item.title}</ThemedText>
           <ThemedText style={styles.trendingArtist}>{item.artist}</ThemedText>
+          <ThemedText style={styles.trendingDuration}>
+            {item.duration || "--:--"}
+          </ThemedText>
         </ThemedView>
-        <IconSymbol name="play.fill" size={24} color="#4CAF50" />
+        <IconSymbol
+          name={
+            currentTrack?.id === item.id && isPlaying
+              ? "pause.fill"
+              : "play.fill"
+          }
+          size={24}
+          color="#4CAF50"
+        />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -169,7 +313,7 @@ console.log("USER", user)
               <ThemedText style={styles.sectionTitle}>Featured</ThemedText>
               <FlatList
                 horizontal
-                data={FEATURED_SONGS}
+                data={songs}
                 renderItem={renderFeaturedItem}
                 keyExtractor={(item) => item.id}
                 showsHorizontalScrollIndicator={false}
@@ -181,7 +325,7 @@ console.log("USER", user)
             <ThemedView style={styles.section}>
               <ThemedText style={styles.sectionTitle}>Trending Now</ThemedText>
               <ThemedView style={styles.trendingList}>
-                {TRENDING_SONGS.map((item) => (
+                {songs.map((item) => (
                   <React.Fragment key={item.id}>
                     {renderTrendingItem({ item })}
                   </React.Fragment>
@@ -230,19 +374,32 @@ console.log("USER", user)
             <ThemedText style={styles.nowPlayingArtist}>
               {currentTrack.artist}
             </ThemedText>
+            <ThemedText style={styles.nowPlayingDuration}>
+              {playbackPosition} /{" "}
+              {playbackDuration || currentTrack.duration || "--:--"}
+            </ThemedText>
           </ThemedView>
           <ThemedView style={styles.nowPlayingControls}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={playPreviousTrack}>
               <IconSymbol
                 name="backward.fill"
                 size={24}
                 color={colorScheme === "dark" ? "#fff" : "#000"}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.playPauseButton}>
-              <IconSymbol name="pause.fill" size={24} color="#fff" />
+            <TouchableOpacity
+              style={styles.playPauseButton}
+              onPress={() =>
+                isPlaying ? pauseAudio() : playAudio(currentTrack)
+              }
+            >
+              <IconSymbol
+                name={isPlaying ? "pause.fill" : "play.fill"}
+                size={24}
+                color="#fff"
+              />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={playNextTrack}>
               <IconSymbol
                 name="forward.fill"
                 size={24}
@@ -332,6 +489,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.8,
   },
+  featuredDuration: {
+    color: "#fff",
+    fontSize: 12,
+    opacity: 0.7,
+    marginTop: 4,
+  },
   trendingList: {
     paddingHorizontal: 20,
   },
@@ -358,6 +521,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.7,
   },
+  trendingDuration: {
+    fontSize: 12,
+    opacity: 0.5,
+    marginTop: 2,
+  },
   createButton: {
     marginHorizontal: 20,
     borderRadius: 12,
@@ -377,10 +545,10 @@ const styles = StyleSheet.create({
   },
   nowPlaying: {
     position: "absolute",
-    bottom: 80,
+    bottom: 5,
     left: 20,
     right: 20,
-    height: 70,
+    height: 80, // Increased height to accommodate duration
     borderRadius: 12,
     flexDirection: "row",
     alignItems: "center",
@@ -405,6 +573,11 @@ const styles = StyleSheet.create({
   nowPlayingArtist: {
     fontSize: 14,
     opacity: 0.7,
+  },
+  nowPlayingDuration: {
+    fontSize: 12,
+    opacity: 0.5,
+    marginTop: 2,
   },
   nowPlayingControls: {
     flexDirection: "row",

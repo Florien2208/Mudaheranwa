@@ -1,19 +1,31 @@
-import React, { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from "react-native";
-import useAuthStore from "@/store/useAuthStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import useAuthStore from "@/store/useAuthStore";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
+
+// Validation constants
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_MIN_LENGTH = 6;
+
+interface ValidationErrors {
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  name?: string;
+}
 
 export default function AuthScreen(): React.ReactElement {
   const [isLogin, setIsLogin] = useState<boolean>(false); // Default to signup
@@ -22,6 +34,10 @@ export default function AuthScreen(): React.ReactElement {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [name, setFullName] = useState<string>("");
   const [agreeToTerms, setAgreeToTerms] = useState<boolean>(false);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
+    {}
+  );
 
   // Use Zustand store instead of context
   const { login, signup, error, loading, clearError } = useAuthStore();
@@ -35,28 +51,142 @@ export default function AuthScreen(): React.ReactElement {
     }
   }, [error, clearError]);
 
+  // Revalidate when switching between login/signup
+  useEffect(() => {
+    setErrors({});
+    setTouchedFields({});
+  }, [isLogin]);
+
+  const validateEmail = (value: string): string | undefined => {
+    if (!value.trim()) return "Email is required";
+    if (!EMAIL_REGEX.test(value)) return "Please enter a valid email address";
+    return undefined;
+  };
+
+  const validatePassword = (value: string): string | undefined => {
+    if (!value) return "Password is required";
+    if (value.length < PASSWORD_MIN_LENGTH)
+      return `Password must be at least ${PASSWORD_MIN_LENGTH} characters`;
+    // if (!/[A-Z]/.test(value))
+    //   return "Password must contain at least one uppercase letter";
+    // if (!/[a-z]/.test(value))
+    //   return "Password must contain at least one lowercase letter";
+    // if (!/[0-9]/.test(value))
+    //   return "Password must contain at least one number";
+    return undefined;
+  };
+
+  const validateName = (value: string): string | undefined => {
+    if (!value.trim()) return "Full name is required";
+    if (value.trim().length < 2) return "Name is too short";
+    if (!/^[a-zA-Z\s'-]+$/.test(value))
+      return "Name contains invalid characters";
+    return undefined;
+  };
+
+  const validateConfirmPassword = (
+    value: string,
+    passwordValue: string
+  ): string | undefined => {
+    if (!value) return "Please confirm your password";
+    if (value !== passwordValue) return "Passwords don't match";
+    return undefined;
+  };
+
+  const handleBlur = (field: string): void => {
+    setTouchedFields((prev) => ({ ...prev, [field]: true }));
+    validateField(field);
+  };
+
+  const validateField = (field: string): void => {
+    let fieldError: string | undefined;
+
+    switch (field) {
+      case "email":
+        fieldError = validateEmail(email);
+        break;
+      case "password":
+        fieldError = validatePassword(password);
+        break;
+      case "confirmPassword":
+        fieldError = validateConfirmPassword(confirmPassword, password);
+        break;
+      case "name":
+        fieldError = validateName(name);
+        break;
+      default:
+        return;
+    }
+
+    setErrors((prev) => ({
+      ...prev,
+      [field]: fieldError,
+    }));
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {};
+    let isValid = true;
+
+    // Validate email and password for both login and signup
+    const emailError = validateEmail(email);
+    if (emailError) {
+      newErrors.email = emailError;
+      isValid = false;
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      newErrors.password = passwordError;
+      isValid = false;
+    }
+
+    // Additional validations for signup
+    if (!isLogin) {
+      const nameError = validateName(name);
+      if (nameError) {
+        newErrors.name = nameError;
+        isValid = false;
+      }
+
+      const confirmPasswordError = validateConfirmPassword(
+        confirmPassword,
+        password
+      );
+      if (confirmPasswordError) {
+        newErrors.confirmPassword = confirmPasswordError;
+        isValid = false;
+      }
+
+      if (!agreeToTerms) {
+        Alert.alert(
+          "Terms Agreement",
+          "You must agree to the Terms of Service and Privacy Policy"
+        );
+        isValid = false;
+      }
+    }
+
+    setErrors(newErrors);
+    // Mark all fields as touched when submitting
+    setTouchedFields({
+      email: true,
+      password: true,
+      ...(isLogin ? {} : { name: true, confirmPassword: true }),
+    });
+
+    return isValid;
+  };
+
   const handleAuth = (): void => {
+    if (!validateForm()) return;
+
     if (isLogin) {
       login({
         email,
         password,
       });
     } else {
-      if (password !== confirmPassword) {
-        // Add password matching validation
-        Alert.alert("Validation Error", "Passwords don't match");
-        return;
-      }
-
-      if (!agreeToTerms) {
-        // Terms validation
-        Alert.alert(
-          "Terms Agreement",
-          "You must agree to the Terms of Service and Privacy Policy"
-        );
-        return;
-      }
-
       signup({
         email,
         password,
@@ -68,17 +198,18 @@ export default function AuthScreen(): React.ReactElement {
   const toggleMode = (): void => {
     setIsLogin(!isLogin);
   };
-
-  const primaryColor = "#FF6347"; // Coral/orange color from the image
-  const inputBgColor = "#FFFFFF";
-  const textColor = "#333333";
+  const primaryColor = "#1ED760"; // Coral/orange color from the image
+  const tint = Colors[colorScheme ?? "light"].tint;
+  const textColor = Colors[colorScheme ?? "light"].text;
+  const inputBgColor = Colors[colorScheme ?? "light"].background;
   const placeholderColor = "#999999";
-  const borderColor = "#EEEEEE";
+  const borderColor = Colors[colorScheme ?? "light"].tabIconDefault;
+  const errorColor = "#FF3B30"; // Error color
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: inputBgColor }]}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -87,15 +218,18 @@ export default function AuthScreen(): React.ReactElement {
         <ThemedView style={styles.formWrapper}>
           <Animated.View
             entering={FadeInDown.duration(800)}
-            style={styles.formContainer}
+            style={[styles.formContainer, { backgroundColor: inputBgColor }]}
           >
-            <ThemedText type="title" style={styles.headerText}>
+            <ThemedText
+              type="title"
+              style={[styles.headerText, { color: tint }]}
+            >
               {isLogin ? "Sign in to your account" : "Create a new account"}
             </ThemedText>
 
             {!isLogin && (
               <View style={styles.subheaderContainer}>
-                <ThemedText style={styles.subheaderText}>
+                <ThemedText style={[styles.subheaderText, { color: tint }]}>
                   Or{" "}
                   <ThemedText
                     style={[styles.subheaderText, styles.linkText]}
@@ -110,66 +244,118 @@ export default function AuthScreen(): React.ReactElement {
 
             {!isLogin && (
               <View style={styles.inputGroup}>
-                <ThemedText style={styles.inputLabel}>Full Name</ThemedText>
+                <ThemedText style={[styles.inputLabel, { color: tint }]}>
+                  Full Name
+                </ThemedText>
                 <TextInput
                   style={[
                     styles.input,
                     {
                       backgroundColor: inputBgColor,
                       color: textColor,
-                      borderColor: borderColor,
+                      borderColor:
+                        touchedFields.name && errors.name
+                          ? errorColor
+                          : borderColor,
                     },
                   ]}
                   placeholder="Enter your full name"
                   placeholderTextColor={placeholderColor}
                   value={name}
-                  onChangeText={setFullName}
+                  onChangeText={(value) => {
+                    setFullName(value);
+                    if (touchedFields.name) {
+                      validateField("name");
+                    }
+                  }}
+                  onBlur={() => handleBlur("name")}
                 />
+                {touchedFields.name && errors.name && (
+                  <ThemedText style={[styles.errorText, { color: errorColor }]}>
+                    {errors.name}
+                  </ThemedText>
+                )}
               </View>
             )}
 
             <View style={styles.inputGroup}>
-              <ThemedText style={styles.inputLabel}>Email address</ThemedText>
+              <ThemedText style={[styles.inputLabel, { color: tint }]}>
+                Email address
+              </ThemedText>
               <TextInput
                 style={[
                   styles.input,
                   {
                     backgroundColor: inputBgColor,
                     color: textColor,
-                    borderColor: borderColor,
+                    borderColor:
+                      touchedFields.email && errors.email
+                        ? errorColor
+                        : borderColor,
                   },
                 ]}
                 placeholder="Enter your email"
                 placeholderTextColor={placeholderColor}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(value) => {
+                  setEmail(value);
+                  if (touchedFields.email) {
+                    validateField("email");
+                  }
+                }}
+                onBlur={() => handleBlur("email")}
                 autoCapitalize="none"
                 keyboardType="email-address"
               />
+              {touchedFields.email && errors.email && (
+                <ThemedText style={[styles.errorText, { color: errorColor }]}>
+                  {errors.email}
+                </ThemedText>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
-              <ThemedText style={styles.inputLabel}>Password</ThemedText>
+              <ThemedText style={[styles.inputLabel, { color: tint }]}>
+                Password
+              </ThemedText>
               <TextInput
                 style={[
                   styles.input,
                   {
                     backgroundColor: inputBgColor,
                     color: textColor,
-                    borderColor: borderColor,
+                    borderColor:
+                      touchedFields.password && errors.password
+                        ? errorColor
+                        : borderColor,
                   },
                 ]}
                 placeholder="Enter your password"
                 placeholderTextColor={placeholderColor}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(value) => {
+                  setPassword(value);
+                  if (touchedFields.password) {
+                    validateField("password");
+                  }
+                  // Also validate confirm password if it's been touched
+                  if (touchedFields.confirmPassword) {
+                    validateField("confirmPassword");
+                  }
+                }}
+                onBlur={() => handleBlur("password")}
                 secureTextEntry
               />
+              {touchedFields.password && errors.password && (
+                <ThemedText style={[styles.errorText, { color: errorColor }]}>
+                  {errors.password}
+                </ThemedText>
+              )}
             </View>
 
             {!isLogin && (
               <View style={styles.inputGroup}>
-                <ThemedText style={styles.inputLabel}>
+                <ThemedText style={[styles.inputLabel, { color: tint }]}>
                   Confirm Password
                 </ThemedText>
                 <TextInput
@@ -178,27 +364,62 @@ export default function AuthScreen(): React.ReactElement {
                     {
                       backgroundColor: inputBgColor,
                       color: textColor,
-                      borderColor: borderColor,
+                      borderColor:
+                        touchedFields.confirmPassword && errors.confirmPassword
+                          ? errorColor
+                          : borderColor,
                     },
                   ]}
                   placeholder="Confirm your password"
                   placeholderTextColor={placeholderColor}
                   value={confirmPassword}
-                  onChangeText={setConfirmPassword}
+                  onChangeText={(value) => {
+                    setConfirmPassword(value);
+                    if (touchedFields.confirmPassword) {
+                      validateField("confirmPassword");
+                    }
+                  }}
+                  onBlur={() => handleBlur("confirmPassword")}
                   secureTextEntry
                 />
+                {touchedFields.confirmPassword && errors.confirmPassword && (
+                  <ThemedText style={[styles.errorText, { color: errorColor }]}>
+                    {errors.confirmPassword}
+                  </ThemedText>
+                )}
               </View>
             )}
 
             {!isLogin && (
               <View style={styles.termsContainer}>
                 <TouchableOpacity
-                  style={styles.checkbox}
+                  style={[
+                    styles.checkbox,
+                    {
+                      borderColor: borderColor,
+                    },
+                  ]}
                   onPress={() => setAgreeToTerms(!agreeToTerms)}
                 >
                   {agreeToTerms && (
-                    <View style={styles.checkboxChecked}>
-                      <ThemedText style={styles.checkMark}>✓</ThemedText>
+                    <View
+                      style={[
+                        styles.checkboxChecked,
+                        {
+                          backgroundColor: inputBgColor,
+                        },
+                      ]}
+                    >
+                      <ThemedText
+                        style={[
+                          styles.checkMark,
+                          {
+                            color: textColor,
+                          },
+                        ]}
+                      >
+                        ✓
+                      </ThemedText>
                     </View>
                   )}
                 </TouchableOpacity>
@@ -241,7 +462,7 @@ export default function AuthScreen(): React.ReactElement {
                 onPress={toggleMode}
               >
                 <ThemedText style={styles.toggleText}>
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <ThemedText style={styles.linkText}>Sign up</ThemedText>
                 </ThemedText>
               </TouchableOpacity>
@@ -256,7 +477,6 @@ export default function AuthScreen(): React.ReactElement {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9F9F9",
   },
   scrollContainer: {
     flexGrow: 1,
@@ -271,7 +491,6 @@ const styles = StyleSheet.create({
   formContainer: {
     width: "100%",
     maxWidth: 450,
-    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     padding: 30,
     shadowColor: "#000",
@@ -284,14 +503,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 8,
-    color: "#333333",
   },
   subheaderContainer: {
     marginBottom: 24,
   },
   subheaderText: {
     fontSize: 14,
-    color: "#666666",
   },
   inputGroup: {
     marginBottom: 16,
@@ -301,7 +518,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "500",
     marginBottom: 6,
-    color: "#333333",
   },
   input: {
     height: 50,
@@ -309,6 +525,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingHorizontal: 12,
     fontSize: 16,
+  },
+  errorText: {
+    fontSize: 12,
+    marginTop: 4,
   },
   termsContainer: {
     flexDirection: "row",
@@ -319,7 +539,6 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 1,
-    borderColor: "#CCCCCC",
     borderRadius: 4,
     marginRight: 10,
     marginTop: 2,
@@ -327,25 +546,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   checkboxChecked: {
-    backgroundColor: "#FF6347",
     width: "100%",
     height: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
   checkMark: {
-    color: "#FFFFFF",
     fontSize: 12,
     fontWeight: "bold",
   },
   termsText: {
     flex: 1,
     fontSize: 14,
-    color: "#666666",
+    color: "#535353", // Spotify's darker gray
     lineHeight: 20,
   },
   linkText: {
-    color: "#FF6347",
+    color: "#1ED760", // Spotify's signature green
     fontWeight: "500",
   },
   button: {
@@ -366,6 +583,6 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     fontSize: 14,
-    color: "#666666",
+    color: "#535353", // Spotify's darker gray
   },
 });

@@ -1,26 +1,27 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = "#00bcd4"; // Deeper cyan for contrast
+const tintColorDark = "#9effff"; // Glow for dark mode
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: "#004e5a", // Dark teal for text visibility
+    background: "#e0f7fa", // Soft cyan background
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: "#007c91", // Mid cyan for icons
+    tabIconDefault: "#007c91",
     tabIconSelected: tintColorLight,
+    border: "#b2ebf2", // Lighter border color
+    secondaryText: "#006064", // Slightly lighter than text for secondary elements
+    tabBackgroundColor: "#ffffff",
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: "#c2fcff",
+    background: "#0b1c26",
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: "#69d2e7",
+    tabIconDefault: "#69d2e7",
     tabIconSelected: tintColorDark,
+    border: "#143544", // Darker border color for dark mode
+    secondaryText: "#8ceff5", // Slightly dimmer than text for secondary elements
+    tabBackgroundColor: "#143544",
   },
 };

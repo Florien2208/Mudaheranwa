@@ -1,5 +1,5 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { SymbolWeight, SymbolViewProps } from "expo-symbols";
+import { SymbolViewProps, SymbolWeight } from "expo-symbols";
 import { ComponentProps } from "react";
 import { OpaqueColorValue, type StyleProp, type TextStyle } from "react-native";
 
@@ -15,6 +15,7 @@ type IconSymbolName = keyof typeof MAPPING;
  * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
  */
 const MAPPING = {
+  // Existing icons
   "house.fill": "home",
   "paperplane.fill": "send",
   "chevron.left.forwardslash.chevron.right": "code",
@@ -22,8 +23,51 @@ const MAPPING = {
   "chart.bar.fill": "bar-chart",
   "person.3.fill": "people",
   "books.vertical.fill": "library-books",
+  "bell.fill": "notifications",
   "star.fill": "star",
   "person.fill": "person",
+  "pause.fill": "pause",
+  "backward.fill": "fast-rewind",
+  "forward.fill": "fast-forward",
+
+  // New icon mappings for LibraryScreen
+  "music.note": "music-note",
+  "music.note.list": "queue-music",
+  "play.fill": "play-arrow",
+  "heart.fill": "favorite",
+  waveform: "equalizer",
+  "doc.text": "description",
+  "chart.bar": "bar-chart",
+  "exclamationmark.triangle": "warning",
+  plus: "add",
+  pencil: "edit",
+  trash: "delete",
+  "arrow.up": "arrow-upward",
+  xmark: "close",
+  photo: "photo",
+  clock: "access-time",
+  play: "play-arrow",
+  "bubble.left.fill": "chat",
+  calendar: "event",
+  "person.2.fill": "group",
+  "dollarsign.circle.fill": "monetization-on",
+  "arrow.up.circle": "cloud-upload",
+  "dollarsign.square": "account-balance-wallet",
+  "megaphone.fill": "campaign",
+  "person.badge.plus": "person-add",
+  "dollarsign.circle": "payments",
+  "text.bubble": "comment",
+  "person.crop.circle": "account-circle",
+  // Account screen icon mappings
+
+  creditcard: "credit-card",
+  "lock.fill": "lock",
+  "questionmark.circle": "help",
+  "info.circle": "info",
+  "book.fill": "menu-book",
+  headphones: "headphones",
+  globe: "public",
+  "map.fill": "map",
 } as IconMapping;
 
 /**
@@ -36,6 +80,7 @@ export function IconSymbol({
   size = 24,
   color,
   style,
+  weight,
 }: {
   name: IconSymbolName;
   size?: number;
@@ -43,12 +88,10 @@ export function IconSymbol({
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
+  // Add fallback for icons not in mapping
+  const iconName = MAPPING[name] || "help";
+
   return (
-    <MaterialIcons
-      color={color}
-      size={size}
-      name={MAPPING[name]}
-      style={style}
-    />
+    <MaterialIcons color={color} size={size} name={iconName} style={style} />
   );
 }

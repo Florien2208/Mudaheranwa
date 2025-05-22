@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   Pressable,
+  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -16,12 +17,23 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import useAuthStore from "@/store/useAuthStore";
 import { useFocusEffect } from "@react-navigation/native";
 
+// Available languages
+const languages = [
+  { code: "en", name: "English" },
+  { code: "es", name: "Español" },
+  { code: "fr", name: "Français" },
+  { code: "de", name: "Deutsch" },
+  { code: "pt", name: "Português" },
+  { code: "ja", name: "日本語" },
+];
+
 // Extract menu item component for better organization
-const MenuItem = ({ icon, title, onPress, colorScheme }) => (
+const MenuItem = ({ icon, title, onPress, colorScheme, rightContent }) => (
   <Pressable
     style={({ pressed }) => [
       styles.menuItem,
       pressed && styles.menuItemPressed,
+      { borderBottomColor: Colors[colorScheme].border },
     ]}
     onPress={onPress}
     accessible={true}
@@ -32,7 +44,7 @@ const MenuItem = ({ icon, title, onPress, colorScheme }) => (
     <IconSymbol
       name={icon}
       size={22}
-      color={Colors[colorScheme].text}
+      color={Colors[colorScheme].icon}
       style={styles.menuIcon}
     />
     <Text
@@ -41,12 +53,14 @@ const MenuItem = ({ icon, title, onPress, colorScheme }) => (
     >
       {title}
     </Text>
-    <IconSymbol
-      name="chevron.right"
-      size={16}
-      color={Colors[colorScheme].secondaryText}
-      style={styles.chevron}
-    />
+    {rightContent || (
+      <IconSymbol
+        name="chevron.right"
+        size={16}
+        color={Colors[colorScheme].secondaryText}
+        style={styles.chevron}
+      />
+    )}
   </Pressable>
 );
 
@@ -55,6 +69,8 @@ export default function AccountScreen({ navigation }) {
   const { user, logout } = useAuthStore();
   const isArtist = user?.isArtist;
   const insets = useSafeAreaInsets();
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState("English");
 
   // Refresh user data when screen comes into focus
   useFocusEffect(
@@ -67,8 +83,6 @@ export default function AccountScreen({ navigation }) {
   const handleLogout = async () => {
     try {
       await logout();
-      // Navigate to login or home screen after logout
-      navigation.navigate("Login");
     } catch (error) {
       console.error("Logout failed:", error);
       // Could show an error toast here
@@ -77,6 +91,11 @@ export default function AccountScreen({ navigation }) {
 
   const navigateTo = (screenName) => {
     navigation.navigate(screenName);
+  };
+
+  const handleLanguageSelect = (language) => {
+    setCurrentLanguage(language.name);
+    setLanguageModalVisible(false);
   };
 
   const menuItems = [
@@ -94,6 +113,18 @@ export default function AccountScreen({ navigation }) {
       title: "Notification Settings",
       icon: "bell.fill",
       onPress: () => navigateTo("NotificationSettings"),
+    },
+    {
+      title: "Language",
+      icon: "globe",
+      onPress: () => setLanguageModalVisible(true),
+      rightContent: (
+        <Text
+          style={{ color: Colors[colorScheme].secondaryText, fontSize: 14 }}
+        >
+          {currentLanguage}
+        </Text>
+      ),
     },
     {
       title: "Privacy Settings",
@@ -165,7 +196,12 @@ export default function AccountScreen({ navigation }) {
             { borderBottomColor: Colors[colorScheme].border },
           ]}
         >
-          <View style={styles.profileImagePlaceholder}>
+          <View
+            style={[
+              styles.profileImagePlaceholder,
+              { backgroundColor: Colors[colorScheme].tint },
+            ]}
+          >
             <Text style={styles.initials}>
               {getInitials(user?.displayName)}
             </Text>
@@ -187,18 +223,42 @@ export default function AccountScreen({ navigation }) {
               {user?.email || "user@example.com"}
             </Text>
             {isArtist && (
-              <View style={styles.badgeContainer}>
-                <Text style={styles.artistBadge}>Artist</Text>
+              <View
+                style={[
+                  styles.badgeContainer,
+                  { backgroundColor: Colors[colorScheme].tint },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.artistBadge,
+                    { color: colorScheme === "dark" ? "#0b1c26" : "#FFFFFF" },
+                  ]}
+                >
+                  Artist
+                </Text>
               </View>
             )}
           </View>
           <TouchableOpacity
-            style={styles.editButton}
+            style={[
+              styles.editButton,
+              {
+                backgroundColor: colorScheme === "dark" ? "#143544" : "#d0f0f5",
+              },
+            ]}
             onPress={() => navigateTo("EditProfile")}
             accessibilityLabel="Edit profile"
             accessibilityRole="button"
           >
-            <Text style={styles.editButtonText}>Edit</Text>
+            <Text
+              style={[
+                styles.editButtonText,
+                { color: Colors[colorScheme].tint },
+              ]}
+            >
+              Edit
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -206,7 +266,10 @@ export default function AccountScreen({ navigation }) {
         <View
           style={[
             styles.menuSection,
-            { borderColor: Colors[colorScheme].border },
+            {
+              borderColor: Colors[colorScheme].border,
+              backgroundColor: colorScheme === "dark" ? "#143544" : "#d0f0f5",
+            },
           ]}
         >
           {allMenuItems.map((item, index) => (
@@ -223,6 +286,7 @@ export default function AccountScreen({ navigation }) {
           style={({ pressed }) => [
             styles.signOutButton,
             pressed && styles.signOutButtonPressed,
+            { backgroundColor: colorScheme === "dark" ? "#143544" : "#d0f0f5" },
           ]}
           onPress={handleLogout}
           accessible={true}
@@ -230,7 +294,9 @@ export default function AccountScreen({ navigation }) {
           accessibilityLabel="Sign out from account"
           accessibilityHint="Logs you out of your account"
         >
-          <Text style={styles.signOutText}>Sign Out</Text>
+          <Text style={[styles.signOutText, { color: "#FF3B30" }]}>
+            Sign Out
+          </Text>
         </Pressable>
 
         <Text
@@ -242,6 +308,76 @@ export default function AccountScreen({ navigation }) {
           Version 1.0.3
         </Text>
       </ScrollView>
+
+      {/* Language Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={languageModalVisible}
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContent,
+              {
+                backgroundColor: colorScheme === "dark" ? "#143544" : "#d0f0f5",
+              },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <Text
+                style={[styles.modalTitle, { color: Colors[colorScheme].text }]}
+              >
+                Select Language
+              </Text>
+              <TouchableOpacity
+                onPress={() => setLanguageModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <IconSymbol
+                  name="xmark"
+                  size={24}
+                  color={Colors[colorScheme].text}
+                />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.languageList}>
+              {languages.map((language) => (
+                <TouchableOpacity
+                  key={language.code}
+                  style={[
+                    styles.languageItem,
+                    currentLanguage === language.name && {
+                      backgroundColor:
+                        colorScheme === "dark"
+                          ? "rgba(158, 255, 255, 0.2)"
+                          : "rgba(0, 188, 212, 0.2)",
+                    },
+                  ]}
+                  onPress={() => handleLanguageSelect(language)}
+                >
+                  <Text
+                    style={[
+                      styles.languageText,
+                      { color: Colors[colorScheme].text },
+                    ]}
+                  >
+                    {language.name}
+                  </Text>
+                  {currentLanguage === language.name && (
+                    <IconSymbol
+                      name="checkmark"
+                      size={18}
+                      color={Colors[colorScheme].tint}
+                    />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -275,7 +411,6 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: "#007AFF",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
@@ -303,25 +438,21 @@ const styles = StyleSheet.create({
   },
   badgeContainer: {
     marginTop: 6,
-  },
-  artistBadge: {
     paddingHorizontal: 10,
     paddingVertical: 3,
-    backgroundColor: "#007AFF",
-    color: "#FFFFFF",
     borderRadius: 12,
     overflow: "hidden",
     alignSelf: "flex-start",
+  },
+  artistBadge: {
     fontSize: 12,
     fontWeight: "600",
   },
   editButton: {
     padding: 8,
     borderRadius: 16,
-    backgroundColor: "#F2F2F7",
   },
   editButtonText: {
-    color: "#007AFF",
     fontSize: 14,
     fontWeight: "600",
   },
@@ -332,10 +463,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     ...Platform.select({
       ios: {
-        backgroundColor: "#F2F2F7",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
       },
       android: {
-        backgroundColor: "#FFFFFF",
         elevation: 2,
       },
     }),
@@ -346,11 +479,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E1E1E1",
     backgroundColor: "transparent",
   },
   menuItemPressed: {
-    backgroundColor: "#EFEFEF",
+    opacity: 0.7,
   },
   menuIcon: {
     marginRight: 4,
@@ -367,15 +499,13 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: "#FF3B30",
     borderRadius: 12,
     alignItems: "center",
   },
   signOutButtonPressed: {
-    backgroundColor: "#E0352C",
+    opacity: 0.7,
   },
   signOutText: {
-    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
   },
@@ -383,5 +513,59 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 12,
     marginTop: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "80%",
+    maxHeight: "70%",
+    borderRadius: 16,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#E1E1E1",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  closeButton: {
+    padding: 4,
+  },
+  languageList: {
+    maxHeight: 300,
+  },
+  languageItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#E1E1E1",
+  },
+  languageText: {
+    fontSize: 16,
   },
 });

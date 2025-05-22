@@ -13,32 +13,37 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { user } = useAuthStore();
 
+  const theme = Colors[colorScheme ?? "light"];
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: theme.tabIconSelected,
+        tabBarInactiveTintColor: theme.tabIconDefault,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
-            // Use a transparent background on iOS to show the blur effect
             position: "absolute",
+            borderTopColor: "transparent",
+            backgroundColor: "rgba(0, 245, 255, 0.1)", // soft glow effect
           },
-          default: {},
+          android: {
+            backgroundColor: theme.background,
+            borderTopWidth: 0,
+            elevation: 0,
+          },
         }),
       }}
     >
-      {/* Common home tab for both roles */}
-
       <Tabs.Screen
         name="index"
         redirect={user?.role !== "user"}
         options={{
-          title: "Home",
+          title: "Audio",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
+            <IconSymbol size={28} name="headphones" color={color} />
           ),
         }}
       />
@@ -56,7 +61,7 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="subscribers"
-        redirect={user?.role !== "admin"}
+        redirect={user?.role !== "non"}
         options={{
           title: "Subscribers",
           tabBarIcon: ({ color }) => (
@@ -69,31 +74,58 @@ export default function TabLayout() {
         name="library"
         redirect={user?.role !== "admin"}
         options={{
+          title: "Audio",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="headphones" color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="audio"
+        redirect={user?.role !== "admin"}
+        options={{
           title: "Library",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="book.fill" color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="client-audio"
+        redirect={user?.role !== "user"}
+        options={{
+          title: "Books",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="books.vertical.fill" color={color} />
           ),
         }}
       />
+      <Tabs.Screen
+        name="map"
+        options={{
+          title: "Map",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="map.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="subscription"
+        redirect={user?.role !== "non"}
+        options={{
+          title: "Subscription",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="star.fill" color={color} />
+          ),
+        }}
+      />
 
-     
-        <Tabs.Screen
-          name="subscription"
-          redirect={user?.role !== "user"}
-          options={{
-            title: "Subscription",
-            tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="star.fill" color={color} />
-            ),
-          }}
-        />
-   
-
-      {/* Account tab for both roles but with different naming */}
       <Tabs.Screen
         name="account"
         options={{
-          title: "My Account" ,
+          title: "My Account",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="person.fill" color={color} />
           ),
