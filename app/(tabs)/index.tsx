@@ -9,11 +9,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  View,
+  Text,
 } from "react-native";
 import Animated, { FadeIn, FadeInRight } from "react-native-reanimated";
 
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useAuth } from "@/store/AuthContext";
@@ -33,6 +33,33 @@ interface Song {
   duration?: string;
 }
 
+// Custom ThemedText component with proper color handling
+const ThemedText: React.FC<{
+  style?: any;
+  children: React.ReactNode;
+  type?: "default" | "title" | "subtitle" | "caption" | "link";
+}> = ({ style, children, type = "default" }) => {
+  const colorScheme = useColorScheme();
+
+  const getTextColor = () => {
+    const isDark = colorScheme === "dark";
+    switch (type) {
+      case "title":
+        return isDark ? "#FFFFFF" : "#1A1A1A";
+      case "subtitle":
+        return isDark ? "#E0E0E0" : "#2A2A2A";
+      case "caption":
+        return isDark ? "#A0A0A0" : "#666666";
+      case "link":
+        return isDark ? "#4CAF50" : "#2E7D32";
+      default:
+        return isDark ? "#F0F0F0" : "#333333";
+    }
+  };
+
+  return <Text style={[{ color: getTextColor() }, style]}>{children}</Text>;
+};
+
 export default function HomeScreen(): React.ReactElement {
   const router = useRouter();
   const colorScheme = useColorScheme();
@@ -46,6 +73,8 @@ export default function HomeScreen(): React.ReactElement {
   const [playbackPosition, setPlaybackPosition] = useState<string>("0:00");
   const [playbackDuration, setPlaybackDuration] = useState<string>("0:00");
   const { user } = useAuthStore();
+
+  const isDark = colorScheme === "dark";
 
   useEffect(() => {
     fetchTracks();
@@ -244,11 +273,9 @@ export default function HomeScreen(): React.ReactElement {
         colors={["transparent", "rgba(0,0,0,0.8)"]}
         style={styles.featuredGradient}
       >
-        <ThemedText style={styles.featuredTitle}>{item.title}</ThemedText>
-        <ThemedText style={styles.featuredArtist}>{item.artist}</ThemedText>
-        <ThemedText style={styles.featuredDuration}>
-          {item.duration || "--:--"}
-        </ThemedText>
+        <Text style={styles.featuredTitle}>{item.title}</Text>
+        <Text style={styles.featuredArtist}>{item.artist}</Text>
+        <Text style={styles.featuredDuration}>{item.duration || "--:--"}</Text>
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -260,57 +287,97 @@ export default function HomeScreen(): React.ReactElement {
       ).duration(600)}
     >
       <TouchableOpacity
-        style={styles.trendingItem}
+        style={[
+          styles.trendingItem,
+          {
+            backgroundColor: isDark
+              ? "rgba(255,255,255,0.05)"
+              : "rgba(0,0,0,0.02)",
+          },
+        ]}
         onPress={() => playAudio(item)}
       >
         <Image source={item.coverArt} style={styles.trendingCover} />
-        <ThemedView style={styles.trendingInfo}>
-          <ThemedText style={styles.trendingTitle}>{item.title}</ThemedText>
-          <ThemedText style={styles.trendingArtist}>{item.artist}</ThemedText>
-          <ThemedText style={styles.trendingDuration}>
+        <View style={styles.trendingInfo}>
+          <ThemedText style={styles.trendingTitle} type="subtitle">
+            {item.title}
+          </ThemedText>
+          <ThemedText style={styles.trendingArtist} type="caption">
+            {item.artist}
+          </ThemedText>
+          <ThemedText style={styles.trendingDuration} type="caption">
             {item.duration || "--:--"}
           </ThemedText>
-        </ThemedView>
-        <IconSymbol
-          name={
-            currentTrack?.id === item.id && isPlaying
-              ? "pause.fill"
-              : "play.fill"
-          }
-          size={24}
-          color="#4CAF50"
-        />
+        </View>
+        <View
+          style={[
+            styles.playButtonContainer,
+            {
+              backgroundColor: isDark
+                ? "rgba(76, 175, 80, 0.2)"
+                : "rgba(76, 175, 80, 0.1)",
+            },
+          ]}
+        >
+          <IconSymbol
+            name={
+              currentTrack?.id === item.id && isPlaying
+                ? "pause.fill"
+                : "play.fill"
+            }
+            size={20}
+            color="#4CAF50"
+          />
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <ThemedView>
-          <ThemedText style={styles.greeting}>{greeting}</ThemedText>
-          <ThemedText style={styles.username}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDark ? "#121212" : "#FFFFFF" },
+      ]}
+    >
+      <View style={styles.header}>
+        <View>
+          <ThemedText style={styles.greeting} type="caption">
+            {greeting}
+          </ThemedText>
+          <ThemedText style={styles.username} type="title">
             {user?.username || "Music Lover"}
           </ThemedText>
-        </ThemedView>
+        </View>
         <TouchableOpacity onPress={() => router.navigate("/")}>
-          <ThemedView style={styles.iconButton}>
+          <View
+            style={[
+              styles.iconButton,
+              {
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.1)"
+                  : "rgba(0,0,0,0.1)",
+              },
+            ]}
+          >
             <IconSymbol
               name="bell.fill"
               size={24}
-              color={colorScheme === "dark" ? "#fff" : "#000"}
+              color={isDark ? "#FFFFFF" : "#000000"}
             />
-          </ThemedView>
+          </View>
         </TouchableOpacity>
-      </ThemedView>
+      </View>
 
       <FlatList
         data={[1]} // Dummy data for the main scrollable content
         renderItem={() => (
-          <ThemedView style={styles.content}>
+          <View style={styles.content}>
             {/* Featured Section */}
-            <ThemedView style={styles.section}>
-              <ThemedText style={styles.sectionTitle}>Featured</ThemedText>
+            <View style={styles.section}>
+              <ThemedText style={styles.sectionTitle} type="title">
+                Featured
+              </ThemedText>
               <FlatList
                 horizontal
                 data={songs}
@@ -319,19 +386,21 @@ export default function HomeScreen(): React.ReactElement {
                 showsHorizontalScrollIndicator={false}
                 style={styles.featuredList}
               />
-            </ThemedView>
+            </View>
 
             {/* Trending Section */}
-            <ThemedView style={styles.section}>
-              <ThemedText style={styles.sectionTitle}>Trending Now</ThemedText>
-              <ThemedView style={styles.trendingList}>
+            <View style={styles.section}>
+              <ThemedText style={styles.sectionTitle} type="title">
+                Trending Now
+              </ThemedText>
+              <View style={styles.trendingList}>
                 {songs.map((item) => (
                   <React.Fragment key={item.id}>
                     {renderTrendingItem({ item })}
                   </React.Fragment>
                 ))}
-              </ThemedView>
-            </ThemedView>
+              </View>
+            </View>
 
             {/* For Artist Section - only shown to artists */}
             {user?.isArtist && (
@@ -339,7 +408,9 @@ export default function HomeScreen(): React.ReactElement {
                 entering={FadeIn.duration(800)}
                 style={styles.section}
               >
-                <ThemedText style={styles.sectionTitle}>Your Music</ThemedText>
+                <ThemedText style={styles.sectionTitle} type="title">
+                  Your Music
+                </ThemedText>
                 <TouchableOpacity
                   style={styles.createButton}
                   onPress={() => router.navigate("/create")}
@@ -349,42 +420,52 @@ export default function HomeScreen(): React.ReactElement {
                     style={styles.createButtonGradient}
                   >
                     <IconSymbol name="plus" size={24} color="#fff" />
-                    <ThemedText style={styles.createButtonText}>
+                    <Text style={styles.createButtonText}>
                       Create New Track
-                    </ThemedText>
+                    </Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </Animated.View>
             )}
-          </ThemedView>
+          </View>
         )}
       />
 
       {/* Now Playing Bar - only shown when a track is playing */}
       {currentTrack && (
-        <ThemedView style={styles.nowPlaying}>
+        <View
+          style={[
+            styles.nowPlaying,
+            {
+              backgroundColor: isDark
+                ? "rgba(255,255,255,0.1)"
+                : "rgba(0,0,0,0.05)",
+              borderColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)",
+            },
+          ]}
+        >
           <Image
             source={currentTrack.coverArt}
             style={styles.nowPlayingCover}
           />
-          <ThemedView style={styles.nowPlayingInfo}>
-            <ThemedText style={styles.nowPlayingTitle}>
+          <View style={styles.nowPlayingInfo}>
+            <ThemedText style={styles.nowPlayingTitle} type="subtitle">
               {currentTrack.title}
             </ThemedText>
-            <ThemedText style={styles.nowPlayingArtist}>
+            <ThemedText style={styles.nowPlayingArtist} type="caption">
               {currentTrack.artist}
             </ThemedText>
-            <ThemedText style={styles.nowPlayingDuration}>
+            <ThemedText style={styles.nowPlayingDuration} type="caption">
               {playbackPosition} /{" "}
               {playbackDuration || currentTrack.duration || "--:--"}
             </ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.nowPlayingControls}>
+          </View>
+          <View style={styles.nowPlayingControls}>
             <TouchableOpacity onPress={playPreviousTrack}>
               <IconSymbol
                 name="backward.fill"
                 size={24}
-                color={colorScheme === "dark" ? "#fff" : "#000"}
+                color={isDark ? "#FFFFFF" : "#000000"}
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -403,13 +484,13 @@ export default function HomeScreen(): React.ReactElement {
               <IconSymbol
                 name="forward.fill"
                 size={24}
-                color={colorScheme === "dark" ? "#fff" : "#000"}
+                color={isDark ? "#FFFFFF" : "#000000"}
               />
             </TouchableOpacity>
-          </ThemedView>
-        </ThemedView>
+          </View>
+        </View>
       )}
-    </ThemedView>
+    </View>
   );
 }
 
@@ -418,53 +499,57 @@ const { width } = Dimensions.get("window");
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
+    paddingTop: 10,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 30,
   },
   greeting: {
     fontSize: 16,
-    opacity: 0.7,
+    opacity: 0.8,
   },
   username: {
-    fontSize: 24,
+    fontSize: 28,
     fontFamily: "PoppinsBold",
     marginTop: 4,
   },
   iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(200, 200, 200, 0.2)",
   },
   content: {
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: "PoppinsSemiBold",
     marginLeft: 20,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   featuredList: {
     paddingLeft: 20,
   },
   featuredItem: {
     width: width * 0.8,
-    height: 200,
-    marginRight: 15,
-    borderRadius: 12,
+    height: 220,
+    marginRight: 16,
+    borderRadius: 16,
     overflow: "hidden",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
   },
   featuredCover: {
     width: "100%",
@@ -475,25 +560,35 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: "50%",
+    height: "60%",
     justifyContent: "flex-end",
-    padding: 15,
+    padding: 20,
   },
   featuredTitle: {
-    color: "#fff",
-    fontSize: 18,
+    color: "#FFFFFF",
+    fontSize: 20,
     fontFamily: "PoppinsSemiBold",
+    textShadowColor: "rgba(0,0,0,0.5)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   featuredArtist: {
-    color: "#fff",
-    fontSize: 14,
-    opacity: 0.8,
+    color: "#FFFFFF",
+    fontSize: 15,
+    opacity: 0.9,
+    marginTop: 4,
+    textShadowColor: "rgba(0,0,0,0.5)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   featuredDuration: {
-    color: "#fff",
-    fontSize: 12,
-    opacity: 0.7,
-    marginTop: 4,
+    color: "#FFFFFF",
+    fontSize: 13,
+    opacity: 0.8,
+    marginTop: 6,
+    textShadowColor: "rgba(0,0,0,0.5)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   trendingList: {
     paddingHorizontal: 20,
@@ -501,95 +596,118 @@ const styles = StyleSheet.create({
   trendingItem: {
     flexDirection: "row",
     alignItems: "center",
-    height: 70,
+    height: 80,
     marginBottom: 12,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   trendingCover: {
-    width: 70,
-    height: 70,
-    borderRadius: 8,
+    width: 64,
+    height: 64,
+    borderRadius: 10,
   },
   trendingInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 16,
+    marginRight: 12,
   },
   trendingTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: "PoppinsSemiBold",
+    marginBottom: 2,
   },
   trendingArtist: {
     fontSize: 14,
-    opacity: 0.7,
+    marginBottom: 2,
   },
   trendingDuration: {
     fontSize: 12,
-    opacity: 0.5,
-    marginTop: 2,
+  },
+  playButtonContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   createButton: {
     marginHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: "hidden",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
   createButtonGradient: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    padding: 16,
+    padding: 18,
   },
   createButtonText: {
-    color: "#fff",
-    fontSize: 16,
+    color: "#FFFFFF",
+    fontSize: 17,
     fontFamily: "PoppinsSemiBold",
-    marginLeft: 8,
+    marginLeft: 10,
   },
   nowPlaying: {
     position: "absolute",
-    bottom: 5,
+    bottom: 20,
     left: 20,
     right: 20,
-    height: 80, // Increased height to accommodate duration
-    borderRadius: 12,
+    height: 90,
+    borderRadius: 16,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 10,
-    backgroundColor: "rgba(200, 200, 200, 0.2)",
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: "rgba(200, 200, 200, 0.3)",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
   },
   nowPlayingCover: {
-    width: 50,
-    height: 50,
-    borderRadius: 6,
+    width: 56,
+    height: 56,
+    borderRadius: 10,
   },
   nowPlayingInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 16,
+    marginRight: 12,
   },
   nowPlayingTitle: {
     fontSize: 16,
     fontFamily: "PoppinsSemiBold",
+    marginBottom: 2,
   },
   nowPlayingArtist: {
     fontSize: 14,
-    opacity: 0.7,
+    marginBottom: 2,
   },
   nowPlayingDuration: {
     fontSize: 12,
-    opacity: 0.5,
-    marginTop: 2,
   },
   nowPlayingControls: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: 20,
   },
   playPauseButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "#4CAF50",
     justifyContent: "center",
     alignItems: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
 });

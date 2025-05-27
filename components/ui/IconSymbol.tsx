@@ -61,13 +61,21 @@ const MAPPING = {
   // Account screen icon mappings
 
   creditcard: "credit-card",
+  "creditcard.fill": "credit-card",
   "lock.fill": "lock",
   "questionmark.circle": "help",
   "info.circle": "info",
   "book.fill": "menu-book",
   headphones: "headphones",
+  "phone.fill": "phone",
   globe: "public",
   "map.fill": "map",
+  "person.circle": "account-circle",
+  "crown.fill": "workspace-premium", // Premium/pro icon
+  "checkmark.circle.fill": "check-circle",
+  "xmark.circle": "cancel",
+  "chevron.left": "chevron-left",
+  gear: "settings",
 } as IconMapping;
 
 /**

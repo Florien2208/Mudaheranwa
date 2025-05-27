@@ -1,27 +1,27 @@
-const tintColorLight = "#00bcd4"; // Deeper cyan for contrast
-const tintColorDark = "#9effff"; // Glow for dark mode
+const tintColorLight = "#72b7e9"; // Updated to your specified color
+const tintColorDark = "#72b7e9"; // Updated to your specified color
 
 export const Colors = {
   light: {
-    text: "#004e5a", // Dark teal for text visibility
-    background: "#e0f7fa", // Soft cyan background
+    text: "#72b7e9", // Updated to your specified color
+    background: "#72b7e9", // Updated to your specified color
     tint: tintColorLight,
-    icon: "#007c91", // Mid cyan for icons
-    tabIconDefault: "#007c91",
+    icon: "#72b7e9", // Updated to your specified color
+    tabIconDefault: "#72b7e9",
     tabIconSelected: tintColorLight,
-    border: "#b2ebf2", // Lighter border color
-    secondaryText: "#006064", // Slightly lighter than text for secondary elements
-    tabBackgroundColor: "#ffffff",
+    border: "#72b7e9", // Updated to your specified color
+    secondaryText: "#72b7e9", // Updated to your specified color
+    tabBackgroundColor: "#72b7e9",
   },
   dark: {
-    text: "#c2fcff",
-    background: "#0b1c26",
+    text: "#72b7e9",
+    background: "#72b7e9",
     tint: tintColorDark,
-    icon: "#69d2e7",
-    tabIconDefault: "#69d2e7",
+    icon: "#72b7e9",
+    tabIconDefault: "#72b7e9",
     tabIconSelected: tintColorDark,
-    border: "#143544", // Darker border color for dark mode
-    secondaryText: "#8ceff5", // Slightly dimmer than text for secondary elements
-    tabBackgroundColor: "#143544",
+    border: "#72b7e9", // Updated to your specified color
+    secondaryText: "#72b7e9", // Updated to your specified color
+    tabBackgroundColor: "#72b7e9",
   },
 };

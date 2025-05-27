@@ -1,25 +1,22 @@
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform } from "react-native";
-
 import { HapticTab } from "@/components/HapticTab";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import useAuthStore from "@/store/useAuthStore";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  
   const { user } = useAuthStore();
 
-  const theme = Colors[colorScheme ?? "light"];
+
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: theme.tabIconSelected,
-        tabBarInactiveTintColor: theme.tabIconDefault,
+        tabBarActiveTintColor: "#72b7e9", // Custom color for active tab only
+        tabBarInactiveTintColor: "#8E8E93", // Gray color for inactive tabs
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -27,10 +24,9 @@ export default function TabLayout() {
           ios: {
             position: "absolute",
             borderTopColor: "transparent",
-            backgroundColor: "rgba(0, 245, 255, 0.1)", // soft glow effect
+            backgroundColor: "rgba(114, 183, 233, 0.1)", // Updated to use #72b7e9 with transparency
           },
           android: {
-            backgroundColor: theme.background,
             borderTopWidth: 0,
             elevation: 0,
           },
@@ -123,7 +119,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="account"
+        name="Account"
         options={{
           title: "My Account",
           tabBarIcon: ({ color }) => (

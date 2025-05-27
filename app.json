@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Mudaheranwa-Artist",
-    "slug": "Mudaheranwa-Artist",
+    "name": "Mudaheranwa",
+    "slug": "Mudaheranwa",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/mudaa-logo-icon.png",
     "scheme": "mudaheranwaartist",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -16,7 +16,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/album1.png",
+        "foregroundImage": "./assets/images/mudaa-logo-icon.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
@@ -26,17 +26,17 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/mudaa-logo-icon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/favorite.png",
+          "image": "./assets/images/muda-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#72b7e9"
         }
       ]
     ],

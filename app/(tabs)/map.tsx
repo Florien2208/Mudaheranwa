@@ -152,7 +152,7 @@ export default function MapScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.background }]}
+      style={[styles.container]}
     >
       <View style={styles.mapContainer}>
         {isLoading && (

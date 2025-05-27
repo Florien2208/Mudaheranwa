@@ -97,13 +97,10 @@ const BookApp = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* Main Content */}
-      <LinearGradient
-        colors={["#0A6E83", "#064C59", "#043742"]}
-        style={styles.gradient}
-      >
+      <View style={styles.mainContainer}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
@@ -118,7 +115,7 @@ const BookApp = () => {
             <TextInput
               style={styles.searchInput}
               placeholder="Search books or authors"
-              placeholderTextColor="#8CCED9"
+              placeholderTextColor="#999"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -139,9 +136,7 @@ const BookApp = () => {
             loading={loading}
           />
         )}
-      </LinearGradient>
-
-     
+      </View>
     </SafeAreaView>
   );
 };
@@ -151,7 +146,7 @@ const BookList = ({ books, onSelectBook, loading }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#13D8F6" />
+        <ActivityIndicator size="large" color="#72b7e9" />
         <Text style={styles.loadingText}>Loading books...</Text>
       </View>
     );
@@ -268,12 +263,7 @@ const BookDetail = ({ book, onBack, onDownload }) => {
             <View style={styles.detailBadge}>
               <Text style={styles.badgeText}>{book.category}</Text>
             </View>
-            <View
-              style={[
-                styles.detailBadge,
-                { backgroundColor: "rgba(19, 216, 246, 0.2)" },
-              ]}
-            >
+            <View style={styles.detailBadge}>
               <Text style={styles.badgeText}>{book.pages} pages</Text>
             </View>
           </View>
@@ -333,16 +323,26 @@ const { width } = Dimensions.get("window");
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#043742",
+    backgroundColor: "white",
   },
-  gradient: {
+  mainContainer: {
     flex: 1,
+    backgroundColor: "white",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
+    backgroundColor: "white",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   logoContainer: {
     flexDirection: "row",
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#13D8F6",
+    backgroundColor: "#72b7e9",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 8,
@@ -362,29 +362,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   appTitle: {
-    color: "white",
+    color: "#72b7e9",
     fontSize: 22,
     fontWeight: "bold",
   },
   searchContainer: {
     flex: 1,
     flexDirection: "row",
-    backgroundColor: "rgba(19, 216, 246, 0.15)",
+    backgroundColor: "#f5f5f5",
     borderRadius: 20,
     marginLeft: 16,
     paddingHorizontal: 12,
     paddingVertical: 8,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#72b7e9",
   },
   searchInput: {
     flex: 1,
-    color: "white",
+    color: "#333",
     fontSize: 14,
     padding: 0,
   },
   scrollContainer: {
     flex: 1,
     padding: 16,
+    backgroundColor: "white",
   },
   sectionHeader: {
     flexDirection: "row",
@@ -393,12 +396,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    color: "white",
+    color: "#72b7e9",
     fontSize: 20,
     fontWeight: "bold",
   },
   viewAllText: {
-    color: "#13D8F6",
+    color: "#72b7e9",
     fontSize: 14,
   },
   featuredList: {
@@ -413,15 +416,17 @@ const styles = StyleSheet.create({
     height: 225,
     borderRadius: 8,
     marginBottom: 8,
-    backgroundColor: "rgba(19, 216, 246, 0.3)",
+    backgroundColor: "#f0f8ff",
+    borderWidth: 1,
+    borderColor: "#72b7e9",
   },
   bookTitle: {
-    color: "white",
+    color: "#333",
     fontSize: 16,
     fontWeight: "600",
   },
   bookAuthor: {
-    color: "#8CCED9",
+    color: "#666",
     fontSize: 14,
   },
   bookList: {
@@ -431,24 +436,28 @@ const styles = StyleSheet.create({
     width: (width - 48) / 2,
     marginBottom: 16,
     marginRight: 16,
-    backgroundColor: "rgba(19, 216, 246, 0.1)",
+    backgroundColor: "#f9f9f9",
     borderRadius: 8,
     overflow: "hidden",
     padding: 10,
     flexDirection: "row",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
   },
   bookCover: {
     width: 50,
     height: 80,
     borderRadius: 4,
-    backgroundColor: "rgba(19, 216, 246, 0.3)",
+    backgroundColor: "#f0f8ff",
+    borderWidth: 1,
+    borderColor: "#72b7e9",
   },
   bookInfo: {
     flex: 1,
     marginLeft: 10,
   },
   categoryBadge: {
-    backgroundColor: "rgba(19, 216, 246, 0.2)",
+    backgroundColor: "#72b7e9",
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -456,48 +465,34 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   categoryText: {
-    color: "#13D8F6",
+    color: "white",
     fontSize: 12,
-  },
-  bottomNav: {
-    flexDirection: "row",
-    backgroundColor: "#064C59",
-    height: 60,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(19, 216, 246, 0.3)",
-  },
-  navItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  navText: {
-    color: "#13D8F6",
-    fontSize: 12,
-    marginTop: 4,
   },
   loadingContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "white",
   },
   loadingText: {
-    color: "#8CCED9",
+    color: "#666",
     marginTop: 12,
   },
   emptyContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "white",
   },
   emptyText: {
-    color: "#8CCED9",
+    color: "#666",
     marginTop: 12,
   },
   // Detail Styles
   detailContainer: {
     flex: 1,
     padding: 16,
+    backgroundColor: "white",
   },
   backButton: {
     flexDirection: "row",
@@ -505,37 +500,41 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   backText: {
-    color: "#13D8F6",
+    color: "#72b7e9",
     marginLeft: 8,
     fontSize: 16,
   },
   bookDetailCard: {
-    backgroundColor: "rgba(19, 216, 246, 0.1)",
+    backgroundColor: "#f9f9f9",
     borderRadius: 12,
     padding: 16,
     flexDirection: "column",
     alignItems: "center",
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
   },
   detailCover: {
     width: 180,
     height: 270,
     borderRadius: 8,
     marginBottom: 16,
-    backgroundColor: "rgba(19, 216, 246, 0.3)",
+    backgroundColor: "#f0f8ff",
+    borderWidth: 1,
+    borderColor: "#72b7e9",
   },
   detailInfo: {
     width: "100%",
     alignItems: "center",
   },
   detailTitle: {
-    color: "white",
+    color: "#333",
     fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
   },
   detailAuthor: {
-    color: "#8CCED9",
+    color: "#666",
     fontSize: 16,
     marginBottom: 12,
   },
@@ -544,24 +543,24 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   detailBadge: {
-    backgroundColor: "rgba(19, 216, 246, 0.3)",
+    backgroundColor: "#72b7e9",
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginHorizontal: 4,
   },
   badgeText: {
-    color: "#13D8F6",
+    color: "white",
     fontSize: 12,
   },
   description: {
-    color: "rgba(255, 255, 255, 0.8)",
+    color: "#666",
     textAlign: "center",
     marginBottom: 16,
     lineHeight: 20,
   },
   downloadButton: {
-    backgroundColor: "#13D8F6",
+    backgroundColor: "#72b7e9",
     borderRadius: 24,
     flexDirection: "row",
     alignItems: "center",
@@ -571,24 +570,26 @@ const styles = StyleSheet.create({
     width: "80%",
   },
   downloadText: {
-    color: "#043742",
+    color: "white",
     fontWeight: "bold",
     fontSize: 16,
   },
   aboutSection: {
-    backgroundColor: "rgba(19, 216, 246, 0.1)",
+    backgroundColor: "#f9f9f9",
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
   },
   aboutTitle: {
-    color: "white",
+    color: "#72b7e9",
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 12,
   },
   aboutText: {
-    color: "rgba(255, 255, 255, 0.8)",
+    color: "#666",
     lineHeight: 20,
     marginBottom: 16,
   },
@@ -601,11 +602,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   detailLabel: {
-    color: "#8CCED9",
+    color: "#72b7e9",
     fontSize: 12,
+    fontWeight: "600",
   },
   detailValue: {
-    color: "white",
+    color: "#333",
     fontSize: 14,
     fontWeight: "500",
   },
@@ -625,7 +627,7 @@ const sampleBooks = [
     publicationDate: "August 13, 2020",
     language: "English",
     isbn: "978-0525559474",
-    coverUrl: "https://via.placeholder.com/150x225/13D8F6/FFFFFF?text=Book+1",
+    coverUrl: "https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+1",
     downloading: false,
     downloaded: false,
   },
@@ -641,7 +643,7 @@ const sampleBooks = [
     publicationDate: "October 16, 2018",
     language: "English",
     isbn: "978-0735211292",
-    coverUrl: "https://via.placeholder.com/150x225/13D8F6/FFFFFF?text=Book+2",
+    coverUrl: "https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+2",
     downloading: false,
     downloaded: false,
   },
@@ -657,7 +659,7 @@ const sampleBooks = [
     publicationDate: "September 8, 2020",
     language: "English",
     isbn: "978-0857197689",
-    coverUrl: "https://via.placeholder.com/150x225/13D8F6/FFFFFF?text=Book+3",
+    coverUrl: "https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+3",
     downloading: false,
     downloaded: false,
   },
@@ -673,7 +675,7 @@ const sampleBooks = [
     publicationDate: "May 4, 2021",
     language: "English",
     isbn: "978-0593135204",
-    coverUrl: "https://via.placeholder.com/150x225/13D8F6/FFFFFF?text=Book+4",
+    coverUrl: "https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+4",
     downloading: false,
     downloaded: false,
   },
@@ -689,55 +691,7 @@ const sampleBooks = [
     publicationDate: "March 2, 2021",
     language: "English",
     isbn: "978-0593318171",
-    coverUrl: "https://via.placeholder.com/150x225/13D8F6/FFFFFF?text=Book+5",
-    downloading: false,
-    downloaded: false,
-  },
-  {
-    id: 6,
-    title: "Educated",
-    author: "Tara Westover",
-    description:
-      "An unforgettable memoir about a young girl who, kept out of school, leaves her survivalist family and goes on to earn a PhD from Cambridge University.",
-    category: "Memoir",
-    pages: 352,
-    publisher: "Random House",
-    publicationDate: "February 20, 2018",
-    language: "English",
-    isbn: "978-0399590504",
-    coverUrl: "https://via.placeholder.com/150x225/13D8F6/FFFFFF?text=Book+6",
-    downloading: false,
-    downloaded: false,
-  },
-  {
-    id: 7,
-    title: "Where the Crawdads Sing",
-    author: "Delia Owens",
-    description:
-      "A painfully beautiful first novel that is at once a murder mystery, a coming-of-age narrative, and a celebration of nature.",
-    category: "Fiction",
-    pages: 384,
-    publisher: "G.P. Putnam's Sons",
-    publicationDate: "August 14, 2018",
-    language: "English",
-    isbn: "978-0735219090",
-    coverUrl: "https://via.placeholder.com/150x225/13D8F6/FFFFFF?text=Book+7",
-    downloading: false,
-    downloaded: false,
-  },
-  {
-    id: 8,
-    title: "Sapiens: A Brief History of Humankind",
-    author: "Yuval Noah Harari",
-    description:
-      "How did our species succeed in the battle for dominance? Why did our foraging ancestors come together to create cities and kingdoms? How did we come to believe in gods, nations, and human rights?",
-    category: "History",
-    pages: 464,
-    publisher: "Harper",
-    publicationDate: "February 10, 2015",
-    language: "English",
-    isbn: "978-0062316097",
-    coverUrl: "https://via.placeholder.com/150x225/13D8F6/FFFFFF?text=Book+8",
+    coverUrl: "https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+5",
     downloading: false,
     downloaded: false,
   },

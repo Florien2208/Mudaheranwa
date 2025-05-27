@@ -8,14 +8,15 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   RefreshControl,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Image,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const AdminBooksDashboard = ({ navigation }) => {
   const [books, setBooks] = useState([]);
@@ -164,12 +165,15 @@ const AdminBooksDashboard = ({ navigation }) => {
   const deleteBook = async (bookId) => {
     try {
       const token = await AsyncStorage.getItem("auth_token");
-     const response= await axios.delete(`${API_BASE_URL}/api/v1/books/${bookId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-console.log("Delete response:", response.data);
+      const response = await axios.delete(
+        `${API_BASE_URL}/api/v1/books/${bookId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Delete response:", response.data);
       setBooks((prevBooks) => prevBooks.filter((book) => book._id !== bookId));
     } catch (error) {
       console.error("Error deleting book:", error);
@@ -181,32 +185,32 @@ console.log("Delete response:", response.data);
   const renderBookItem = ({ item }) => (
     <View style={styles.bookCard}>
       <View style={styles.bookHeader}>
-         <TouchableOpacity
-        style={styles.bookImageContainer}
-        onPress={() => router.push(`/read/${item._id}`)} // 👈 Adjust the route as per your file structure
-      >
-        {item.coverImageUrl ? (
-          <Image
-            source={{ uri: item.coverImageUrl }}
-            style={styles.bookImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View
-            style={[
-              styles.bookImage,
-              {
-                backgroundColor:
-                  item.status === "published"
-                    ? Colors.light.tint
-                    : Colors.light.border,
-              },
-            ]}
-          >
-            <Text style={styles.bookImageText}>{item.title.charAt(0)}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.bookImageContainer}
+          onPress={() => router.push(`/read/${item._id}`)} // 👈 Adjust the route as per your file structure
+        >
+          {item.coverImageUrl ? (
+            <Image
+              source={{ uri: item.coverImageUrl }}
+              style={styles.bookImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View
+              style={[
+                styles.bookImage,
+                {
+                  backgroundColor:
+                    item.status === "published"
+                      ? Colors.light.tint
+                      : Colors.light.border,
+                },
+              ]}
+            >
+              <Text style={styles.bookImageText}>{item.title.charAt(0)}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
 
         <View style={styles.bookInfo}>
           <Text style={styles.bookTitle} numberOfLines={2}>
@@ -321,7 +325,7 @@ console.log("Delete response:", response.data);
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Book Management</Text>
         <TouchableOpacity style={styles.addButton} onPress={handleAddBook}>
@@ -441,14 +445,14 @@ console.log("Delete response:", response.data);
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: "#ffffff",
   },
   header: {
     flexDirection: "row",

@@ -67,12 +67,6 @@ export default function AuthScreen(): React.ReactElement {
     if (!value) return "Password is required";
     if (value.length < PASSWORD_MIN_LENGTH)
       return `Password must be at least ${PASSWORD_MIN_LENGTH} characters`;
-    // if (!/[A-Z]/.test(value))
-    //   return "Password must contain at least one uppercase letter";
-    // if (!/[a-z]/.test(value))
-    //   return "Password must contain at least one lowercase letter";
-    // if (!/[0-9]/.test(value))
-    //   return "Password must contain at least one number";
     return undefined;
   };
 
@@ -198,41 +192,50 @@ export default function AuthScreen(): React.ReactElement {
   const toggleMode = (): void => {
     setIsLogin(!isLogin);
   };
-  const primaryColor = "#1ED760"; // Coral/orange color from the image
-  const tint = Colors[colorScheme ?? "light"].tint;
-  const textColor = Colors[colorScheme ?? "light"].text;
-  const inputBgColor = Colors[colorScheme ?? "light"].background;
-  const placeholderColor = "#999999";
-  const borderColor = Colors[colorScheme ?? "light"].tabIconDefault;
-  const errorColor = "#FF3B30"; // Error color
+
+  // Color definitions using the specified color strategically
+  const primaryColor = "#72b7e9"; // Your specified color for primary elements
+  const textColor = colorScheme === "dark" ? "#FFFFFF" : "#1C1C1E";
+  const inputBgColor = colorScheme === "dark" ? "#1C1C1E" : "#FFFFFF";
+  const containerBgColor = colorScheme === "dark" ? "#000000" : "#F2F2F7";
+  const placeholderColor = colorScheme === "dark" ? "#8E8E93" : "#8E8E93";
+  const borderColor = colorScheme === "dark" ? "#38383A" : "#C6C6C8";
+  const errorColor = "#FF3B30";
+  const secondaryTextColor = colorScheme === "dark" ? "#8E8E93" : "#8E8E93";
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={[styles.container, { backgroundColor: inputBgColor }]}
+      style={[styles.container, { backgroundColor: containerBgColor }]}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        <ThemedView style={styles.formWrapper}>
+        <>
           <Animated.View
             entering={FadeInDown.duration(800)}
             style={[styles.formContainer, { backgroundColor: inputBgColor }]}
           >
             <ThemedText
               type="title"
-              style={[styles.headerText, { color: tint }]}
+              style={[styles.headerText, { color: primaryColor }]}
             >
               {isLogin ? "Sign in to your account" : "Create a new account"}
             </ThemedText>
 
             {!isLogin && (
               <View style={styles.subheaderContainer}>
-                <ThemedText style={[styles.subheaderText, { color: tint }]}>
+                <ThemedText
+                  style={[styles.subheaderText, { color: secondaryTextColor }]}
+                >
                   Or{" "}
                   <ThemedText
-                    style={[styles.subheaderText, styles.linkText]}
+                    style={[
+                      styles.subheaderText,
+                      styles.linkText,
+                      { color: primaryColor },
+                    ]}
                     onPress={toggleMode}
                   >
                     sign in
@@ -244,7 +247,7 @@ export default function AuthScreen(): React.ReactElement {
 
             {!isLogin && (
               <View style={styles.inputGroup}>
-                <ThemedText style={[styles.inputLabel, { color: tint }]}>
+                <ThemedText style={[styles.inputLabel, { color: textColor }]}>
                   Full Name
                 </ThemedText>
                 <TextInput
@@ -279,7 +282,7 @@ export default function AuthScreen(): React.ReactElement {
             )}
 
             <View style={styles.inputGroup}>
-              <ThemedText style={[styles.inputLabel, { color: tint }]}>
+              <ThemedText style={[styles.inputLabel, { color: textColor }]}>
                 Email address
               </ThemedText>
               <TextInput
@@ -315,7 +318,7 @@ export default function AuthScreen(): React.ReactElement {
             </View>
 
             <View style={styles.inputGroup}>
-              <ThemedText style={[styles.inputLabel, { color: tint }]}>
+              <ThemedText style={[styles.inputLabel, { color: textColor }]}>
                 Password
               </ThemedText>
               <TextInput
@@ -355,7 +358,7 @@ export default function AuthScreen(): React.ReactElement {
 
             {!isLogin && (
               <View style={styles.inputGroup}>
-                <ThemedText style={[styles.inputLabel, { color: tint }]}>
+                <ThemedText style={[styles.inputLabel, { color: textColor }]}>
                   Confirm Password
                 </ThemedText>
                 <TextInput
@@ -396,40 +399,40 @@ export default function AuthScreen(): React.ReactElement {
                   style={[
                     styles.checkbox,
                     {
-                      borderColor: borderColor,
+                      borderColor: agreeToTerms ? primaryColor : borderColor,
+                      backgroundColor: agreeToTerms
+                        ? primaryColor
+                        : "transparent",
                     },
                   ]}
                   onPress={() => setAgreeToTerms(!agreeToTerms)}
                 >
                   {agreeToTerms && (
-                    <View
+                    <ThemedText
                       style={[
-                        styles.checkboxChecked,
+                        styles.checkMark,
                         {
-                          backgroundColor: inputBgColor,
+                          color: "white",
                         },
                       ]}
                     >
-                      <ThemedText
-                        style={[
-                          styles.checkMark,
-                          {
-                            color: textColor,
-                          },
-                        ]}
-                      >
-                        ✓
-                      </ThemedText>
-                    </View>
+                      ✓
+                    </ThemedText>
                   )}
                 </TouchableOpacity>
-                <ThemedText style={styles.termsText}>
+                <ThemedText
+                  style={[styles.termsText, { color: secondaryTextColor }]}
+                >
                   I agree to the{" "}
-                  <ThemedText style={styles.linkText}>
+                  <ThemedText
+                    style={[styles.linkText, { color: primaryColor }]}
+                  >
                     Terms of Service
                   </ThemedText>{" "}
                   and{" "}
-                  <ThemedText style={styles.linkText}>
+                  <ThemedText
+                    style={[styles.linkText, { color: primaryColor }]}
+                  >
                     Privacy Policy
                   </ThemedText>
                 </ThemedText>
@@ -461,14 +464,20 @@ export default function AuthScreen(): React.ReactElement {
                 style={styles.toggleButton}
                 onPress={toggleMode}
               >
-                <ThemedText style={styles.toggleText}>
+                <ThemedText
+                  style={[styles.toggleText, { color: secondaryTextColor }]}
+                >
                   Don&apos;t have an account?{" "}
-                  <ThemedText style={styles.linkText}>Sign up</ThemedText>
+                  <ThemedText
+                    style={[styles.linkText, { color: primaryColor }]}
+                  >
+                    Sign up
+                  </ThemedText>
                 </ThemedText>
               </TouchableOpacity>
             )}
           </Animated.View>
-        </ThemedView>
+        </>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -538,16 +547,10 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 20,
     height: 20,
-    borderWidth: 1,
+    borderWidth: 2,
     borderRadius: 4,
     marginRight: 10,
     marginTop: 2,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  checkboxChecked: {
-    width: "100%",
-    height: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -558,11 +561,9 @@ const styles = StyleSheet.create({
   termsText: {
     flex: 1,
     fontSize: 14,
-    color: "#535353", // Spotify's darker gray
     lineHeight: 20,
   },
   linkText: {
-    color: "#1ED760", // Spotify's signature green
     fontWeight: "500",
   },
   button: {
@@ -583,6 +584,5 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     fontSize: 14,
-    color: "#535353", // Spotify's darker gray
   },
 });

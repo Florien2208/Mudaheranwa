@@ -9,7 +9,7 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useAuthStore from "@/store/useAuthStore";
 import { View, ActivityIndicator } from "react-native";
 import ChatBot from "../components/chatbot";
@@ -17,6 +17,7 @@ import ChatBot from "../components/chatbot";
 export default function RootLayout(): React.ReactNode {
   const colorScheme = useColorScheme();
   const { initialize, loading, user } = useAuthStore();
+  const [showChatBot, setShowChatBot] = useState(false);
 
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -40,6 +41,7 @@ export default function RootLayout(): React.ReactNode {
         } else {
           router.replace("/auth");
         }
+        setShowChatBot(true);
       }, 5000); // Small delay to ensure navigation works properly
 
       return () => clearTimeout(timeout);
@@ -73,18 +75,20 @@ export default function RootLayout(): React.ReactNode {
           </Stack>
           <StatusBar style="auto" />
           {/* ChatBot positioned as an absolute overlay */}
-          <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              pointerEvents: "box-none",
-            }}
-          >
-            <ChatBot />
-          </View>
+          {showChatBot && (
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                pointerEvents: "box-none",
+              }}
+            >
+              <ChatBot />
+            </View>
+          )}
         </View>
       </ThemeProvider>
     </GestureHandlerRootView>
