@@ -1,6 +1,5 @@
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { Colors } from "@/constants/Colors";
+
 import { useColorScheme } from "@/hooks/useColorScheme";
 import useAuthStore from "@/store/useAuthStore";
 import React, { useEffect, useState } from "react";
@@ -172,20 +171,26 @@ export default function AuthScreen(): React.ReactElement {
     return isValid;
   };
 
-  const handleAuth = (): void => {
+  const handleAuth = async (): Promise<void> => {
     if (!validateForm()) return;
 
-    if (isLogin) {
-      login({
-        email,
-        password,
-      });
-    } else {
-      signup({
-        email,
-        password,
-        name,
-      });
+    try {
+      if (isLogin) {
+        await login({
+          email,
+          password,
+        });
+      } else {
+        await signup({
+          email,
+          password,
+          name,
+        });
+      }
+    } catch (authError) {
+      // Handle authentication error without resetting form
+      console.log("Authentication failed:", authError);
+      // Form state remains intact
     }
   };
 

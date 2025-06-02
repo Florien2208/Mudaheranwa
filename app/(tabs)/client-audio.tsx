@@ -13,7 +13,8 @@ import {
   Dimensions,
   ActivityIndicator,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+
+import { API_BASE_URL } from "@/constants";
 
 // Mock icons (in a real app, you would use a library like react-native-vector-icons)
 const BookIcon = () => (
@@ -34,7 +35,7 @@ const DownloadIcon = () => (
   </View>
 );
 
-const HeartIcon = () => <Text>❤️</Text>;
+
 
 const BackIcon = () => <Text>⬅️</Text>;
 
@@ -45,12 +46,79 @@ const BookApp = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Replace the existing useEffect in the BookApp component with this:
+
+  // Replace the existing useEffect in the BookApp component with this:
+
   useEffect(() => {
-    // Simulate API fetch
-    setTimeout(() => {
-      setBooks(sampleBooks);
-      setLoading(false);
-    }, 800);
+    const fetchBooks = async () => {
+      try {
+        setLoading(true);
+
+        // Replace with your actual API endpoint
+        const response = await fetch(`${API_BASE_URL}/api/v1/books`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+         
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Fetched books:", data);
+
+        // Transform API data to match your app's structure
+        const transformedBooks = data.books.map((book, index) => ({
+          id: book._id,
+          title: book.title,
+          author: book.author,
+          description: book.description,
+          category: book.genre,
+          pages: book.pageCount || 0,
+          publisher: book.user?.name || "Unknown Publisher",
+          publicationDate: new Date(book.publishedAt).toLocaleDateString(
+            "en-US",
+            {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }
+          ),
+          language: "English", // Default since not provided in API
+          isbn: `978-${Math.random().toString().substr(2, 10)}`, // Generate fake ISBN since not provided
+          coverUrl:
+            book.coverImage && book.coverImage !== "default-book-cover.jpg"
+              ? `https://your-server-url.com/${book.coverImage.replace(
+                  /\\/g,
+                  "/"
+                )}`
+              : `https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+${
+                  index + 1
+                }`,
+          downloading: false,
+          downloaded: false,
+          // Additional fields from your API
+          likes: book.likes?.length || 0,
+          reads: book.reads,
+          status: book.status,
+          bookFile: book.bookFile,
+        }));
+
+        setBooks(transformedBooks);
+      } catch (error) {
+        console.error("Error fetching books:", error);
+
+      
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
   }, []);
 
   const filteredBooks = books.filter(
@@ -612,89 +680,5 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 });
-
-// Sample book data
-const sampleBooks = [
-  {
-    id: 1,
-    title: "The Midnight Library",
-    author: "Matt Haig",
-    description:
-      "Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived. To see how things would be if you had made other choices.",
-    category: "Fiction",
-    pages: 288,
-    publisher: "Viking",
-    publicationDate: "August 13, 2020",
-    language: "English",
-    isbn: "978-0525559474",
-    coverUrl: "https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+1",
-    downloading: false,
-    downloaded: false,
-  },
-  {
-    id: 2,
-    title: "Atomic Habits",
-    author: "James Clear",
-    description:
-      "An Easy & Proven Way to Build Good Habits & Break Bad Ones. No matter your goals, Atomic Habits offers a proven framework for improving every day.",
-    category: "Self-Help",
-    pages: 320,
-    publisher: "Avery",
-    publicationDate: "October 16, 2018",
-    language: "English",
-    isbn: "978-0735211292",
-    coverUrl: "https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+2",
-    downloading: false,
-    downloaded: false,
-  },
-  {
-    id: 3,
-    title: "The Psychology of Money",
-    author: "Morgan Housel",
-    description:
-      "Timeless lessons on wealth, greed, and happiness. Doing well with money isn't necessarily about what you know. It's about how you behave. And behavior is hard to teach, even to really smart people.",
-    category: "Finance",
-    pages: 256,
-    publisher: "Harriman House",
-    publicationDate: "September 8, 2020",
-    language: "English",
-    isbn: "978-0857197689",
-    coverUrl: "https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+3",
-    downloading: false,
-    downloaded: false,
-  },
-  {
-    id: 4,
-    title: "Project Hail Mary",
-    author: "Andy Weir",
-    description:
-      "A lone astronaut must save the earth from disaster in this incredible new science-based thriller from the #1 New York Times bestselling author of The Martian.",
-    category: "Sci-Fi",
-    pages: 496,
-    publisher: "Ballantine Books",
-    publicationDate: "May 4, 2021",
-    language: "English",
-    isbn: "978-0593135204",
-    coverUrl: "https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+4",
-    downloading: false,
-    downloaded: false,
-  },
-  {
-    id: 5,
-    title: "Klara and the Sun",
-    author: "Kazuo Ishiguro",
-    description:
-      "From the Nobel Prize-winning author, a magnificent new novel that asks what it means to love, what it means to be human, and what the future of man and machine holds.",
-    category: "Fiction",
-    pages: 320,
-    publisher: "Knopf",
-    publicationDate: "March 2, 2021",
-    language: "English",
-    isbn: "978-0593318171",
-    coverUrl: "https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+5",
-    downloading: false,
-    downloaded: false,
-  },
-];
 
 export default BookApp;

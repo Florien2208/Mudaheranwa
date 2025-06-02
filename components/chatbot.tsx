@@ -12,10 +12,8 @@ import {
   Dimensions,
   ListRenderItemInfo,
   ViewStyle,
-
 } from "react-native";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 // Define types
@@ -31,6 +29,10 @@ interface MessageProps {
   isUser: boolean;
   colorScheme: string | null | undefined;
   timestamp: Date;
+}
+
+interface ChatBotProps {
+  onInteraction?: (chatIsOpen?: boolean) => void;
 }
 
 // Enhanced bot responses with more variety
@@ -106,7 +108,9 @@ const Message: React.FC<MessageProps> = ({
   );
 };
 
-export default function ChatBot(): React.ReactElement {
+export default function ChatBot({
+  onInteraction,
+}: ChatBotProps): React.ReactElement {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -122,12 +126,21 @@ export default function ChatBot(): React.ReactElement {
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  
+
   const typingAnim = useRef(new Animated.Value(0)).current;
   const listRef = useRef<FlatList<Message>>(null);
   const screenHeight = Dimensions.get("window").height;
 
+  const handleInteraction = (chatIsOpen?: boolean) => {
+    if (onInteraction) {
+      onInteraction(chatIsOpen);
+    }
+  };
+
   const toggleChat = (): void => {
+    const willBeOpen = !isOpen;
+    handleInteraction(willBeOpen); // Pass the new state
+
     // Animate button
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -162,6 +175,8 @@ export default function ChatBot(): React.ReactElement {
 
   const handleSend = (): void => {
     if (inputText.trim() === "") return;
+
+    handleInteraction(isOpen); // Pass current open state
 
     // Add user message
     const newMessage: Message = {
@@ -206,6 +221,11 @@ export default function ChatBot(): React.ReactElement {
       };
       setMessages((prevMessages) => [...prevMessages, botMessage]);
     }, 1500 + Math.random() * 1000); // Random typing time
+  };
+
+  const handleTextInputChange = (text: string) => {
+    handleInteraction(isOpen); // Pass current open state
+    setInputText(text);
   };
 
   useEffect(() => {
@@ -285,7 +305,7 @@ export default function ChatBot(): React.ReactElement {
         style={[
           {
             position: "absolute",
-            bottom: 180,
+            bottom: 100,
             right: 20,
             zIndex: 100,
           },
@@ -412,6 +432,7 @@ export default function ChatBot(): React.ReactElement {
               paddingBottom: 20,
             }}
             showsVerticalScrollIndicator={false}
+            onScrollBeginDrag={() => handleInteraction(isOpen)} // Pass current open state
             renderItem={({ item }: ListRenderItemInfo<Message>) => (
               <Message
                 text={item.text}
@@ -456,11 +477,12 @@ export default function ChatBot(): React.ReactElement {
                 placeholder="Type a message..."
                 placeholderTextColor={isDark ? "#8E8E93" : "#8E8E93"}
                 value={inputText}
-                onChangeText={setInputText}
+                onChangeText={handleTextInputChange}
                 multiline
                 onSubmitEditing={handleSend}
                 returnKeyType="send"
                 blurOnSubmit={false}
+                onFocus={() => handleInteraction(isOpen)} // Pass current open state
               />
               <TouchableOpacity
                 onPress={handleSend}

@@ -1,178 +1,171 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
+import * as Location from "expo-location";
+import type { LocationObject } from "expo-location";
+
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import {
-  StyleSheet,
   View,
   Text,
+  StyleSheet,
+  TextInput,
   Dimensions,
+  ScrollView,
+  SafeAreaView,
   ActivityIndicator,
-  Alert,
-  Platform,
+  Image,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import WebView from "react-native-webview";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { Colors } from "@/constants/Colors";
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
-const SCREEN_HEIGHT = Dimensions.get("window").height;
+const { width, height } = Dimensions.get("window");
 
-// Using OpenStreetMap which doesn't require an API key
-const mapHTML = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-  <style>
-    body { margin: 0; padding: 0; }
-    #map { width: 100%; height: 100vh; }
-    .user-marker {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 24px;
-      height: 24px;
-      background-color: #4285F4;
-      border-radius: 50%;
-      border: 3px solid white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-    .pulse {
-      animation: pulse 2s infinite;
-      position: absolute;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background-color: rgba(66, 133, 244, 0.4);
-    }
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      100% {
-        transform: scale(3);
-        opacity: 0;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <script>
-    // Initialize map with a default view (will be updated when we get location)
-    var map = L.map('map').setView([-1.9441, 30.0619], 15);
-
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19
-    }).addTo(map);
-
-    // Create a custom icon for user location
-    var userIcon = L.divIcon({
-      className: 'user-marker',
-      html: '<div class="pulse"></div>',
-      iconSize: [24, 24],
-    });
-
-    // Add a marker for the user (will be positioned when we get location)
-    var userMarker = L.marker([0, 0], {icon: userIcon}).addTo(map);
-    var isFirstLocation = true;
-
-    // Add event listener to handle messages from React Native
-    window.addEventListener('message', function(event) {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'UPDATE_LOCATION') {
-          const lat = data.lat;
-          const lng = data.lng;
-          
-          // Update marker position
-          userMarker.setLatLng([lat, lng]);
-          
-          // If this is the first location update, zoom to it
-          if (isFirstLocation) {
-            map.setView([lat, lng], 15);
-            isFirstLocation = false;
-          }
-          
-          // Add popup with information
-          userMarker.bindPopup("<b>Your Current Location</b>").openPopup();
-        }
-      } catch (error) {
-        console.error('Error parsing message:', error);
-      }
-    });
-  </script>
-</body>
-</html>
-`;
+// Real genocide memorial sites in Rwanda with coordinates
+const facilities = [
+  {
+    name: "Kigali Genocide Memorial",
+    latitude: -1.9309538509389927,
+    longitude: 30.060668924304128,
+    type: "memorial",
+  },
+  {
+    name: "Nyamata Genocide Memorial",
+    latitude: -2.1445, // Approximately 30km south of Kigali
+    longitude: 30.0946,
+    type: "memorial",
+  },
+  {
+    name: "Murambi Genocide Memorial",
+    latitude: -2.5167, // Southern Rwanda near Murambi town
+    longitude: 29.75,
+    type: "memorial",
+  },
+  {
+    name: "Bisesero Genocide Memorial",
+    latitude: -2.0833, // Western Province, Karongi district
+    longitude: 29.4167,
+    type: "memorial",
+  },
+  {
+    name: "Ntarama Genocide Memorial",
+    latitude: -2.1234, // Near Nyamata area
+    longitude: 30.1,
+    type: "memorial",
+  },
+];
 
 export default function MapScreen() {
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? "light"];
-  const [isLoading, setIsLoading] = useState(true);
-  const webViewRef = useRef(null);
-
-  // We'll use a hardcoded default location instead of requiring the expo-location module
-  const defaultLatitude = -1.9441; // Default to Kigali, Rwanda coordinates
-  const defaultLongitude = 30.0619;
+  const [location, setLocation] = useState<LocationObject | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Update the map with default location after a short delay
-    const timer = setTimeout(() => {
-      if (webViewRef.current) {
-        updateLocation(defaultLatitude, defaultLongitude);
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.warn("Permission denied");
+        setLoading(false);
+        return;
       }
-    }, 1500);
 
-    return () => clearTimeout(timer);
+      const loc = await Location.getCurrentPositionAsync({});
+      setLocation(loc);
+      setLoading(false);
+    })();
   }, []);
 
-  const onLoadEnd = () => {
-    setIsLoading(false);
-    // Update with default location when map loads
-    setTimeout(() => {
-      updateLocation(defaultLatitude, defaultLongitude);
-    }, 1000);
-  };
-
-  // Function to update map location
-  const updateLocation = (lat, lng) => {
-    const locationData = {
-      type: "UPDATE_LOCATION",
-      lat: lat,
-      lng: lng,
-      title: "Your Location",
-    };
-    webViewRef.current?.postMessage(JSON.stringify(locationData));
-  };
-
   return (
-    <SafeAreaView
-      style={[styles.container]}
-    >
-      <View style={styles.mapContainer}>
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.tint} />
-            <Text style={[styles.loadingText, { color: theme.text }]}>
-              Loading Map...
-            </Text>
-          </View>
-        )}
-        <WebView
-          ref={webViewRef}
-          originWhitelist={["*"]}
-          source={{ html: mapHTML }}
-          style={styles.map}
-          onLoadEnd={onLoadEnd}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
+       
+
+        {/* Greeting */}
+        <Text style={styles.hello}>
+          Hello <Text style={{ color: "#00BFFF" }}>!</Text>
+        </Text>
+        <Text style={styles.subtitle}>
+          Which Memorial site are you looking for today?
+        </Text>
+
+        {/* Search */}
+        <TextInput
+          placeholder="Search memorial sites"
+          style={styles.searchBar}
         />
-      </View>
+
+        {/* Map */}
+        {loading ? (
+          <ActivityIndicator size="large" color="#007AFF" />
+        ) : location ? (
+          <MapView
+            style={styles.map}
+            provider={PROVIDER_GOOGLE}
+            region={{
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              latitudeDelta: 0.02, // Increased to show more area
+              longitudeDelta: 0.02,
+            }}
+          >
+            {/* User location marker */}
+            <Marker
+              coordinate={{
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+              }}
+              title="You are here"
+              description="Your current location"
+              pinColor="blue"
+            />
+
+            {/* Branch/Facility markers */}
+            {facilities.map((facility, index) => (
+              <Marker
+                key={index}
+                coordinate={{
+                  latitude: facility.latitude,
+                  longitude: facility.longitude,
+                }}
+                title={facility.name}
+                description={
+                  facility.type === "memorial"
+                    ? `${facility.name} - Commemorating the 1994 Genocide against the Tutsi`
+                    : "Medical facility"
+                }
+                pinColor={facility.type === "memorial" ? "purple" : "red"}
+              />
+            ))}
+          </MapView>
+        ) : (
+          <Text>Location not available</Text>
+        )}
+
+        {/* Facilities */}
+        <Text style={styles.sectionTitle}>Rwanda Genocide Memorial Sites</Text>
+        <View style={styles.facilityGrid}>
+          {facilities.map((facility, index) => (
+            <View
+              key={index}
+              style={[
+                styles.card,
+                facility.type === "memorial" && styles.memorialCard,
+              ]}
+            >
+              <Image
+                source={require("@/assets/avatar.png")}
+                style={styles.cardImage}
+              />
+              <Text
+                style={[
+                  styles.cardText,
+                  facility.type === "memorial" && styles.memorialText,
+                ]}
+              >
+                {facility.name}
+              </Text>
+              {facility.type === "memorial" && (
+                <Text style={styles.memorialSubtext}>Memorial Site</Text>
+              )}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -180,42 +173,98 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#E6F9FB",
+    paddingTop: 20,
   },
-  mapContainer: {
-    flex: 1,
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  logo: {
+    fontSize: 22,
+    fontWeight: "bold",
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  menuIcon: {
+    width: 28,
+    height: 28,
+  },
+  hello: {
+    fontSize: 28,
+    fontWeight: "bold",
+    paddingHorizontal: 16,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#555",
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  searchBar: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginHorizontal: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+    fontSize: 14,
   },
   map: {
-    flex: 1,
+    width: width - 32,
+    height: height * 0.55,
+    marginHorizontal: 16,
+    borderRadius: 12,
   },
-  loadingContainer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1,
-  },
-  loadingText: {
-    marginTop: 10,
-  },
-  errorContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  errorText: {
+  sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 10,
+    fontWeight: "600",
+    marginVertical: 16,
+    paddingHorizontal: 16,
   },
-  errorSubText: {
-    fontSize: 16,
+  facilityGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+  },
+  card: {
+    width: "47%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+    alignItems: "center",
+    elevation: 3,
+  },
+  memorialCard: {
+    backgroundColor: "#F8F5FF",
+    borderColor: "#8B5CF6",
+    borderWidth: 1,
+  },
+  cardImage: {
+    width: 60,
+    height: 60,
+    marginBottom: 8,
+  },
+  cardText: {
+    fontSize: 14,
     textAlign: "center",
+  },
+  memorialText: {
+    fontWeight: "600",
+    color: "#6B46C1",
+  },
+  memorialSubtext: {
+    fontSize: 12,
+    color: "#8B5CF6",
+    fontStyle: "italic",
+    marginTop: 4,
   },
 });

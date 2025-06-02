@@ -99,6 +99,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="video"
+        redirect={user?.role !== "user"}
+        options={{
+          title: "Videos",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="books.vertical.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="map"
         options={{
           title: "Map",

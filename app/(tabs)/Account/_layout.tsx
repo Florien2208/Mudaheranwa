@@ -8,6 +8,7 @@ const AccountLayout = () => {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="subscription" options={{ headerShown: false }} />
       <Stack.Screen name="payment" options={{ headerShown: false }} />
+      <Stack.Screen name="notification" options={{ headerShown: false }} />
 
     </Stack>
   );

@@ -13,15 +13,16 @@ import {
   Text,
 } from "react-native";
 import Animated, { FadeIn, FadeInRight } from "react-native-reanimated";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { useAuth } from "@/store/AuthContext";
+
 import useAuthStore from "@/store/useAuthStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { API_BASE_URL } from "@/constants";
 import { Audio } from "expo-av";
+import NotificationDropdown from "./Account/dropdownNotification";
 
 // Define types for our data
 interface Song {
@@ -32,7 +33,14 @@ interface Song {
   audioUrl: string;
   duration?: string;
 }
-
+interface Notification {
+  id: string;
+  type: "like" | "follow" | "comment" | "release";
+  title: string;
+  message: string;
+  time: string;
+  isRead: boolean;
+}
 // Custom ThemedText component with proper color handling
 const ThemedText: React.FC<{
   style?: any;
@@ -73,9 +81,14 @@ export default function HomeScreen(): React.ReactElement {
   const [playbackPosition, setPlaybackPosition] = useState<string>("0:00");
   const [playbackDuration, setPlaybackDuration] = useState<string>("0:00");
   const { user } = useAuthStore();
-
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const isDark = colorScheme === "dark";
 
+  // Add this useEffect after your existing useEffects to load notifications
+  useEffect(() => {
+    loadNotifications();
+  }, []);
   useEffect(() => {
     fetchTracks();
     return () => {
@@ -115,7 +128,35 @@ export default function HomeScreen(): React.ReactElement {
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
   };
-
+  const loadNotifications = () => {
+    const mockNotifications: Notification[] = [
+      {
+        id: "1",
+        type: "like",
+        title: "New Like",
+        message: "Sarah Connor liked your track 'Midnight Dreams'",
+        time: "2 minutes ago",
+        isRead: false,
+      },
+      {
+        id: "2",
+        type: "follow",
+        title: "New Follower",
+        message: "John Doe started following you",
+        time: "15 minutes ago",
+        isRead: false,
+      },
+      {
+        id: "3",
+        type: "comment",
+        title: "New Comment",
+        message: "Alex wrote: 'Amazing beat!'",
+        time: "1 hour ago",
+        isRead: true,
+      },
+    ];
+    setNotifications(mockNotifications);
+  };
   const fetchTracks = async () => {
     setIsLoading(true);
     try {
@@ -146,7 +187,23 @@ export default function HomeScreen(): React.ReactElement {
       setIsLoading(false);
     }
   };
+  const handleNotificationPress = (id: string) => {
+    // Mark notification as read and handle navigation
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === id
+          ? { ...notification, isRead: true }
+          : notification
+      )
+    );
+    setShowNotifications(false);
+    // Add navigation logic here based on notification type
+  };
 
+  const handleSeeAllNotifications = () => {
+    setShowNotifications(false);
+    router.navigate("/(tabs)/Account/notification"); // Navigate to all notifications screen
+  };
   const calculateAudioDuration = async (audioUri: string): Promise<string> => {
     try {
       const { sound } = await Audio.Sound.createAsync(
@@ -334,7 +391,7 @@ export default function HomeScreen(): React.ReactElement {
   );
 
   return (
-    <View
+    <SafeAreaView
       style={[
         styles.container,
         { backgroundColor: isDark ? "#121212" : "#FFFFFF" },
@@ -349,7 +406,9 @@ export default function HomeScreen(): React.ReactElement {
             {user?.username || "Music Lover"}
           </ThemedText>
         </View>
-        <TouchableOpacity onPress={() => router.navigate("/")}>
+        <TouchableOpacity
+          onPress={() => setShowNotifications(!showNotifications)}
+        >
           <View
             style={[
               styles.iconButton,
@@ -365,6 +424,13 @@ export default function HomeScreen(): React.ReactElement {
               size={24}
               color={isDark ? "#FFFFFF" : "#000000"}
             />
+            {notifications.filter((n) => !n.isRead).length > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.badgeText}>
+                  {notifications.filter((n) => !n.isRead).length}
+                </Text>
+              </View>
+            )}
           </View>
         </TouchableOpacity>
       </View>
@@ -430,7 +496,14 @@ export default function HomeScreen(): React.ReactElement {
           </View>
         )}
       />
-
+      {showNotifications && (
+        <NotificationDropdown
+          notifications={notifications}
+          onNotificationPress={handleNotificationPress}
+          onSeeAll={handleSeeAllNotifications}
+          isDark={isDark}
+        />
+      )}
       {/* Now Playing Bar - only shown when a track is playing */}
       {currentTrack && (
         <View
@@ -490,7 +563,7 @@ export default function HomeScreen(): React.ReactElement {
           </View>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -499,7 +572,7 @@ const { width } = Dimensions.get("window");
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10,
+
   },
   header: {
     flexDirection: "row",
@@ -709,5 +782,21 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+  },
+  notificationBadge: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    backgroundColor: "#FF6B6B",
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    minWidth: 16,
+    alignItems: "center",
+  },
+  badgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontFamily: "PoppinsSemiBold",
   },
 });
