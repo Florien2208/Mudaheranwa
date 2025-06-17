@@ -11,20 +11,24 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useEffect, useState, useRef } from "react";
 import useAuthStore from "@/store/useAuthStore";
-import {
-  View,
-  ActivityIndicator,
-  PanResponder,
-  Dimensions,
-} from "react-native";
+import { View, ActivityIndicator, PanResponder } from "react-native";
 import ChatBot from "../components/chatbot";
+import useLanguageStore from "@/store/useLanguageStore";
+import "../i18n";
 
 export default function RootLayout(): React.ReactNode {
   const colorScheme = useColorScheme();
   const { initialize, loading, user } = useAuthStore();
   const [showChatBot, setShowChatBot] = useState(false);
   const [chatBotVisible, setChatBotVisible] = useState(true);
-  const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
+  const [hasInitializedApp, setHasInitializedApp] = useState(false);
+  const inactivityTimer = useRef<number | null>(null);
+
+  const {
+    initializeLanguage,
+    isInitialized: languageInitialized,
+    isLoading: languageLoading,
+  } = useLanguageStore();
 
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -54,25 +58,39 @@ export default function RootLayout(): React.ReactNode {
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => {
-        resetInactivityTimer(false); // Pass false since this is general app interaction
-        return false; // Don't capture the gesture, just detect it
+        resetInactivityTimer(false);
+        return false;
       },
       onMoveShouldSetPanResponder: () => {
-        resetInactivityTimer(false); // Pass false since this is general app interaction
+        resetInactivityTimer(false);
         return false;
       },
     })
   ).current;
 
-  // Initialize auth on app launch
+  // Initialize app only once
   useEffect(() => {
-    initialize();
-  }, []);
+    const initializeApp = async () => {
+      try {
+        // Initialize language first
+        await initializeLanguage();
+        // Then initialize auth
+        await initialize();
+        setHasInitializedApp(true);
+      } catch (error) {
+        console.error("Failed to initialize app:", error);
+        setHasInitializedApp(true); // Still set to true to prevent infinite loading
+      }
+    };
 
-  // Redirect based on auth status after initialization
+    if (!hasInitializedApp) {
+      initializeApp();
+    }
+  }, [hasInitializedApp, initializeLanguage, initialize]);
+
+  // Handle navigation only once after initialization
   useEffect(() => {
-    if (!loading) {
-      // After auth is initialized, redirect to appropriate screen
+    if (hasInitializedApp && !loading && languageInitialized) {
       const timeout = setTimeout(() => {
         if (user) {
           router.replace("/(tabs)");
@@ -80,13 +98,12 @@ export default function RootLayout(): React.ReactNode {
           router.replace("/auth");
         }
         setShowChatBot(true);
-        // Start the inactivity timer when chatbot becomes available
         resetInactivityTimer(false);
-      }, 5000); // Small delay to ensure navigation works properly
+      }, 100); // Reduced delay
 
       return () => clearTimeout(timeout);
     }
-  }, [loading, user]);
+  }, [hasInitializedApp, loading, user, languageInitialized]);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -97,8 +114,14 @@ export default function RootLayout(): React.ReactNode {
     };
   }, []);
 
-  if (!loaded || loading) {
-    // Show loading indicator while fonts and auth are loading
+  // Show loading while app is initializing
+  if (
+    !loaded ||
+    !hasInitializedApp ||
+    loading ||
+    !languageInitialized ||
+    languageLoading
+  ) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color="#FF6347" />

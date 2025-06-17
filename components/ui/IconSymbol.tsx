@@ -76,6 +76,9 @@ const MAPPING = {
   "xmark.circle": "cancel",
   "chevron.left": "chevron-left",
   gear: "settings",
+  "play.rectangle.fill": "smart-display",
+  "sun.max.fill": "light-mode",
+  "moon.fill": "dark-mode",
 } as IconMapping;
 
 /**

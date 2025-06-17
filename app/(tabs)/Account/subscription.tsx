@@ -19,22 +19,26 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const COLORS = {
-  primary: "#72b7e9",
-  primaryLight: "#8fc5ed",
-  primaryDark: "#5ca8d8",
-  secondary: "#a8d8f0",
-  accent: "#4a90e2",
-  success: "#34c759",
-  warning: "#ff9500",
-  error: "#ff3b30",
-  lightBg: "#f8fbff",
-  darkBg: "#0a1a24",
+  primary: "#2563eb", // Rich blue
+  primaryLight: "#3b82f6", // Lighter blue
+  primaryDark: "#1d4ed8", // Darker blue
+  secondary: "#64748b", // Slate gray
+  accent: "#6366f1", // Indigo
+  success: "#10b981", // Emerald
+  warning: "#f59e0b", // Amber
+  error: "#ef4444", // Red
+  lightBg: "#f8fafc", // Very light blue-gray
+  darkBg: "#0f172a", // Dark slate
   cardLight: "#ffffff",
-  cardDark: "#1a2832",
+  cardDark: "#1e293b", // Dark slate
   shadowColor: "#000",
   overlay: "rgba(0, 0, 0, 0.6)",
-  gold: "#FFD700",
-  platinum: "#E5E4E2",
+  gold: "#f59e0b", // Amber instead of gold
+  platinum: "#94a3b8", // Slate gray
+  textPrimary: "#1e293b", // Dark slate for light mode
+  textSecondary: "#64748b", // Medium slate
+  textDarkPrimary: "#f1f5f9", // Light for dark mode
+  textDarkSecondary: "#94a3b8", // Medium slate for dark mode
 } as const;
 
 // Subscription plans data
@@ -44,7 +48,7 @@ const SUBSCRIPTION_PLANS = [
     name: "Free",
     price: "$0",
     period: "forever",
-    color: Colors.light.text,
+    color: COLORS.secondary,
     features: [
       "Browse artworks",
       "Basic search",
@@ -80,7 +84,7 @@ const SUBSCRIPTION_PLANS = [
     name: "Artist Pro",
     price: "$19.99",
     period: "month",
-    color: COLORS.gold,
+    color: COLORS.accent,
     features: [
       "Everything in Premium",
       "Commission marketplace access",
@@ -118,7 +122,11 @@ const CurrentSubscriptionCard = React.memo(
             <Text
               style={[
                 styles.currentPlanTitle,
-                { color: Colors[colorScheme].text },
+                {
+                  color: isDark
+                    ? COLORS.textDarkSecondary
+                    : COLORS.textSecondary,
+                },
               ]}
             >
               Current Plan
@@ -143,7 +151,11 @@ const CurrentSubscriptionCard = React.memo(
             <Text
               style={[
                 styles.currentPlanDetails,
-                { color: Colors[colorScheme].secondaryText },
+                {
+                  color: isDark
+                    ? COLORS.textDarkSecondary
+                    : COLORS.textSecondary,
+                },
               ]}
             >
               {currentPlan.price}/{currentPlan.period}
@@ -191,7 +203,11 @@ const CurrentSubscriptionCard = React.memo(
               <Text
                 style={[
                   styles.billingInfo,
-                  { color: Colors[colorScheme].secondaryText },
+                  {
+                    color: isDark
+                      ? COLORS.textDarkSecondary
+                      : COLORS.textSecondary,
+                  },
                 ]}
               >
                 {subscription.status === "active"
@@ -288,7 +304,12 @@ const SubscriptionPlanCard = React.memo(
               color={plan.color}
             />
           </View>
-          <Text style={[styles.planName, { color: Colors[colorScheme].text }]}>
+          <Text
+            style={[
+              styles.planName,
+              { color: isDark ? COLORS.textDarkPrimary : COLORS.textPrimary },
+            ]}
+          >
             {plan.name}
           </Text>
           <View style={styles.planPricing}>
@@ -298,7 +319,11 @@ const SubscriptionPlanCard = React.memo(
             <Text
               style={[
                 styles.planPeriod,
-                { color: Colors[colorScheme].secondaryText },
+                {
+                  color: isDark
+                    ? COLORS.textDarkSecondary
+                    : COLORS.textSecondary,
+                },
               ]}
             >
               /{plan.period}
@@ -308,7 +333,10 @@ const SubscriptionPlanCard = React.memo(
 
         <View style={styles.planFeatures}>
           <Text
-            style={[styles.featuresTitle, { color: Colors[colorScheme].text }]}
+            style={[
+              styles.featuresTitle,
+              { color: isDark ? COLORS.textDarkPrimary : COLORS.textPrimary },
+            ]}
           >
             Features:
           </Text>
@@ -322,7 +350,9 @@ const SubscriptionPlanCard = React.memo(
               <Text
                 style={[
                   styles.featureText,
-                  { color: Colors[colorScheme].text },
+                  {
+                    color: isDark ? COLORS.textDarkPrimary : COLORS.textPrimary,
+                  },
                 ]}
               >
                 {feature}
@@ -335,7 +365,11 @@ const SubscriptionPlanCard = React.memo(
               <Text
                 style={[
                   styles.limitationsTitle,
-                  { color: Colors[colorScheme].secondaryText },
+                  {
+                    color: isDark
+                      ? COLORS.textDarkSecondary
+                      : COLORS.textSecondary,
+                  },
                 ]}
               >
                 Limitations:
@@ -350,7 +384,11 @@ const SubscriptionPlanCard = React.memo(
                   <Text
                     style={[
                       styles.limitationText,
-                      { color: Colors[colorScheme].secondaryText },
+                      {
+                        color: isDark
+                          ? COLORS.textDarkSecondary
+                          : COLORS.textSecondary,
+                      },
                     ]}
                   >
                     {limitation}
@@ -366,7 +404,12 @@ const SubscriptionPlanCard = React.memo(
             style={[
               styles.selectButton,
               isCurrentPlan
-                ? { backgroundColor: Colors[colorScheme].secondaryText + "20" }
+                ? {
+                    backgroundColor:
+                      (isDark
+                        ? COLORS.textDarkSecondary
+                        : COLORS.textSecondary) + "20",
+                  }
                 : { backgroundColor: plan.color },
             ]}
             onPress={handleSelect}
@@ -381,7 +424,9 @@ const SubscriptionPlanCard = React.memo(
                 styles.selectButtonText,
                 {
                   color: isCurrentPlan
-                    ? Colors[colorScheme].secondaryText
+                    ? isDark
+                      ? COLORS.textDarkSecondary
+                      : COLORS.textSecondary
                     : "#FFFFFF",
                 },
               ]}
@@ -421,7 +466,7 @@ export default function SubscriptionScreen({ navigation }) {
         {
           text: "Continue",
           onPress: () => {
-       router.push("/Account/payment")
+            router.push("/Account/payment");
           },
         },
       ]
@@ -494,7 +539,9 @@ export default function SubscriptionScreen({ navigation }) {
           <Text
             style={[
               styles.headerSubtitle,
-              { color: Colors[colorScheme].secondaryText },
+              {
+                color: isDark ? COLORS.textDarkSecondary : COLORS.textSecondary,
+              },
             ]}
           >
             Manage your subscription and billing
@@ -517,7 +564,10 @@ export default function SubscriptionScreen({ navigation }) {
 
         {/* Available Plans */}
         <Text
-          style={[styles.sectionTitle, { color: Colors[colorScheme].text }]}
+          style={[
+            styles.sectionTitle,
+            { color: isDark ? COLORS.textDarkPrimary : COLORS.textPrimary },
+          ]}
         >
           Available Plans
         </Text>
@@ -544,7 +594,9 @@ export default function SubscriptionScreen({ navigation }) {
           <Text
             style={[
               styles.infoText,
-              { color: Colors[colorScheme].secondaryText },
+              {
+                color: isDark ? COLORS.textDarkSecondary : COLORS.textSecondary,
+              },
             ]}
           >
             You can upgrade, downgrade, or cancel your subscription at any time.

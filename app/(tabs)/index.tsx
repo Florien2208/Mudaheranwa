@@ -438,7 +438,12 @@ export default function HomeScreen(): React.ReactElement {
       <FlatList
         data={[1]} // Dummy data for the main scrollable content
         renderItem={() => (
-          <View style={styles.content}>
+          <View
+            style={[
+              styles.content,
+              { paddingBottom: currentTrack ? 130 : 40 }, // Dynamic padding based on now playing bar
+            ]}
+          >
             {/* Featured Section */}
             <View style={styles.section}>
               <ThemedText style={styles.sectionTitle} type="title">
@@ -495,7 +500,10 @@ export default function HomeScreen(): React.ReactElement {
             )}
           </View>
         )}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
       />
+
       {showNotifications && (
         <NotificationDropdown
           notifications={notifications}
@@ -504,6 +512,7 @@ export default function HomeScreen(): React.ReactElement {
           isDark={isDark}
         />
       )}
+
       {/* Now Playing Bar - only shown when a track is playing */}
       {currentTrack && (
         <View
@@ -511,9 +520,10 @@ export default function HomeScreen(): React.ReactElement {
             styles.nowPlaying,
             {
               backgroundColor: isDark
-                ? "rgba(255,255,255,0.1)"
-                : "rgba(0,0,0,0.05)",
+                ? "rgba(20, 20, 20, 0.95)" // More opaque background
+                : "rgba(255, 255, 255, 0.95)",
               borderColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)",
+              backdropFilter: "blur(10px)", // Add blur effect for better separation
             },
           ]}
         >
@@ -572,7 +582,6 @@ const { width } = Dimensions.get("window");
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
   },
   header: {
     flexDirection: "row",
@@ -598,7 +607,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   content: {
-    paddingBottom: 120,
+    // Dynamic padding will be applied inline based on currentTrack state
   },
   section: {
     marginBottom: 32,
@@ -737,11 +746,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     borderWidth: 1,
-    elevation: 5,
+    elevation: 8, // Increased elevation for better separation
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 }, // Stronger shadow
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    zIndex: 1000, // Ensure it's above other content
   },
   nowPlayingCover: {
     width: 56,

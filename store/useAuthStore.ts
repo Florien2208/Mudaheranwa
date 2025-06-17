@@ -1,13 +1,9 @@
-import { create } from "zustand";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
-import axios from "axios";
 import { API_BASE_URL } from "@/constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { router } from "expo-router";
+import { create } from "zustand";
 
-// API base URL - replace with your actual API endpoint
-
-
-// Define types
 interface User {
   id?: string;
   email?: string;
@@ -77,7 +73,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
   // Login function
   login: async (credentials: LoginCredentials) => {
     set({ loading: true, error: null });
-console.log("login called", credentials);
+    console.log("login called", credentials);
     try {
       // API call to authenticate
       const response = await axios.post<AuthResponse>(
@@ -94,7 +90,8 @@ console.log("login called", credentials);
       // Set default auth header for all requests
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-      set({ user, token, loading: false });
+      set({ user, token, loading: false, error: null });
+      // Navigation will be handled by RootLayout
       router.replace("/(tabs)");
     } catch (error: any) {
       console.error("Login error:", error.response?.data || error.message);
@@ -103,14 +100,16 @@ console.log("login called", credentials);
         error:
           error.response?.data?.message ||
           "Login failed. Please check your credentials.",
+        // Don't clear user state on login failure - stay on auth screen
       });
+      // Don't navigate anywhere on failure - let user stay on auth screen
     }
   },
 
   // Signup function
   signup: async (userData: SignupData) => {
     set({ loading: true, error: null });
-console.log("signup called", userData);
+    console.log("signup called", userData);
     try {
       // API call to register
       const response = await axios.post<AuthResponse>(
@@ -127,7 +126,8 @@ console.log("signup called", userData);
       // Set default auth header for all requests
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-      set({ user, token, loading: false });
+      set({ user, token, loading: false, error: null });
+      // Navigation will be handled by RootLayout
       router.replace("/(tabs)");
     } catch (error: any) {
       console.error("Signup error:", error.response?.data || error.message);
@@ -136,7 +136,9 @@ console.log("signup called", userData);
         error:
           error.response?.data?.message ||
           "Registration failed. Please try again.",
+        // Don't clear user state on signup failure - stay on auth screen
       });
+      // Don't navigate anywhere on failure - let user stay on auth screen
     }
   },
 

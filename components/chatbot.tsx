@@ -305,7 +305,7 @@ export default function ChatBot({
         style={[
           {
             position: "absolute",
-            bottom: 100,
+            bottom: 170,
             right: 20,
             zIndex: 100,
           },

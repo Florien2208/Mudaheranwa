@@ -75,10 +75,7 @@ export default function MapScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
        
 
-        {/* Greeting */}
-        <Text style={styles.hello}>
-          Hello <Text style={{ color: "#00BFFF" }}>!</Text>
-        </Text>
+      
         <Text style={styles.subtitle}>
           Which Memorial site are you looking for today?
         </Text>
@@ -173,7 +170,7 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#E6F9FB",
+    // backgroundColor: "#E6F9FB",
     paddingTop: 20,
   },
   header: {
@@ -196,11 +193,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
   },
-  hello: {
-    fontSize: 28,
-    fontWeight: "bold",
-    paddingHorizontal: 16,
-  },
+ 
   subtitle: {
     fontSize: 14,
     color: "#555",

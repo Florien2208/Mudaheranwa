@@ -5,44 +5,47 @@ import useAuthStore from "@/store/useAuthStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useState, useMemo, useRef } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
+  Alert,
+  Animated,
+  Haptics,
   Modal,
   Platform,
   Pressable,
+  RefreshControl,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Animated,
-  Alert,
-  Haptics,
-  RefreshControl,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-// Constants
-const LANGUAGES = [
-  { code: "en", name: "English", nativeName: "English" },
-  { code: "es", name: "Español", nativeName: "Español" },
-  { code: "fr", name: "Français", nativeName: "Français" },
-  { code: "de", name: "Deutsch", nativeName: "Deutsch" },
-  { code: "pt", name: "Português", nativeName: "Português" },
-  { code: "ja", name: "日本語", nativeName: "日本語" },
-  { code: "zh", name: "中文", nativeName: "中文" },
-  { code: "ar", name: "العربية", nativeName: "العربية" },
-] as const;
 
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/hooks/useLanguage";
+
+// Constants
 const COLORS = {
-  primary: "#72b7e9",
-  primaryLight: "#8fc5ed",
-  primaryDark: "#5ca8d8",
-  secondary: "#a8d8f0",
-  accent: "#4a90e2",
-  success: "#34c759",
-  warning: "#ff9500",
-  error: "#ff3b30",
+  primary: "#4A90E2",
+  primaryLight: "#6BA6F2",
+  primaryDark: "#2C5282",
+  secondary: "#E2F4FF",
+  accent: "#FF6B6B",
+  success: "#4ECDC4",
+  warning: "#FFD93D",
+  error: "#FF6B6B",
+  purple: "#9F7AEA",
+  orange: "#FF8C42",
+  textPrimary: "#1A202C",
+  textSecondary: "#4A5568",
+  textAccent: "#2D3748",
+  textMuted: "#718096",
+  textBlue: "#4A90E2",
+  textPurple: "#805AD5",
+  textTeal: "#319795",
   lightBg: "#f8fbff",
   darkBg: "#0a1a24",
   cardLight: "#ffffff",
@@ -63,24 +66,25 @@ const ANIMATION_CONFIG = {
   },
 } as const;
 
-// Enhanced MenuItem component with better animations and accessibility
+// Enhanced MenuItem component
 const MenuItem = React.memo(
   ({
     icon,
     title,
+    subtitle,
     onPress,
     colorScheme,
     rightContent,
     isLast,
-    subtitle,
     disabled = false,
+    iconColor = COLORS.primary,
   }) => {
     const scaleValue = useRef(new Animated.Value(1)).current;
     const opacityValue = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = useCallback(() => {
       if (disabled) return;
-      Haptics?.selectionAsync?.(); // Optional haptic feedback
+      Haptics?.selectionAsync?.();
 
       Animated.parallel([
         Animated.spring(scaleValue, {
@@ -109,13 +113,10 @@ const MenuItem = React.memo(
       ]).start();
     }, [disabled, scaleValue, opacityValue]);
 
-    const borderColor = Colors[colorScheme].border + "40";
+    const borderColor = Colors[colorScheme].border;
     const iconBackgroundColor = disabled
       ? Colors[colorScheme].secondaryText + "20"
-      : COLORS.primary + "15";
-    const iconColor = disabled
-      ? Colors[colorScheme].secondaryText
-      : COLORS.primary;
+      : iconColor;
 
     return (
       <Animated.View
@@ -129,7 +130,7 @@ const MenuItem = React.memo(
             styles.menuItem,
             {
               borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
-              borderBottomColor: borderColor,
+              borderBottomColor: borderColor + "30",
               opacity: disabled ? 0.5 : 1,
             },
           ]}
@@ -154,14 +155,15 @@ const MenuItem = React.memo(
                 { backgroundColor: iconBackgroundColor },
               ]}
             >
-              <IconSymbol name={icon} size={20} color={iconColor} />
+              <IconSymbol
+                name={icon}
+                size={20}
+                color={disabled ? Colors[colorScheme].secondaryText : "#FFFFFF"}
+              />
             </View>
             <View style={styles.menuTextContainer}>
               <Text
-                style={[
-                  styles.menuItemText,
-                  { color: Colors[colorScheme].text },
-                ]}
+                style={[styles.menuItemText, { color: COLORS.textPrimary }]}
                 numberOfLines={1}
               >
                 {title}
@@ -170,7 +172,7 @@ const MenuItem = React.memo(
                 <Text
                   style={[
                     styles.menuItemSubtitle,
-                    { color: Colors[colorScheme].secondaryText },
+                    { color: COLORS.textSecondary },
                   ]}
                   numberOfLines={1}
                 >
@@ -181,11 +183,14 @@ const MenuItem = React.memo(
           </View>
           <View style={styles.menuItemRight}>
             {rightContent || (
-              <IconSymbol
-                name="chevron.right"
-                size={14}
-                color={Colors[colorScheme].secondaryText}
-              />
+              <Text
+                style={[
+                  styles.menuArrow,
+                  { color: Colors[colorScheme].secondaryText },
+                ]}
+              >
+                ›
+              </Text>
             )}
           </View>
         </Pressable>
@@ -198,9 +203,9 @@ MenuItem.displayName = "MenuItem";
 
 // Enhanced ProfileSection component
 const ProfileSection = React.memo(
-  ({ user, isArtist, colorScheme, onEditPress, isDark }) => {
+  ({ user, isArtist, colorScheme, onEditPress, isDark, t }) => {
     const getInitials = useCallback((name) => {
-      if (!name) return "?";
+      if (!name) return "👤";
       return name
         .split(" ")
         .map((n) => n[0])
@@ -212,85 +217,80 @@ const ProfileSection = React.memo(
     const profileStats = useMemo(() => {
       if (!isArtist) return null;
       return [
-        { label: "Artworks", value: "12" },
-        { label: "Followers", value: "1.2K" },
-        { label: "Sales", value: "24" },
+        { label: t("profile.artworks"), value: "12" },
+        { label: t("profile.followers"), value: "1.2K" },
+        { label: t("profile.sales"), value: "24" },
       ];
-    }, [isArtist]);
+    }, [isArtist, t]);
 
     return (
-      <View
-        style={[
-          styles.profileCard,
-          {
-            backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-            shadowColor: COLORS.shadowColor,
-          },
-        ]}
-      >
-        <View style={styles.profileHeader}>
-          <View style={styles.profileImageContainer}>
-            <View
-              style={[
-                styles.profileImagePlaceholder,
-                { backgroundColor: COLORS.primary },
-              ]}
-            >
-              <Text style={styles.initials}>
-                {getInitials(user?.displayName || user?.name)}
-              </Text>
-            </View>
+      <View style={styles.profileHeader}>
+        <View style={styles.profileImageContainer}>
+          <View
+            style={[styles.profileImage, { backgroundColor: COLORS.primary }]}
+          >
+            <Text style={styles.profileImageText}>
+              {getInitials(user?.displayName || user?.name)}
+            </Text>
             {isArtist && (
               <View
                 style={[
                   styles.artistIndicator,
-                  { backgroundColor: COLORS.success },
+                  { backgroundColor: COLORS.warning },
                 ]}
               >
-                <IconSymbol name="star.fill" size={12} color="#FFFFFF" />
-              </View>
-            )}
-          </View>
-
-          <View style={styles.profileInfo}>
-            <Text
-              style={[styles.userName, { color: Colors[colorScheme].text }]}
-              numberOfLines={1}
-            >
-              {user?.name || user?.displayName || "User Name"}
-            </Text>
-            <Text
-              style={[
-                styles.userEmail,
-                { color: Colors[colorScheme].secondaryText },
-              ]}
-              numberOfLines={1}
-            >
-              {user?.email || "user@example.com"}
-            </Text>
-            {isArtist && (
-              <View
-                style={[
-                  styles.badgeContainer,
-                  { backgroundColor: COLORS.primary },
-                ]}
-              >
-                <IconSymbol name="paintbrush.fill" size={12} color="#FFFFFF" />
-                <Text style={styles.artistBadge}>Verified Artist</Text>
+                <IconSymbol name="star.fill" size={10} color="#FFFFFF" />
               </View>
             )}
           </View>
         </View>
 
+        <Text
+          style={[
+            styles.profileName,
+            {
+              color: isDark ? "#FFFFFF" : COLORS.textPrimary,
+            },
+          ]}
+          numberOfLines={1}
+        >
+          {user?.name || user?.displayName || "User Name"}
+        </Text>
+        <Text
+          style={[
+            styles.profileEmail,
+            { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
+          ]}
+          numberOfLines={1}
+        >
+          {user?.email || "user@example.com"}
+        </Text>
+
+        {isArtist && (
+          <View
+            style={[styles.badgeContainer, { backgroundColor: COLORS.warning }]}
+          >
+            <IconSymbol name="paintbrush.fill" size={12} color="#FFFFFF" />
+            <Text style={styles.artistBadge}>
+              {t("profile.verifiedArtist")}
+            </Text>
+          </View>
+        )}
+
         {/* Artist Stats */}
         {profileStats && (
-          <View style={styles.statsContainer}>
+          <View
+            style={[
+              styles.statsContainer,
+              { backgroundColor: COLORS.secondary },
+            ]}
+          >
             {profileStats.map((stat, index) => (
               <View key={stat.label} style={styles.statItem}>
                 <Text
                   style={[
                     styles.statValue,
-                    { color: Colors[colorScheme].text },
+                    { color: isDark ? "#FFFFFF" : COLORS.textPrimary },
                   ]}
                 >
                   {stat.value}
@@ -298,7 +298,7 @@ const ProfileSection = React.memo(
                 <Text
                   style={[
                     styles.statLabel,
-                    { color: Colors[colorScheme].secondaryText },
+                    { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
                   ]}
                 >
                   {stat.label}
@@ -307,33 +307,27 @@ const ProfileSection = React.memo(
             ))}
           </View>
         )}
-
-        <TouchableOpacity
-          style={[
-            styles.editProfileButton,
-            {
-              backgroundColor: isDark
-                ? COLORS.primary + "20"
-                : COLORS.primary + "15",
-              borderColor: COLORS.primary + "40",
-            },
-          ]}
-          onPress={onEditPress}
-          accessibilityLabel="Edit profile"
-          accessibilityRole="button"
-          activeOpacity={0.8}
-        >
-          <IconSymbol name="pencil" size={16} color={COLORS.primary} />
-          <Text style={[styles.editButtonText, { color: COLORS.primary }]}>
-            Edit Profile
-          </Text>
-        </TouchableOpacity>
       </View>
     );
   }
 );
 
 ProfileSection.displayName = "ProfileSection";
+
+// MenuSection component
+const MenuSection = ({ children, isDark }) => (
+  <View
+    style={[
+      styles.menuSection,
+      {
+        backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
+        shadowColor: COLORS.shadowColor,
+      },
+    ]}
+  >
+    {children}
+  </View>
+);
 
 // Enhanced Language Modal
 const LanguageModal = React.memo(
@@ -344,6 +338,8 @@ const LanguageModal = React.memo(
     onLanguageSelect,
     colorScheme,
     isDark,
+    languages,
+    t,
   }) => {
     const slideAnim = useRef(new Animated.Value(300)).current;
 
@@ -391,7 +387,7 @@ const LanguageModal = React.memo(
               ]}
             >
               <Text style={[styles.modalTitle, { color: COLORS.primary }]}>
-                Select Language
+                {t("profile.selectLanguage")}
               </Text>
               <TouchableOpacity
                 onPress={onClose}
@@ -410,14 +406,14 @@ const LanguageModal = React.memo(
               style={styles.languageList}
               showsVerticalScrollIndicator={false}
             >
-              {LANGUAGES.map((language, index) => (
+              {languages.map((language, index) => (
                 <TouchableOpacity
                   key={language.code}
                   style={[
                     styles.languageItem,
                     {
                       borderBottomWidth:
-                        index === LANGUAGES.length - 1
+                        index === languages.length - 1
                           ? 0
                           : StyleSheet.hairlineWidth,
                       borderBottomColor: Colors[colorScheme].border + "40",
@@ -437,7 +433,7 @@ const LanguageModal = React.memo(
                     <Text
                       style={[
                         styles.languageText,
-                        { color: Colors[colorScheme].text },
+                        { color: isDark ? "#FFFFFF" : COLORS.textPrimary },
                       ]}
                     >
                       {language.name}
@@ -446,7 +442,11 @@ const LanguageModal = React.memo(
                       <Text
                         style={[
                           styles.languageNative,
-                          { color: Colors[colorScheme].secondaryText },
+                          {
+                            color: isDark
+                              ? COLORS.textMuted
+                              : COLORS.textSecondary,
+                          },
                         ]}
                       >
                         {language.nativeName}
@@ -473,6 +473,104 @@ const LanguageModal = React.memo(
   }
 );
 
+const ThemeToggle = React.memo(({ isDark, onToggle, colorScheme, t }) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePress = useCallback(() => {
+    Haptics?.selectionAsync?.();
+
+    Animated.sequence([
+      Animated.spring(scaleValue, {
+        toValue: 0.95,
+        ...ANIMATION_CONFIG.spring,
+      }),
+      Animated.spring(scaleValue, {
+        toValue: 1,
+        ...ANIMATION_CONFIG.spring,
+      }),
+    ]).start();
+
+    onToggle();
+  }, [onToggle, scaleValue]);
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+      <TouchableOpacity
+        style={[
+          styles.themeToggle,
+          {
+            backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
+            shadowColor: COLORS.shadowColor,
+          },
+        ]}
+        onPress={handlePress}
+        activeOpacity={0.7}
+        accessibilityLabel={`Switch to ${isDark ? "light" : "dark"} mode`}
+        accessibilityRole="button"
+      >
+        <View
+          style={[
+            styles.themeToggleContent,
+            { borderColor: Colors[colorScheme].border + "30" },
+          ]}
+        >
+          <View
+            style={[
+              styles.themeIconContainer,
+              { backgroundColor: COLORS.primary },
+            ]}
+          >
+            <IconSymbol
+              name={isDark ? "sun.max.fill" : "moon.fill"}
+              size={18}
+              color="#FFFFFF"
+            />
+          </View>
+          <View style={styles.themeTextContainer}>
+            <Text
+              style={[
+                styles.themeToggleText,
+                { color: isDark ? "#FFFFFF" : COLORS.textPrimary },
+              ]}
+            >
+              {isDark ? t("profile.lightMode") : t("profile.darkMode")}
+            </Text>
+            <Text
+              style={[
+                styles.themeToggleSubtext,
+                { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
+              ]}
+            >
+              {isDark ? t("profile.switchToLight") : t("profile.switchToDark")}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.toggleSwitch,
+              {
+                backgroundColor: isDark
+                  ? COLORS.primary
+                  : Colors[colorScheme].border + "40",
+              },
+            ]}
+          >
+            <Animated.View
+              style={[
+                styles.toggleKnob,
+                {
+                  backgroundColor: "#FFFFFF",
+                  transform: [{ translateX: isDark ? 20 : 2 }],
+                },
+              ]}
+            />
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+});
+
+ThemeToggle.displayName = "ThemeToggle";
 LanguageModal.displayName = "LanguageModal";
 
 // Main Component
@@ -481,10 +579,20 @@ export default function AccountScreen({ navigation }) {
   const { user, logout, refreshUser } = useAuthStore();
   const isArtist = user?.isArtist;
   const insets = useSafeAreaInsets();
+  const [userPreferredTheme, setUserPreferredTheme] = useState(null);
+
+  // i18n hooks
+  const { t } = useTranslation();
+  const {
+    currentLanguage,
+    currentLanguageName,
+    languages,
+    changeLanguage,
+    isLoading: languageLoading,
+  } = useLanguage();
 
   // State
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState("English");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -511,7 +619,6 @@ export default function AccountScreen({ navigation }) {
     setIsRefreshing(true);
     try {
       await refreshUser?.();
-      // Add small delay for better UX
       await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (error) {
       console.warn("Refresh failed:", error);
@@ -520,15 +627,15 @@ export default function AccountScreen({ navigation }) {
     }
   }, [refreshUser]);
 
-  // Enhanced logout with confirmation
+  // Enhanced logout with translations
   const handleLogout = useCallback(async () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+    Alert.alert(t("profile.signOut"), t("profile.signOutConfirm"), [
       {
-        text: "Cancel",
+        text: t("profile.cancel"),
         style: "cancel",
       },
       {
-        text: "Sign Out",
+        text: t("profile.signOut"),
         style: "destructive",
         onPress: async () => {
           setIsLoggingOut(true);
@@ -539,7 +646,10 @@ export default function AccountScreen({ navigation }) {
             );
           } catch (error) {
             console.error("Logout failed:", error);
-            Alert.alert("Error", "Failed to sign out. Please try again.");
+            Alert.alert(
+              t("common.error"),
+              "Failed to sign out. Please try again."
+            );
             Haptics?.notificationAsync?.(
               Haptics.NotificationFeedbackType.Error
             );
@@ -549,299 +659,266 @@ export default function AccountScreen({ navigation }) {
         },
       },
     ]);
-  }, [logout]);
+  }, [logout, t]);
 
-   const navigateTo = useCallback(
-    (screenName) => {
-      Haptics?.selectionAsync?.();
-      router.push(`/Account/${screenName}`); // Updated to use router
-    },
-    []
-  );
+  const handleThemeToggle = useCallback(() => {
+    const newTheme = isDark ? "light" : "dark";
+    setUserPreferredTheme(newTheme);
+    // Save preference to AsyncStorage
+    // AsyncStorage.setItem('userTheme', newTheme);
+  }, [isDark]);
 
-
-  const handleLanguageSelect = useCallback((language) => {
-    setCurrentLanguage(language.name);
-    setLanguageModalVisible(false);
+  const navigateTo = useCallback((screenName) => {
     Haptics?.selectionAsync?.();
-    // Here you would typically save the language preference
+    router.push(`/Account/${screenName}`);
   }, []);
 
-  // Memoized menu items
-  const menuItems = useMemo(() => {
-    const baseItems = [
+  const handleLanguageSelect = useCallback(
+    async (language) => {
+      try {
+        await changeLanguage(language.code);
+        setLanguageModalVisible(false);
+        Haptics?.selectionAsync?.();
+      } catch (error) {
+        console.error("Failed to change language:", error);
+      }
+    },
+    [changeLanguage]
+  );
+
+  // Memoized menu sections with translations
+  const menuSections = useMemo(() => {
+    const accountItems = [
       {
-        title: "Edit Profile",
-        subtitle: "Update your personal information",
+        title: t("profile.editProfile"),
+        subtitle: t("profile.updateInfo"),
         icon: "person.crop.circle",
         onPress: () => navigateTo("EditProfile"),
+        iconColor: COLORS.primary,
       },
       {
-        title: "Payment Methods",
-        subtitle: "Manage cards and payment options",
-        icon: "creditcard",
-        onPress: () => navigateTo("PaymentMethods"),
+        title: t("profile.privacySettings"),
+        subtitle: t("profile.controlPrivacy"),
+        icon: "lock.fill",
+        onPress: () => navigateTo("PrivacySettings"),
+        iconColor: COLORS.purple,
       },
       {
-        title: "Subscription",
-        subtitle: "Manage your subscription plan",
-        icon: "crown.fill",
-        onPress: () => navigateTo("subscription"),
-      },
-      {
-        title: "Notification Settings",
-        subtitle: "Customize your notifications",
+        title: t("profile.notificationSettings"),
+        subtitle: t("profile.customizeNotifications"),
         icon: "bell.fill",
         onPress: () => navigateTo("NotificationSettings"),
+        iconColor: COLORS.orange,
+      },
+    ];
+
+    const appItems = [
+      {
+        title: t("profile.paymentMethods"),
+        subtitle: t("profile.manageCards"),
+        icon: "creditcard",
+        onPress: () => navigateTo("PaymentMethods"),
+        iconColor: COLORS.success,
       },
       {
-        title: "Language",
-        subtitle: `Currently set to ${currentLanguage}`,
+        title: t("profile.subscription"),
+        subtitle: t("profile.managePlan"),
+        icon: "crown.fill",
+        onPress: () => navigateTo("subscription"),
+        iconColor: COLORS.warning,
+      },
+      {
+        title: t("profile.language"),
+        subtitle: t("profile.currentlySet", { language: currentLanguageName }),
         icon: "globe",
         onPress: () => setLanguageModalVisible(true),
+        iconColor: COLORS.primary,
         rightContent: (
           <View style={styles.languageValue}>
             <Text
               style={[
                 styles.languageValueText,
-                { color: Colors[colorScheme].secondaryText },
+                { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
               ]}
             >
-              {currentLanguage}
+              {currentLanguageName}
             </Text>
-            <IconSymbol
-              name="chevron.right"
-              size={14}
-              color={Colors[colorScheme].secondaryText}
-            />
+            <Text
+              style={[
+                styles.menuArrow,
+                { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
+              ]}
+            >
+              ›
+            </Text>
           </View>
         ),
       },
+    ];
+
+    const supportItems = [
       {
-        title: "Privacy Settings",
-        subtitle: "Control your privacy preferences",
-        icon: "lock.fill",
-        onPress: () => navigateTo("PrivacySettings"),
-      },
-      {
-        title: "Help & Support",
-        subtitle: "Get help and contact support",
+        title: t("profile.helpSupport"),
+        subtitle: t("profile.getHelp"),
         icon: "questionmark.circle",
         onPress: () => navigateTo("Support"),
+        iconColor: COLORS.accent,
       },
       {
-        title: "About",
-        subtitle: "App information and legal",
+        title: t("profile.about"),
+        subtitle: t("profile.appInfo"),
         icon: "info.circle",
         onPress: () => navigateTo("About"),
+        iconColor: COLORS.primaryDark,
       },
     ];
 
-    // Add artist-specific options if user is an artist
+    // Add artist-specific items if user is an artist
     if (isArtist) {
-      baseItems.splice(2, 0, {
-        title: "Payout Settings",
-        subtitle: "Manage your earnings and payouts",
+      appItems.splice(1, 0, {
+        title: "Payout Settings", // Add this to translations
+        subtitle: "Manage your earnings and payouts", // Add this to translations
         icon: "dollarsign.circle",
         onPress: () => navigateTo("PayoutSettings"),
+        iconColor: COLORS.success,
       });
     }
 
-    return baseItems;
-  }, [isArtist, currentLanguage, colorScheme, navigateTo]);
+    return [
+      { title: "Account", items: accountItems },
+      { title: "App", items: appItems },
+      { title: "Support", items: supportItems },
+    ];
+  }, [isArtist, currentLanguageName, t, navigateTo, isDark]);
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: isDark ? COLORS.darkBg : COLORS.lightBg },
-      ]}
-    >
-      <StatusBar style={isDark ? "light" : "dark"} />
+    <>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style={isDark ? "light" : "dark"} />
 
-      {/* Enhanced Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        {/* <View style={styles.headerContent}>
-          <Text style={[styles.headerTitle, { color: COLORS.primary }]}>
-            {isArtist ? "Artist Account" : "My Account"}
-          </Text>
-          <Text
-            style={[
-              styles.headerSubtitle,
-              { color: Colors[colorScheme].secondaryText },
-            ]}
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                tintColor={COLORS.primary}
+                colors={[COLORS.primary]}
+              />
+            }
           >
-            Manage your profile and preferences
-          </Text>
-        </View> */}
-      </View>
-
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={COLORS.primary}
-            colors={[COLORS.primary]}
-          />
-        }
-      >
-        {/* Enhanced User Profile Section */}
-        <ProfileSection
-          user={user}
-          isArtist={isArtist}
-          colorScheme={colorScheme}
-          onEditPress={() => navigateTo("EditProfile")}
-          isDark={isDark}
-        />
-
-        {/* Enhanced Menu Section */}
-        <View
-          style={[
-            styles.menuCard,
-            {
-              backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-              shadowColor: COLORS.shadowColor,
-            },
-          ]}
-        >
-          {menuItems.map((item, index) => (
-            <MenuItem
-              key={`menu-item-${index}`}
-              {...item}
+            {/* Profile Section */}
+            <ProfileSection
+              user={user}
+              isArtist={isArtist}
               colorScheme={colorScheme}
-              isLast={index === menuItems.length - 1}
+              onEditPress={() => navigateTo("EditProfile")}
+              isDark={isDark}
+              t={t}
             />
-          ))}
-        </View>
 
-        {/* Enhanced Sign Out Section */}
-        <View
-          style={[
-            styles.signOutCard,
-            {
-              backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-              shadowColor: COLORS.shadowColor,
-            },
-          ]}
-        >
-          <Pressable
-            style={({ pressed }) => [
-              styles.signOutButton,
-              pressed && styles.signOutButtonPressed,
-              isLoggingOut && styles.signOutButtonDisabled,
-            ]}
-            onPress={handleLogout}
-            disabled={isLoggingOut}
-            accessible={true}
-            accessibilityRole="button"
-            accessibilityLabel="Sign out from account"
-            accessibilityHint="Logs you out of your account"
-            accessibilityState={{ disabled: isLoggingOut }}
-          >
-            <IconSymbol
-              name="arrow.right.square"
-              size={18}
-              color={
-                isLoggingOut ? Colors[colorScheme].secondaryText : COLORS.error
-              }
+            <ThemeToggle
+              isDark={isDark}
+              onToggle={handleThemeToggle}
+              colorScheme={colorScheme}
+              t={t}
             />
-            <Text
+
+            {/* Menu Sections */}
+            {menuSections.map((section, sectionIndex) => (
+              <MenuSection key={section.title} isDark={isDark}>
+                {section.items.map((item, index) => (
+                  <MenuItem
+                    key={`${section.title}-${index}`}
+                    {...item}
+                    colorScheme={colorScheme}
+                    isLast={index === section.items.length - 1}
+                  />
+                ))}
+              </MenuSection>
+            ))}
+
+            {/* Sign Out Button */}
+            <TouchableOpacity
               style={[
-                styles.signOutText,
+                styles.logoutButton,
                 {
-                  color: isLoggingOut
-                    ? Colors[colorScheme].secondaryText
-                    : COLORS.error,
+                  backgroundColor: COLORS.error,
+                  opacity: isLoggingOut ? 0.7 : 1,
                 },
               ]}
+              onPress={handleLogout}
+              disabled={isLoggingOut}
+              activeOpacity={0.8}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel="Sign out from account"
+              accessibilityHint="Logs you out of your account"
+              accessibilityState={{ disabled: isLoggingOut }}
             >
-              {isLoggingOut ? "Signing Out..." : "Sign Out"}
+              <Text style={styles.logoutText}>
+                {isLoggingOut ? t("profile.signingOut") : t("profile.signOut")}
+              </Text>
+            </TouchableOpacity>
+
+            <Text
+              style={[
+                styles.versionText,
+                { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
+              ]}
+            >
+              {t("profile.version")}
             </Text>
-          </Pressable>
-        </View>
 
-        <Text
-          style={[
-            styles.versionText,
-            { color: Colors[colorScheme].secondaryText },
-          ]}
-        >
-          Version 1.0.3 • Built with ❤️
-        </Text>
-      </ScrollView>
+            <View style={styles.bottomSpacing} />
+          </ScrollView>
+        </SafeAreaView>
 
-      {/* Enhanced Language Selection Modal */}
-      <LanguageModal
-        visible={languageModalVisible}
-        onClose={() => setLanguageModalVisible(false)}
-        currentLanguage={currentLanguage}
-        onLanguageSelect={handleLanguageSelect}
-        colorScheme={colorScheme}
-        isDark={isDark}
-      />
-    </View>
+        {/* Language Selection Modal */}
+        <LanguageModal
+          visible={languageModalVisible}
+          onClose={() => setLanguageModalVisible(false)}
+          currentLanguage={currentLanguageName}
+          onLanguageSelect={handleLanguageSelect}
+          colorScheme={colorScheme}
+          isDark={isDark}
+          languages={languages}
+          t={t}
+        />
+      </SafeAreaView>
+    </>
   );
 }
 
+// Styles remain the same...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-  },
-  headerContent: {
-    alignItems: "flex-start",
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    marginTop: 4,
-    opacity: 0.7,
-  },
-  content: {
+  safeArea: {
     flex: 1,
   },
+  scrollView: {
+    padding: 16,
+  },
   scrollContent: {
-    paddingHorizontal: 20,
     paddingBottom: 40,
   },
-  profileCard: {
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 20,
-    ...Platform.select({
-      ios: {
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
   profileHeader: {
-    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 24,
   },
   profileImageContainer: {
     position: "relative",
+    marginBottom: 12,
   },
-  profileImagePlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
@@ -850,33 +927,29 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  profileImageText: {
+    fontSize: 36,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
   artistIndicator: {
     position: "absolute",
     top: -2,
     right: -2,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#FFFFFF",
   },
-  initials: {
-    color: "#FFFFFF",
-    fontSize: 28,
-    fontWeight: "bold",
-  },
-  profileInfo: {
-    marginLeft: 20,
-    flex: 1,
-  },
-  userName: {
-    fontSize: 22,
+  profileName: {
+    fontSize: 24,
     fontWeight: "bold",
     marginBottom: 4,
   },
-  userEmail: {
+  profileEmail: {
     fontSize: 16,
     opacity: 0.7,
   },
@@ -887,7 +960,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    alignSelf: "flex-start",
   },
   artistBadge: {
     color: "#FFFFFF",
@@ -899,9 +971,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     paddingVertical: 16,
-    marginBottom: 16,
+    marginTop: 16,
     borderRadius: 12,
-    backgroundColor: "rgba(114, 183, 233, 0.1)",
+    width: "100%",
   },
   statItem: {
     alignItems: "center",
@@ -915,40 +987,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     opacity: 0.7,
   },
-  editProfileButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  editButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  menuCard: {
-    borderRadius: 20,
-    marginBottom: 20,
+  menuSection: {
+    borderRadius: 12,
+    marginBottom: 16,
     overflow: "hidden",
     ...Platform.select({
       ios: {
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
-        shadowRadius: 12,
+        shadowRadius: 3,
       },
       android: {
-        elevation: 4,
+        elevation: 3,
       },
     }),
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 18,
-    paddingHorizontal: 20,
+    padding: 16,
   },
   menuItemLeft: {
     flexDirection: "row",
@@ -956,18 +1013,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 16,
+    marginRight: 12,
   },
   menuTextContainer: {
     flex: 1,
   },
   menuItemText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "500",
     marginBottom: 2,
   },
@@ -979,6 +1036,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  menuArrow: {
+    fontSize: 16,
+  },
   languageValue: {
     flexDirection: "row",
     alignItems: "center",
@@ -987,43 +1047,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginRight: 8,
   },
-  signOutCard: {
-    borderRadius: 20,
-    overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  signOutButton: {
-    flexDirection: "row",
+  logoutButton: {
+    borderRadius: 12,
+    padding: 16,
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 18,
-    paddingHorizontal: 20,
+    marginTop: 8,
   },
-  signOutButtonPressed: {
-    opacity: 0.7,
-  },
-  signOutButtonDisabled: {
-    opacity: 0.5,
-  },
-  signOutText: {
-    fontSize: 17,
+  logoutText: {
+    color: "#ffffff",
+    fontSize: 16,
     fontWeight: "600",
-    marginLeft: 8,
   },
   versionText: {
     textAlign: "center",
     fontSize: 14,
     marginTop: 20,
     opacity: 0.6,
+  },
+  bottomSpacing: {
+    height: 56,
   },
   modalOverlay: {
     flex: 1,
@@ -1090,5 +1132,64 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
+  },
+  themeToggle: {
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  themeToggleContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 0,
+  },
+  themeIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  themeTextContainer: {
+    flex: 1,
+  },
+  themeToggleText: {
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 2,
+  },
+  themeToggleSubtext: {
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  toggleSwitch: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    position: "relative",
+  },
+  toggleKnob: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    position: "absolute",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });

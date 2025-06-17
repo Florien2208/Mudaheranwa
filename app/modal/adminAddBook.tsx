@@ -15,14 +15,34 @@ import {
   TouchableOpacity,
   View,
   LogBox,
+  SafeAreaView,
 } from "react-native";
 
 import { API_BASE_URL } from "@/constants";
-import { Colors } from "@/constants/Colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import DropDownPicker from "react-native-dropdown-picker";
 LogBox.ignoreLogs(["VirtualizedLists should never be nested"]);
+
+// Enhanced Blue Color Scheme
+const BlueColors = {
+  primary: "#2563EB", // Main blue
+  primaryLight: "#3B82F6", // Lighter blue
+  primaryDark: "#1E40AF", // Darker blue
+  secondary: "#F1F5F9", // Light blue-gray
+  accent: "#0EA5E9", // Sky blue
+  background: "#F8FAFC", // Very light blue-gray
+  surface: "#FFFFFF", // White
+  text: "#1E293B", // Dark blue-gray
+  textSecondary: "#64748B", // Medium blue-gray
+  textLight: "#94A3B8", // Light blue-gray
+  border: "#E2E8F0", // Light border
+  success: "#10B981", // Green
+  warning: "#F59E0B", // Amber
+  error: "#EF4444", // Red
+  gradientStart: "#2563EB",
+  gradientEnd: "#0EA5E9",
+};
 
 const AdminAddBookScreen = ({ navigation }) => {
   // Form state
@@ -199,7 +219,7 @@ const AdminAddBookScreen = ({ navigation }) => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: BlueColors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
@@ -210,52 +230,77 @@ const AdminAddBookScreen = ({ navigation }) => {
       >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Add New Book</Text>
+          <Text style={styles.headerSubtitle}>
+            Create a new book entry for your library
+          </Text>
         </View>
 
-        {/* Book Cover Image */}
-        <TouchableOpacity
-          style={styles.coverImageContainer}
-          onPress={pickImage}
-        >
-          {coverImage ? (
-            <Image source={{ uri: coverImage.uri }} style={styles.coverImage} />
-          ) : (
-            <View style={styles.placeholderCover}>
-              <Ionicons
-                name="image-outline"
-                size={50}
-                color={Colors.light.icon}
-              />
-              <Text style={styles.placeholderText}>Add Cover Image</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        {/* Enhanced Book Cover Image */}
+        <View style={styles.coverSection}>
+          <TouchableOpacity
+            style={styles.coverImageContainer}
+            onPress={pickImage}
+            activeOpacity={0.8}
+          >
+            {coverImage ? (
+              <View style={styles.coverWrapper}>
+                <Image
+                  source={{ uri: coverImage.uri }}
+                  style={styles.coverImage}
+                />
+                <View style={styles.coverOverlay}>
+                  <Ionicons
+                    name="camera"
+                    size={24}
+                    color="rgba(255,255,255,0.8)"
+                  />
+                </View>
+              </View>
+            ) : (
+              <View style={styles.placeholderCover}>
+                <View style={styles.placeholderIcon}>
+                  <Ionicons
+                    name="image-outline"
+                    size={40}
+                    color={BlueColors.primary}
+                  />
+                </View>
+                <Text style={styles.placeholderText}>Add Cover Image</Text>
+                <Text style={styles.placeholderSubtext}>Tap to upload</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
 
         {/* Form Fields */}
         <View style={styles.formContainer}>
           <Text style={styles.label}>Title *</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, bookData.title && styles.inputFilled]}
             placeholder="Enter book title"
-            placeholderTextColor={Colors.light.secondaryText}
+            placeholderTextColor={BlueColors.textLight}
             value={bookData.title}
             onChangeText={(text) => handleChange("title", text)}
           />
 
           <Text style={styles.label}>Author *</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, bookData.author && styles.inputFilled]}
             placeholder="Enter author name"
-            placeholderTextColor={Colors.light.secondaryText}
+            placeholderTextColor={BlueColors.textLight}
             value={bookData.author}
             onChangeText={(text) => handleChange("author", text)}
           />
 
           <Text style={styles.label}>Description</Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[
+              styles.input,
+              styles.textArea,
+              bookData.description && styles.inputFilled,
+            ]}
             placeholder="Enter book description"
-            placeholderTextColor={Colors.light.secondaryText}
+            placeholderTextColor={BlueColors.textLight}
             multiline
             numberOfLines={4}
             value={bookData.description}
@@ -277,7 +322,7 @@ const AdminAddBookScreen = ({ navigation }) => {
             dropDownContainerStyle={styles.dropdownContainer}
             textStyle={styles.dropdownText}
             placeholder="Select genre"
-            placeholderStyle={styles.placeholderText}
+            placeholderStyle={styles.dropdownPlaceholder}
             zIndex={3000}
             zIndexInverse={1000}
           />
@@ -286,9 +331,9 @@ const AdminAddBookScreen = ({ navigation }) => {
             <View style={styles.halfInput}>
               <Text style={styles.label}>ISBN</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, bookData.isbn && styles.inputFilled]}
                 placeholder="Enter ISBN"
-                placeholderTextColor={Colors.light.secondaryText}
+                placeholderTextColor={BlueColors.textLight}
                 value={bookData.isbn}
                 onChangeText={(text) => handleChange("isbn", text)}
               />
@@ -297,9 +342,9 @@ const AdminAddBookScreen = ({ navigation }) => {
             <View style={styles.halfInput}>
               <Text style={styles.label}>Page Count</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, bookData.pageCount && styles.inputFilled]}
                 placeholder="Enter pages"
-                placeholderTextColor={Colors.light.secondaryText}
+                placeholderTextColor={BlueColors.textLight}
                 keyboardType="number-pad"
                 value={bookData.pageCount}
                 onChangeText={(text) => handleChange("pageCount", text)}
@@ -309,43 +354,86 @@ const AdminAddBookScreen = ({ navigation }) => {
 
           <Text style={styles.label}>Publish Year</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, bookData.publishYear && styles.inputFilled]}
             placeholder="Enter publish year"
-            placeholderTextColor={Colors.light.secondaryText}
+            placeholderTextColor={BlueColors.textLight}
             keyboardType="number-pad"
             value={bookData.publishYear}
             onChangeText={(text) => handleChange("publishYear", text)}
             maxLength={4}
           />
 
-          {/* Book File Selection */}
+          {/* Enhanced Book File Selection */}
           <Text style={styles.label}>Book File (PDF/EPUB) *</Text>
-          <TouchableOpacity style={styles.fileSelector} onPress={pickDocument}>
+          <TouchableOpacity
+            style={[
+              styles.fileSelector,
+              bookFile && styles.fileSelectorSelected,
+            ]}
+            onPress={pickDocument}
+            activeOpacity={0.7}
+          >
+            <View style={styles.fileIconContainer}>
+              <Ionicons
+                name="document-outline"
+                size={24}
+                color={bookFile ? BlueColors.primary : BlueColors.textSecondary}
+              />
+            </View>
+            <View style={styles.fileTextContainer}>
+              <Text
+                style={[
+                  styles.fileSelectorText,
+                  bookFile && styles.fileSelectorTextSelected,
+                ]}
+              >
+                {bookFile ? bookFile.name : "Select book file"}
+              </Text>
+              {!bookFile && (
+                <Text style={styles.fileSelectorSubtext}>
+                  PDF or EPUB format
+                </Text>
+              )}
+            </View>
             <Ionicons
-              name="document-outline"
-              size={24}
-              color={Colors.light.icon}
+              name="chevron-forward"
+              size={20}
+              color={BlueColors.textSecondary}
             />
-            <Text style={styles.fileSelectorText}>
-              {bookFile ? bookFile.name : "Select book file"}
-            </Text>
           </TouchableOpacity>
           {bookFile && (
-            <Text style={styles.fileInfo}>
-              {(bookFile.size / (1024 * 1024)).toFixed(2)} MB
-            </Text>
+            <View style={styles.fileInfoContainer}>
+              <Ionicons
+                name="checkmark-circle"
+                size={16}
+                color={BlueColors.success}
+              />
+              <Text style={styles.fileInfo}>
+                {(bookFile.size / (1024 * 1024)).toFixed(2)} MB
+              </Text>
+            </View>
           )}
 
-          {/* Submit Button */}
+          {/* Enhanced Submit Button */}
           <TouchableOpacity
-            style={styles.submitButton}
+            style={[
+              styles.submitButton,
+              isLoading && styles.submitButtonDisabled,
+            ]}
             onPress={handleSubmit}
             disabled={isLoading}
+            activeOpacity={0.8}
           >
             {isLoading ? (
-              <ActivityIndicator color="#ffffff" />
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator color="#ffffff" size="small" />
+                <Text style={styles.loadingText}>Creating Book...</Text>
+              </View>
             ) : (
-              <Text style={styles.submitButtonText}>Create Book</Text>
+              <View style={styles.submitContent}>
+                <Ionicons name="add-circle-outline" size={20} color="#ffffff" />
+                <Text style={styles.submitButtonText}>Create Book</Text>
+              </View>
             )}
           </TouchableOpacity>
         </View>
@@ -357,70 +445,122 @@ const AdminAddBookScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: BlueColors.background,
   },
   contentContainer: {
-    padding: 16,
+    padding: 20,
     paddingBottom: 40,
   },
   header: {
-    marginBottom: 16,
+    marginBottom: 24,
+    paddingHorizontal: 4,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
-    color: Colors.light.text,
+    color: BlueColors.text,
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: BlueColors.textSecondary,
+    fontWeight: "400",
+  },
+  coverSection: {
+    alignItems: "center",
+    marginBottom: 32,
   },
   coverImageContainer: {
-    alignItems: "center",
-    marginBottom: 24,
+    shadowColor: BlueColors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  coverWrapper: {
+    position: "relative",
+    borderRadius: 12,
+    overflow: "hidden",
   },
   coverImage: {
-    width: 150,
-    height: 225,
-    borderRadius: 8,
+    width: 160,
+    height: 240,
+    borderRadius: 12,
   },
-  placeholderCover: {
-    width: 150,
-    height: 225,
-    borderRadius: 8,
-    backgroundColor: Colors.light.border,
+  coverOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: Colors.light.tint,
+    opacity: 0,
+  },
+  placeholderCover: {
+    width: 160,
+    height: 240,
+    borderRadius: 12,
+    backgroundColor: BlueColors.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: BlueColors.primary,
     borderStyle: "dashed",
   },
+  placeholderIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: BlueColors.secondary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
   placeholderText: {
-    marginTop: 8,
-    color: Colors.light.secondaryText,
+    color: BlueColors.primary,
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  placeholderSubtext: {
+    color: BlueColors.textSecondary,
     fontSize: 14,
+    fontWeight: "400",
   },
   formContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: BlueColors.surface,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: BlueColors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: BlueColors.border,
   },
   label: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.light.text,
-    marginBottom: 6,
+    color: BlueColors.text,
+    marginBottom: 8,
   },
   input: {
-    backgroundColor: "#f9f9f9",
+    backgroundColor: BlueColors.secondary,
     borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 8,
-    padding: 12,
+    borderColor: BlueColors.border,
+    borderRadius: 10,
+    padding: 14,
     fontSize: 16,
-    color: Colors.light.text,
-    marginBottom: 16,
+    color: BlueColors.text,
+    marginBottom: 18,
+    transition: "all 0.2s ease",
+  },
+  inputFilled: {
+    borderColor: BlueColors.primary,
+    backgroundColor: BlueColors.surface,
   },
   textArea: {
     height: 100,
@@ -434,51 +574,112 @@ const styles = StyleSheet.create({
     width: "48%",
   },
   dropdown: {
-    backgroundColor: "#f9f9f9",
-    borderColor: Colors.light.border,
-    borderRadius: 8,
-    marginBottom: 16,
+    backgroundColor: BlueColors.secondary,
+    borderColor: BlueColors.border,
+    borderRadius: 10,
+    marginBottom: 18,
+    minHeight: 50,
   },
   dropdownContainer: {
-    backgroundColor: "#ffffff",
-    borderColor: Colors.light.border,
+    backgroundColor: BlueColors.surface,
+    borderColor: BlueColors.border,
+    borderRadius: 10,
   },
   dropdownText: {
     fontSize: 16,
-    color: Colors.light.text,
+    color: BlueColors.text,
+  },
+  dropdownPlaceholder: {
+    color: BlueColors.textLight,
   },
   fileSelector: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: BlueColors.secondary,
     borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 8,
-    padding: 12,
+    borderColor: BlueColors.border,
+    borderRadius: 10,
+    padding: 16,
     marginBottom: 8,
   },
-  fileSelectorText: {
-    marginLeft: 8,
-    fontSize: 16,
-    color: Colors.light.text,
+  fileSelectorSelected: {
+    backgroundColor: BlueColors.surface,
+    borderColor: BlueColors.primary,
   },
-  fileInfo: {
+  fileIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: BlueColors.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  fileTextContainer: {
+    flex: 1,
+  },
+  fileSelectorText: {
+    fontSize: 16,
+    color: BlueColors.textSecondary,
+    fontWeight: "500",
+  },
+  fileSelectorTextSelected: {
+    color: BlueColors.text,
+  },
+  fileSelectorSubtext: {
     fontSize: 12,
-    color: Colors.light.secondaryText,
-    marginBottom: 16,
+    color: BlueColors.textLight,
+    marginTop: 2,
+  },
+  fileInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 18,
     marginLeft: 4,
   },
+  fileInfo: {
+    fontSize: 14,
+    color: BlueColors.success,
+    marginLeft: 6,
+    fontWeight: "500",
+  },
   submitButton: {
-    backgroundColor: Colors.light.tint,
-    borderRadius: 8,
+    backgroundColor: BlueColors.primary,
+    borderRadius: 12,
     padding: 16,
     alignItems: "center",
-    marginTop: 16,
+    marginTop: 20,
+    shadowColor: BlueColors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  submitButtonDisabled: {
+    backgroundColor: BlueColors.textLight,
+    shadowOpacity: 0.1,
+  },
+  submitContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   submitButtonText: {
     color: "#ffffff",
     fontSize: 18,
     fontWeight: "600",
+    marginLeft: 8,
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "500",
+    marginLeft: 12,
   },
 });
 

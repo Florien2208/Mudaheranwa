@@ -4,7 +4,7 @@
     "slug": "Mudaheranwa-Artist",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/mudaa-logo-icon.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "mudaheranwaartist",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -16,17 +16,25 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/mudaa-logo-icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "INTERNET",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "CAMERA"
+      ],
       "edgeToEdgeEnabled": true,
+      "useNextNotificationsApi": true,
       "package": "com.florien2208.MudaheranwaArtist"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/mudaa-logo-icon.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -35,8 +43,40 @@
         {
           "image": "./assets/images/muda-icon.png",
           "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#72b7e9"
+          "resizeMode": "cover",
+          "backgroundColor": "#72b7e9",
+          "enableFullScreenImage_legacy": true,
+          "hideStatusBar": true
+        }
+      ],
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": true,
+          "androidMode": "default",
+          "androidCollapsedTitle": "New Notification",
+          "categories": [
+            {
+              "identifier": "message",
+              "buttonTitles": ["Reply", "Dismiss"]
+            }
+          ]
         }
       ]
     ],

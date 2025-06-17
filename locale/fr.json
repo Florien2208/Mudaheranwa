@@ -1,0 +1,43 @@
+{
+  "profile": {
+    "editProfile": "Modifier le Profil",
+    "updateInfo": "Mettre à jour vos informations personnelles",
+    "privacySettings": "Paramètres de Confidentialité",
+    "controlPrivacy": "Contrôlez vos préférences de confidentialité",
+    "notificationSettings": "Paramètres de Notification",
+    "customizeNotifications": "Personnalisez vos notifications",
+    "paymentMethods": "Méthodes de Paiement",
+    "manageCards": "Gérer les cartes et options de paiement",
+    "subscription": "Abonnement",
+    "managePlan": "Gérer votre plan d'abonnement",
+    "language": "Langue",
+    "currentlySet": "Actuellement défini sur {{language}}",
+    "helpSupport": "Aide & Support",
+    "getHelp": "Obtenir de l'aide et contacter le support",
+    "about": "À Propos",
+    "appInfo": "Informations sur l'application et légal",
+    "signOut": "Se Déconnecter",
+    "signingOut": "Déconnexion...",
+    "signOutConfirm": "Êtes-vous sûr de vouloir vous déconnecter?",
+    "cancel": "Annuler",
+    "selectLanguage": "Sélectionner la Langue",
+    "verifiedArtist": "Artiste Vérifié",
+    "artworks": "Œuvres d'Art",
+    "followers": "Abonnés",
+    "sales": "Ventes",
+    "lightMode": "Mode Clair",
+    "darkMode": "Mode Sombre",
+    "switchToLight": "Passer au thème clair",
+    "switchToDark": "Passer au thème sombre",
+    "version": "Version 1.0.3 • Conçu avec ♥",
+    "payoutSettings": "Paramètres de Paiement",
+    "manageEarnings": "Gérer vos gains et paiements"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "retry": "Réessayer",
+    "close": "Fermer"
+  }
+}

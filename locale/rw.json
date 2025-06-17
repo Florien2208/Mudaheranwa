@@ -1,0 +1,44 @@
+{
+    "profile": {
+      "editProfile": "Hindura Umwirondoro",
+      "updateInfo": "Vugurura amakuru yawe bwite",
+      "privacySettings": "Amategeko y'Ubwoba",
+      "controlPrivacy": "Genzura ibanga ryawe",
+      "notificationSettings": "Amategeko y'Ubutumwa",
+      "customizeNotifications": "Hindura ubutumwa bwawe",
+      "paymentMethods": "Uburyo bwo Kwishyura",
+      "manageCards": "Genzura amakarita n'uburyo bwo kwishyura",
+      "subscription": "Kwiyandikisha",
+      "managePlan": "Genzura gahunda yawe yo kwiyandikisha",
+      "language": "Ururimi",
+      "currentlySet": "Ubu rushyizweho kuri {{language}}",
+      "helpSupport": "Ubufasha & Gufasha",
+      "getHelp": "Hamagara ubufasha",
+      "about": "Ibyerekeye",
+      "appInfo": "Amakuru y'porogaramu n'amategeko",
+      "signOut": "Sohoka",
+      "signingOut": "Urasohoka...",
+      "signOutConfirm": "Urashaka rwose gusohoka?",
+      "cancel": "Kuraguza",
+      "selectLanguage": "Hitamo Ururimi",
+      "verifiedArtist": "Umuhanzi Wemejwe",
+      "artworks": "Ibihangano",
+      "followers": "Abakurikira",
+      "sales": "Ibicuruza",
+      "lightMode": "Urumuri Rworoshye",
+      "darkMode": "Urumuri Runyuranye",
+      "switchToLight": "Hindukira ku rumuri rworoshye",
+      "switchToDark": "Hindukira ku rumuri runyuranye",
+      "version": "Verisiyo 1.0.3 • Byubatswe n'urukundo ❤️",
+      "payoutSettings": "Amategeko y'Ubwishyu",
+      "manageEarnings": "Genzura inyungu zawe n'ubwishyu"
+    },
+    "common": {
+      "loading": "Biyuzuza...",
+      "error": "Ikosa",
+      "success": "Byakunze",
+      "retry": "Ongera ugerageze",
+      "close": "Funga"
+    }
+  }
+  

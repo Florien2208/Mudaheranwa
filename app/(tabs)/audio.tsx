@@ -201,9 +201,7 @@ const AdminBooksDashboard = ({ navigation }) => {
                 styles.bookImage,
                 {
                   backgroundColor:
-                    item.status === "published"
-                      ? Colors.light.tint
-                      : Colors.light.border,
+                    item.status === "published" ? "#3B82F6" : "#94A3B8",
                 },
               ]}
             >
@@ -223,7 +221,7 @@ const AdminBooksDashboard = ({ navigation }) => {
                 styles.statusTag,
                 {
                   backgroundColor:
-                    item.status === "published" ? "#e0f2f1" : "#ffebee",
+                    item.status === "published" ? "#DBEAFE" : "#FEF2F2",
                 },
               ]}
             >
@@ -231,7 +229,7 @@ const AdminBooksDashboard = ({ navigation }) => {
                 style={[
                   styles.statusText,
                   {
-                    color: item.status === "published" ? "#00796b" : "#c62828",
+                    color: item.status === "published" ? "#1E40AF" : "#DC2626",
                   },
                 ]}
               >
@@ -246,27 +244,15 @@ const AdminBooksDashboard = ({ navigation }) => {
       {item.status === "published" && (
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Ionicons
-              name="eye-outline"
-              size={16}
-              color={Colors.light.secondaryText}
-            />
+            <Ionicons name="eye-outline" size={16} color="#64748B" />
             <Text style={styles.statText}>{item.reads} reads</Text>
           </View>
           <View style={styles.statItem}>
-            <Ionicons
-              name="heart-outline"
-              size={16}
-              color={Colors.light.secondaryText}
-            />
+            <Ionicons name="heart-outline" size={16} color="#64748B" />
             <Text style={styles.statText}>{item.likes.length} likes</Text>
           </View>
           <View style={styles.statItem}>
-            <Ionicons
-              name="calendar-outline"
-              size={16}
-              color={Colors.light.secondaryText}
-            />
+            <Ionicons name="calendar-outline" size={16} color="#64748B" />
             <Text style={styles.statText}>
               {new Date(item.publishedAt || Date.now()).toLocaleDateString()}
             </Text>
@@ -281,7 +267,7 @@ const AdminBooksDashboard = ({ navigation }) => {
             navigation.navigate("AdminEditBook", { bookId: item._id })
           }
         >
-          <Ionicons name="create-outline" size={20} color={Colors.light.icon} />
+          <Ionicons name="create-outline" size={20} color="#3B82F6" />
           <Text style={styles.actionButtonText}>Edit</Text>
         </TouchableOpacity>
 
@@ -294,7 +280,7 @@ const AdminBooksDashboard = ({ navigation }) => {
               item.status === "published" ? "eye-off-outline" : "eye-outline"
             }
             size={20}
-            color={Colors.light.icon}
+            color="#3B82F6"
           />
           <Text style={styles.actionButtonText}>
             {item.status === "published" ? "Unpublish" : "Publish"}
@@ -305,8 +291,8 @@ const AdminBooksDashboard = ({ navigation }) => {
           style={styles.actionButton}
           onPress={() => deleteBook(item._id)}
         >
-          <Ionicons name="trash-outline" size={20} color="#e53935" />
-          <Text style={[styles.actionButtonText, { color: "#e53935" }]}>
+          <Ionicons name="trash-outline" size={20} color="#EF4444" />
+          <Text style={[styles.actionButtonText, { color: "#EF4444" }]}>
             Delete
           </Text>
         </TouchableOpacity>
@@ -319,7 +305,7 @@ const AdminBooksDashboard = ({ navigation }) => {
     if (!loading) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={Colors.light.tint} />
+        <ActivityIndicator size="small" color="#3B82F6" />
       </View>
     );
   };
@@ -336,25 +322,17 @@ const AdminBooksDashboard = ({ navigation }) => {
 
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
-          <Ionicons
-            name="search-outline"
-            size={20}
-            color={Colors.light.secondaryText}
-          />
+          <Ionicons name="search-outline" size={20} color="#64748B" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search books..."
-            placeholderTextColor={Colors.light.secondaryText}
+            placeholderTextColor="#64748B"
             value={search}
             onChangeText={setSearch}
           />
           {search !== "" && (
             <TouchableOpacity onPress={() => setSearch("")}>
-              <Ionicons
-                name="close-circle"
-                size={20}
-                color={Colors.light.secondaryText}
-              />
+              <Ionicons name="close-circle" size={20} color="#64748B" />
             </TouchableOpacity>
           )}
         </View>
@@ -424,21 +402,17 @@ const AdminBooksDashboard = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={[Colors.light.tint]}
-            tintColor={Colors.light.tint}
+            colors={["#3B82F6"]}
+            tintColor="#3B82F6"
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             {loading ? (
-              <ActivityIndicator size="large" color={Colors.light.tint} />
+              <ActivityIndicator size="large" color="#3B82F6" />
             ) : (
               <>
-                <Ionicons
-                  name="book-outline"
-                  size={60}
-                  color={Colors.light.icon}
-                />
+                <Ionicons name="book-outline" size={60} color="#64748B" />
                 <Text style={styles.emptyText}>No books found</Text>
               </>
             )}
@@ -452,7 +426,7 @@ const AdminBooksDashboard = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F8FAFC",
   },
   header: {
     flexDirection: "row",
@@ -462,17 +436,17 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
+    borderBottomColor: "#E2E8F0",
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: Colors.light.text,
+    color: "#1E293B",
   },
   addButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.light.tint,
+    backgroundColor: "#3B82F6",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -490,16 +464,16 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#F1F5F9",
     borderRadius: 8,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: Colors.light.border,
+    borderColor: "#E2E8F0",
   },
   searchInput: {
     flex: 1,
     padding: 10,
-    color: Colors.light.text,
+    color: "#1E293B",
     fontSize: 16,
   },
   filterContainer: {
@@ -507,20 +481,20 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
+    borderBottomColor: "#E2E8F0",
   },
   filterButton: {
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 16,
     marginRight: 8,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#F1F5F9",
   },
   activeFilter: {
-    backgroundColor: Colors.light.tint,
+    backgroundColor: "#3B82F6",
   },
   filterText: {
-    color: Colors.light.secondaryText,
+    color: "#64748B",
     fontWeight: "500",
   },
   activeFilterText: {
@@ -553,7 +527,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Colors.light.border,
+    backgroundColor: "#E2E8F0",
   },
   bookImageText: {
     fontSize: 28,
@@ -566,12 +540,12 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: Colors.light.text,
+    color: "#1E293B",
     marginBottom: 4,
   },
   bookAuthor: {
     fontSize: 16,
-    color: Colors.light.secondaryText,
+    color: "#64748B",
     marginBottom: 8,
   },
   bookMeta: {
@@ -590,13 +564,13 @@ const styles = StyleSheet.create({
   },
   genreText: {
     fontSize: 12,
-    color: Colors.light.secondaryText,
+    color: "#64748B",
     textTransform: "capitalize",
   },
   statsContainer: {
     flexDirection: "row",
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
+    borderTopColor: "#E2E8F0",
     paddingTop: 12,
     marginTop: 12,
   },
@@ -607,14 +581,14 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 14,
-    color: Colors.light.secondaryText,
+    color: "#64748B",
     marginLeft: 4,
   },
   actionButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
+    borderTopColor: "#E2E8F0",
     paddingTop: 12,
     marginTop: 12,
   },
@@ -625,7 +599,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     marginLeft: 4,
-    color: Colors.light.text,
+    color: "#3B82F6",
     fontWeight: "500",
   },
   footerLoader: {
@@ -639,7 +613,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: Colors.light.secondaryText,
+    color: "#64748B",
     marginTop: 8,
   },
 });
