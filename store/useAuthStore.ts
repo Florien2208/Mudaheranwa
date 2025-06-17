@@ -84,7 +84,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
       const { user, token } = response.data;
 
       // Store auth data
-      await AsyncStorage.setItem("auth_token", token);
+      await AsyncStorage.setItem("@auth_token", token);
       await AsyncStorage.setItem("user", JSON.stringify(user));
 
       // Set default auth header for all requests
@@ -120,7 +120,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
       const { user, token } = response.data;
 
       // Store auth data
-      await AsyncStorage.setItem("auth_token", token);
+      await AsyncStorage.setItem("@auth_token", token);
       await AsyncStorage.setItem("user", JSON.stringify(user));
 
       // Set default auth header for all requests
@@ -146,7 +146,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     try {
       // Remove auth data
-      await AsyncStorage.removeItem("auth_token");
+      await AsyncStorage.removeItem("@auth_token");
       await AsyncStorage.removeItem("user");
 
       // Clear auth header

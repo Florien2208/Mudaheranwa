@@ -46,10 +46,6 @@ const BookApp = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Replace the existing useEffect in the BookApp component with this:
-
-  // Replace the existing useEffect in the BookApp component with this:
-
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -92,13 +88,15 @@ const BookApp = () => {
           isbn: `978-${Math.random().toString().substr(2, 10)}`, // Generate fake ISBN since not provided
           coverUrl:
             book.coverImage && book.coverImage !== "default-book-cover.jpg"
-              ? `https://your-server-url.com/${book.coverImage.replace(
-                  /\\/g,
-                  "/"
-                )}`
+              ? `${API_BASE_URL}/uploads/covers/${book.coverImage
+                  .split("\\")
+                  .pop()
+                  .split("/")
+                  .pop()}`
               : `https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+${
                   index + 1
                 }`,
+
           downloading: false,
           downloaded: false,
           // Additional fields from your API

@@ -27,7 +27,7 @@ interface ValidationErrors {
 }
 
 export default function AuthScreen(): React.ReactElement {
-  const [isLogin, setIsLogin] = useState<boolean>(false); // Default to signup
+  const [isLogin, setIsLogin] = useState<boolean>(true); // Changed to true to default to signin
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");

@@ -6,11 +6,6 @@ import notificationServices from "@/service/notification.services";
 import { API_BASE_URL } from "@/constants";
 
 
-interface User {
-  _id: string;
-  [key: string]: any;
-}
-
 interface NotificationData {
   type: string;
   messageId?: string;
