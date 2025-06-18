@@ -43,7 +43,7 @@ const AdminBooksDashboard = ({ navigation }) => {
     }
 
     try {
-      const token = await AsyncStorage.getItem("auth_token");
+      const token = await AsyncStorage.getItem("@auth_token");
       const response = await axios.get(
         `${API_BASE_URL}/api/v1/books/user/mybooks`,
         {
@@ -129,7 +129,7 @@ const AdminBooksDashboard = ({ navigation }) => {
   // Toggle book status (publish/unpublish)
   const toggleBookStatus = async (bookId) => {
     try {
-      const token = await AsyncStorage.getItem("auth_token");
+      const token = await AsyncStorage.getItem("@auth_token");
       const book = books.find((b) => b._id === bookId);
       const newStatus = book.status === "published" ? "draft" : "published";
 
@@ -164,7 +164,7 @@ const AdminBooksDashboard = ({ navigation }) => {
   // Delete book
   const deleteBook = async (bookId) => {
     try {
-      const token = await AsyncStorage.getItem("auth_token");
+      const token = await AsyncStorage.getItem("@auth_token");
       const response = await axios.delete(
         `${API_BASE_URL}/api/v1/books/${bookId}`,
         {

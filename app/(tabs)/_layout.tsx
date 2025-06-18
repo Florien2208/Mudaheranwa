@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import React from "react";
+import "../../global.css";
 import { Platform } from "react-native";
 import { HapticTab } from "@/components/HapticTab";
 import { IconSymbol } from "@/components/ui/IconSymbol";
@@ -106,7 +107,7 @@ export default function TabLayout() {
           options={{
             title: "Videos",
             tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="books.vertical.fill" color={color} />
+              <IconSymbol size={28} name="play.rectangle.fill" color={color} />
             ),
           }}
         />

@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   StatusBar,
   TextInput,
-  StyleSheet,
   ScrollView,
   Dimensions,
   ActivityIndicator,
@@ -16,28 +15,38 @@ import {
 
 import { API_BASE_URL } from "@/constants";
 
-// Mock icons (in a real app, you would use a library like react-native-vector-icons)
+// Enhanced icons with better visual design
 const BookIcon = () => (
-  <View style={styles.icon}>
-    <Text style={{ color: "white", fontWeight: "bold" }}>📚</Text>
+  <View className="items-center justify-center">
+    <Text className="text-white font-bold text-lg">📚</Text>
   </View>
 );
 
 const SearchIcon = () => (
-  <View style={{ marginRight: 8 }}>
-    <Text>🔍</Text>
+  <View className="mr-3">
+    <Text className="text-lg">🔍</Text>
   </View>
 );
 
 const DownloadIcon = () => (
-  <View style={{ marginRight: 8 }}>
-    <Text>⬇️</Text>
+  <View className="mr-2">
+    <Text className="text-white">⬇️</Text>
   </View>
 );
 
+const BackIcon = () => <Text className="text-xl">⬅️</Text>;
 
+const HeartIcon = () => (
+  <View className="mr-1">
+    <Text className="text-red-500">❤️</Text>
+  </View>
+);
 
-const BackIcon = () => <Text>⬅️</Text>;
+const EyeIcon = () => (
+  <View className="mr-1">
+    <Text className="text-gray-500">👁️</Text>
+  </View>
+);
 
 // Main App Component
 const BookApp = () => {
@@ -56,7 +65,6 @@ const BookApp = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-         
           },
         });
 
@@ -109,8 +117,6 @@ const BookApp = () => {
         setBooks(transformedBooks);
       } catch (error) {
         console.error("Error fetching books:", error);
-
-      
       } finally {
         setLoading(false);
       }
@@ -162,26 +168,44 @@ const BookApp = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
 
       {/* Main Content */}
-      <View style={styles.mainContainer}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <View style={styles.logo}>
-              <BookIcon />
+      <View className="flex-1 bg-gray-50">
+        {/* Enhanced Header with Gradient Effect */}
+        <View
+          className="p-5 bg-white"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 8,
+          }}
+        >
+          <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row items-center">
+              <View className="w-12 h-12 rounded-2xl bg-[#72b7e9] items-center justify-center mr-3 shadow-lg">
+                <BookIcon />
+              </View>
+              <View>
+                <Text className="text-[#72b7e9] text-2xl font-bold">
+                  Books
+                </Text>
+                <Text className="text-gray-500 text-sm">
+                  Discover amazing books
+                </Text>
+              </View>
             </View>
-            <Text style={styles.appTitle}>BookSpot</Text>
           </View>
 
-          <View style={styles.searchContainer}>
+          <View className="flex-row bg-gray-50 rounded-2xl px-4 py-3 items-center border-2 border-gray-100 shadow-sm">
             <SearchIcon />
             <TextInput
-              style={styles.searchInput}
-              placeholder="Search books or authors"
-              placeholderTextColor="#999"
+              className="flex-1 text-gray-800 text-base"
+              placeholder="Search books or authors..."
+              placeholderTextColor="#9ca3af"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -207,476 +231,302 @@ const BookApp = () => {
   );
 };
 
-// Book List Component
+// Enhanced Book List Component
 const BookList = ({ books, onSelectBook, loading }) => {
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#72b7e9" />
-        <Text style={styles.loadingText}>Loading books...</Text>
+      <View className="flex-1 items-center justify-center bg-gray-50">
+        <View className="bg-white rounded-3xl p-8 shadow-lg items-center">
+          <ActivityIndicator size="large" color="#72b7e9" />
+          <Text className="text-gray-600 mt-4 text-lg font-medium">
+            Loading books...
+          </Text>
+        </View>
       </View>
     );
   }
 
   if (books.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <BookIcon />
-        <Text style={styles.emptyText}>No books found</Text>
+      <View className="flex-1 items-center justify-center bg-gray-50">
+        <View className="bg-white rounded-3xl p-8 shadow-lg items-center">
+          <View className="w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-4">
+            <BookIcon />
+          </View>
+          <Text className="text-gray-600 text-lg font-medium">
+            No books found
+          </Text>
+          <Text className="text-gray-400 text-sm mt-2">
+            Try adjusting your search
+          </Text>
+        </View>
       </View>
     );
   }
 
   const renderFeaturedItem = ({ item }) => (
     <TouchableOpacity
-      style={styles.featuredItem}
+      className="mr-4 bg-white rounded-3xl p-4 shadow-lg"
+      style={{ width: 160 }}
       onPress={() => onSelectBook(item)}
     >
       <Image
         source={{ uri: item.coverUrl }}
-        style={styles.featuredCover}
+        className="w-full rounded-2xl mb-3"
+        style={{ height: 200 }}
         resizeMode="cover"
       />
-      <Text style={styles.bookTitle} numberOfLines={1}>
+      <Text
+        className="text-gray-800 text-base font-bold mb-1"
+        numberOfLines={2}
+      >
         {item.title}
       </Text>
-      <Text style={styles.bookAuthor} numberOfLines={1}>
-        {item.author}
+      <Text className="text-gray-500 text-sm mb-2" numberOfLines={1}>
+        by {item.author}
       </Text>
-    </TouchableOpacity>
-  );
-
-  const renderBookItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.bookItem}
-      onPress={() => onSelectBook(item)}
-    >
-      <Image
-        source={{ uri: item.coverUrl }}
-        style={styles.bookCover}
-        resizeMode="cover"
-      />
-      <View style={styles.bookInfo}>
-        <Text style={styles.bookTitle} numberOfLines={1}>
-          {item.title}
-        </Text>
-        <Text style={styles.bookAuthor} numberOfLines={1}>
-          {item.author}
-        </Text>
-        <View style={styles.categoryBadge}>
-          <Text style={styles.categoryText}>{item.category}</Text>
+      <View className="flex-row items-center justify-between">
+        <View className="bg-[#72b7e9] rounded-full px-3 py-1">
+          <Text className="text-white text-xs font-medium">
+            {item.category}
+          </Text>
+        </View>
+        <View className="flex-row items-center">
+          <HeartIcon />
+          <Text className="text-gray-400 text-xs">{item.likes}</Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 
+  const renderBookItem = ({ item }) => {
+    const { width } = Dimensions.get("window");
+    const itemWidth = (width - 60) / 2;
+
+    return (
+      <TouchableOpacity
+        className="mb-4 bg-white rounded-3xl p-4 shadow-lg"
+        style={{ width: itemWidth, marginHorizontal: 4 }}
+        onPress={() => onSelectBook(item)}
+      >
+        <Image
+          source={{ uri: item.coverUrl }}
+          className="w-full rounded-2xl mb-3"
+          style={{ height: 140 }}
+          resizeMode="cover"
+        />
+        <Text
+          className="text-gray-800 text-sm font-bold mb-1"
+          numberOfLines={2}
+        >
+          {item.title}
+        </Text>
+        <Text className="text-gray-500 text-xs mb-2" numberOfLines={1}>
+          {item.author}
+        </Text>
+        <View className="flex-row items-center justify-between">
+          <View className="bg-[#72b7e9] rounded-full px-2 py-1">
+            <Text className="text-white text-xs">{item.category}</Text>
+          </View>
+          <View className="flex-row items-center">
+            <EyeIcon />
+            <Text className="text-gray-400 text-xs">{item.reads}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
-    <ScrollView style={styles.scrollContainer}>
+    <ScrollView
+      className="flex-1 bg-gray-50"
+      showsVerticalScrollIndicator={false}
+    >
       {/* Featured Books Section */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Featured Books</Text>
-        <TouchableOpacity>
-          <Text style={styles.viewAllText}>View all</Text>
-        </TouchableOpacity>
+      <View className="px-5 pt-5">
+        <View className="flex-row justify-between items-center mb-4">
+          <View>
+            <Text className="text-gray-800 text-2xl font-bold">
+              Featured Books
+            </Text>
+            <Text className="text-gray-500 text-sm">Handpicked for you</Text>
+          </View>
+          <TouchableOpacity className="bg-[#72b7e9] rounded-full px-4 py-2">
+            <Text className="text-white text-sm font-medium">View all</Text>
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          data={books.slice(0, 6)}
+          renderItem={renderFeaturedItem}
+          keyExtractor={(item) => item.id.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingRight: 20 }}
+        />
       </View>
 
-      <FlatList
-        data={books.slice(0, 4)}
-        renderItem={renderFeaturedItem}
-        keyExtractor={(item) => item.id.toString()}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.featuredList}
-      />
-
       {/* All Books Section */}
-      <Text style={[styles.sectionTitle, { marginTop: 20, marginBottom: 15 }]}>
-        All Books
-      </Text>
-      <FlatList
-        data={books}
-        renderItem={renderBookItem}
-        keyExtractor={(item) => item.id.toString()}
-        scrollEnabled={false}
-        numColumns={2}
-        contentContainerStyle={styles.bookList}
-      />
+      <View className="px-5 pt-8 pb-5">
+        <View className="mb-4">
+          <Text className="text-gray-800 text-2xl font-bold mb-1">
+            All Books
+          </Text>
+          <Text className="text-gray-500 text-sm">
+            Explore our entire collection
+          </Text>
+        </View>
+
+        <FlatList
+          data={books}
+          renderItem={renderBookItem}
+          keyExtractor={(item) => item.id.toString()}
+          scrollEnabled={false}
+          numColumns={2}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          columnWrapperStyle={{ justifyContent: "space-between" }}
+        />
+      </View>
     </ScrollView>
   );
 };
 
-// Book Detail Component
+// Enhanced Book Detail Component
 const BookDetail = ({ book, onBack, onDownload }) => {
   return (
-    <ScrollView style={styles.detailContainer}>
-      <TouchableOpacity style={styles.backButton} onPress={onBack}>
-        <BackIcon />
-        <Text style={styles.backText}>Back to books</Text>
-      </TouchableOpacity>
+    <ScrollView
+      className="flex-1 bg-gray-50"
+      showsVerticalScrollIndicator={false}
+    >
+      <View className="p-5">
+        <TouchableOpacity
+          className="flex-row items-center mb-6 bg-white rounded-2xl px-4 py-3 shadow-sm"
+          onPress={onBack}
+        >
+          <BackIcon />
+          <Text className="text-[#72b7e9] ml-3 text-base font-medium">
+            Back to books
+          </Text>
+        </TouchableOpacity>
 
-      <View style={styles.bookDetailCard}>
-        <Image
-          source={{ uri: book.coverUrl }}
-          style={styles.detailCover}
-          resizeMode="cover"
-        />
-
-        <View style={styles.detailInfo}>
-          <Text style={styles.detailTitle}>{book.title}</Text>
-          <Text style={styles.detailAuthor}>by {book.author}</Text>
-
-          <View style={styles.badgeContainer}>
-            <View style={styles.detailBadge}>
-              <Text style={styles.badgeText}>{book.category}</Text>
-            </View>
-            <View style={styles.detailBadge}>
-              <Text style={styles.badgeText}>{book.pages} pages</Text>
-            </View>
+        <View className="bg-white rounded-3xl p-6 shadow-lg mb-6">
+          <View className="items-center mb-6">
+            <Image
+              source={{ uri: book.coverUrl }}
+              className="rounded-3xl shadow-lg"
+              style={{ width: 200, height: 300 }}
+              resizeMode="cover"
+            />
           </View>
 
-          <Text style={styles.description} numberOfLines={4}>
+          <View className="items-center">
+            <Text className="text-gray-800 text-2xl font-bold text-center mb-2">
+              {book.title}
+            </Text>
+            <Text className="text-gray-500 text-lg mb-4">by {book.author}</Text>
+
+            <View className="flex-row flex-wrap justify-center mb-6">
+              <View className="bg-[#72b7e9] rounded-full px-4 py-2 mx-1 mb-2">
+                <Text className="text-white text-sm font-medium">
+                  {book.category}
+                </Text>
+              </View>
+              <View className="bg-gray-100 rounded-full px-4 py-2 mx-1 mb-2">
+                <Text className="text-gray-600 text-sm font-medium">
+                  {book.pages} pages
+                </Text>
+              </View>
+              <View className="bg-gray-100 rounded-full px-4 py-2 mx-1 mb-2 flex-row items-center">
+                <HeartIcon />
+                <Text className="text-gray-600 text-sm font-medium">
+                  {book.likes} likes
+                </Text>
+              </View>
+            </View>
+
+            <Text className="text-gray-600 text-center mb-6 leading-6 text-base">
+              {book.description}
+            </Text>
+
+            <TouchableOpacity
+              className={`${
+                book.downloading
+                  ? "bg-gray-400"
+                  : book.downloaded
+                    ? "bg-green-500"
+                    : "bg-[#72b7e9]"
+              } rounded-full flex-row items-center justify-center py-4 px-8 shadow-lg`}
+              style={{ width: "100%" }}
+              onPress={() => onDownload(book.id)}
+              disabled={book.downloading}
+            >
+              {book.downloading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <DownloadIcon />
+              )}
+              <Text className="text-white font-bold text-lg ml-2">
+                {book.downloading
+                  ? "Downloading..."
+                  : book.downloaded
+                    ? "Downloaded ✓"
+                    : "Download Book"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View className="bg-white rounded-3xl p-6 shadow-lg mb-6">
+          <Text className="text-gray-800 text-xl font-bold mb-4">
+            About this book
+          </Text>
+          <Text className="text-gray-600 leading-6 mb-6 text-base">
             {book.description}
           </Text>
 
-          <TouchableOpacity
-            style={styles.downloadButton}
-            onPress={() => onDownload(book.id)}
-          >
-            <DownloadIcon />
-            <Text style={styles.downloadText}>
-              {book.downloading
-                ? "Downloading..."
-                : book.downloaded
-                ? "Downloaded"
-                : "Download"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+          <View className="space-y-4">
+            <View className="flex-row">
+              <View className="flex-1 bg-gray-50 rounded-2xl p-4 mr-2">
+                <Text className="text-[#72b7e9] text-sm font-bold mb-1">
+                  Publisher
+                </Text>
+                <Text className="text-gray-800 text-base font-medium">
+                  {book.publisher}
+                </Text>
+              </View>
+              <View className="flex-1 bg-gray-50 rounded-2xl p-4 ml-2">
+                <Text className="text-[#72b7e9] text-sm font-bold mb-1">
+                  Published
+                </Text>
+                <Text className="text-gray-800 text-base font-medium">
+                  {book.publicationDate}
+                </Text>
+              </View>
+            </View>
 
-      <View style={styles.aboutSection}>
-        <Text style={styles.aboutTitle}>About this book</Text>
-        <Text style={styles.aboutText}>{book.description}</Text>
-
-        <View style={styles.detailsGrid}>
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Publisher</Text>
-            <Text style={styles.detailValue}>{book.publisher}</Text>
-          </View>
-
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Publication Date</Text>
-            <Text style={styles.detailValue}>{book.publicationDate}</Text>
-          </View>
-
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Language</Text>
-            <Text style={styles.detailValue}>{book.language}</Text>
-          </View>
-
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>ISBN</Text>
-            <Text style={styles.detailValue}>{book.isbn}</Text>
+            <View className="flex-row">
+              <View className="flex-1 bg-gray-50 rounded-2xl p-4 mr-2">
+                <Text className="text-[#72b7e9] text-sm font-bold mb-1">
+                  Language
+                </Text>
+                <Text className="text-gray-800 text-base font-medium">
+                  {book.language}
+                </Text>
+              </View>
+              <View className="flex-1 bg-gray-50 rounded-2xl p-4 ml-2">
+                <Text className="text-[#72b7e9] text-sm font-bold mb-1">
+                  ISBN
+                </Text>
+                <Text className="text-gray-800 text-base font-medium">
+                  {book.isbn}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
       </View>
     </ScrollView>
   );
 };
-
-// Styles
-const { width } = Dimensions.get("window");
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-  },
-  mainContainer: {
-    flex: 1,
-    backgroundColor: "white",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    backgroundColor: "white",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  logoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  logo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#72b7e9",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-  icon: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  appTitle: {
-    color: "#72b7e9",
-    fontSize: 22,
-    fontWeight: "bold",
-  },
-  searchContainer: {
-    flex: 1,
-    flexDirection: "row",
-    backgroundColor: "#f5f5f5",
-    borderRadius: 20,
-    marginLeft: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#72b7e9",
-  },
-  searchInput: {
-    flex: 1,
-    color: "#333",
-    fontSize: 14,
-    padding: 0,
-  },
-  scrollContainer: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "white",
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    color: "#72b7e9",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  viewAllText: {
-    color: "#72b7e9",
-    fontSize: 14,
-  },
-  featuredList: {
-    paddingRight: 16,
-  },
-  featuredItem: {
-    width: 150,
-    marginRight: 16,
-  },
-  featuredCover: {
-    width: 150,
-    height: 225,
-    borderRadius: 8,
-    marginBottom: 8,
-    backgroundColor: "#f0f8ff",
-    borderWidth: 1,
-    borderColor: "#72b7e9",
-  },
-  bookTitle: {
-    color: "#333",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  bookAuthor: {
-    color: "#666",
-    fontSize: 14,
-  },
-  bookList: {
-    paddingBottom: 20,
-  },
-  bookItem: {
-    width: (width - 48) / 2,
-    marginBottom: 16,
-    marginRight: 16,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 8,
-    overflow: "hidden",
-    padding: 10,
-    flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  bookCover: {
-    width: 50,
-    height: 80,
-    borderRadius: 4,
-    backgroundColor: "#f0f8ff",
-    borderWidth: 1,
-    borderColor: "#72b7e9",
-  },
-  bookInfo: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  categoryBadge: {
-    backgroundColor: "#72b7e9",
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    alignSelf: "flex-start",
-    marginTop: 8,
-  },
-  categoryText: {
-    color: "white",
-    fontSize: 12,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "white",
-  },
-  loadingText: {
-    color: "#666",
-    marginTop: 12,
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "white",
-  },
-  emptyText: {
-    color: "#666",
-    marginTop: 12,
-  },
-  // Detail Styles
-  detailContainer: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "white",
-  },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  backText: {
-    color: "#72b7e9",
-    marginLeft: 8,
-    fontSize: 16,
-  },
-  bookDetailCard: {
-    backgroundColor: "#f9f9f9",
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: "column",
-    alignItems: "center",
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  detailCover: {
-    width: 180,
-    height: 270,
-    borderRadius: 8,
-    marginBottom: 16,
-    backgroundColor: "#f0f8ff",
-    borderWidth: 1,
-    borderColor: "#72b7e9",
-  },
-  detailInfo: {
-    width: "100%",
-    alignItems: "center",
-  },
-  detailTitle: {
-    color: "#333",
-    fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  detailAuthor: {
-    color: "#666",
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  badgeContainer: {
-    flexDirection: "row",
-    marginBottom: 16,
-  },
-  detailBadge: {
-    backgroundColor: "#72b7e9",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginHorizontal: 4,
-  },
-  badgeText: {
-    color: "white",
-    fontSize: 12,
-  },
-  description: {
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  downloadButton: {
-    backgroundColor: "#72b7e9",
-    borderRadius: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    width: "80%",
-  },
-  downloadText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  aboutSection: {
-    backgroundColor: "#f9f9f9",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  aboutTitle: {
-    color: "#72b7e9",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  aboutText: {
-    color: "#666",
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  detailsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  detailItem: {
-    width: "50%",
-    marginBottom: 12,
-  },
-  detailLabel: {
-    color: "#72b7e9",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  detailValue: {
-    color: "#333",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-});
 
 export default BookApp;

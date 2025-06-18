@@ -53,7 +53,7 @@ export default function LibraryScreen() {
   const fetchTracks = async () => {
     setIsLoading(true);
     try {
-      const token = await AsyncStorage.getItem("auth_token");
+      const token = await AsyncStorage.getItem("@auth_token");
       const response = await axios.get(
         `${API_BASE_URL}/api/v1/music/user/mymusic`,
         {
@@ -257,7 +257,7 @@ export default function LibraryScreen() {
         });
       }
 
-      const token = await AsyncStorage.getItem("auth_token");
+      const token = await AsyncStorage.getItem("@auth_token");
       if (!token) {
         Alert.alert("Authentication Error", "Please log in again");
         setIsUploading(false);
@@ -364,7 +364,7 @@ export default function LibraryScreen() {
 
   const handlePublishTrack = async (trackId) => {
     try {
-      const token = await AsyncStorage.getItem("auth_token");
+      const token = await AsyncStorage.getItem("@auth_token");
       if (!token) {
         Alert.alert("Authentication Error", "Please log in again");
         return;
@@ -398,7 +398,7 @@ export default function LibraryScreen() {
   const handleDeleteTrack = async (trackId) => {
     try {
       // Retrieve auth token
-      const token = await AsyncStorage.getItem("auth_token");
+      const token = await AsyncStorage.getItem("@auth_token");
       if (!token) {
         Alert.alert("Authentication Error", "Please log in again");
         return;
@@ -510,7 +510,7 @@ export default function LibraryScreen() {
         }
       }
   
-      const token = await AsyncStorage.getItem("auth_token");
+      const token = await AsyncStorage.getItem("@auth_token");
       if (!token) {
         Alert.alert("Authentication Error", "Please log in again");
         setIsUploading(false);

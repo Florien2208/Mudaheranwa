@@ -48,22 +48,19 @@ const useAuthStore = create<AuthState>((set, get) => ({
   // Initialize auth state from storage
   initialize: async () => {
     try {
-      const token = await AsyncStorage.getItem("auth_token");
-      console.log("Token from storage:", token);
+      const token = await AsyncStorage.getItem("@auth_token");
       const userJson = await AsyncStorage.getItem("user");
 
       if (token && userJson) {
-        // Set default auth header for all requests
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        set({
-          user: JSON.parse(userJson) as User,
-          token,
-          loading: false,
-        });
-      } else {
-        set({ loading: false });
+        // If validation failed, clear storage
+        await AsyncStorage.removeItem("@auth_token");
+        await AsyncStorage.removeItem("user");
+        delete axios.defaults.headers.common["Authorization"];
       }
+
+      set({ user: null, token: null, loading: false });
     } catch (error) {
       console.error("Error initializing auth:", error);
       set({ loading: false, error: "Failed to initialize authentication" });

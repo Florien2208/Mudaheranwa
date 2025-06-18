@@ -16,13 +16,11 @@ import {
   RefreshControl,
   SafeAreaView,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -126,14 +124,9 @@ const MenuItem = React.memo(
         }}
       >
         <Pressable
-          style={[
-            styles.menuItem,
-            {
-              borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
-              borderBottomColor: borderColor + "30",
-              opacity: disabled ? 0.5 : 1,
-            },
-          ]}
+          className={`flex-row items-center p-4 ${
+            !isLast ? "border-b border-gray-200/30" : ""
+          } ${disabled ? "opacity-50" : ""}`}
           onPress={disabled ? undefined : onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
@@ -148,12 +141,10 @@ const MenuItem = React.memo(
           }
           accessibilityState={{ disabled }}
         >
-          <View style={styles.menuItemLeft}>
+          <View className="flex-row items-center flex-1">
             <View
-              style={[
-                styles.iconContainer,
-                { backgroundColor: iconBackgroundColor },
-              ]}
+              className="w-10 h-10 rounded-lg justify-center items-center mr-3"
+              style={{ backgroundColor: iconBackgroundColor }}
             >
               <IconSymbol
                 name={icon}
@@ -161,19 +152,18 @@ const MenuItem = React.memo(
                 color={disabled ? Colors[colorScheme].secondaryText : "#FFFFFF"}
               />
             </View>
-            <View style={styles.menuTextContainer}>
+            <View className="flex-1">
               <Text
-                style={[styles.menuItemText, { color: COLORS.textPrimary }]}
+                className="text-base font-medium mb-0.5"
+                style={{ color: COLORS.textPrimary }}
                 numberOfLines={1}
               >
                 {title}
               </Text>
               {subtitle && (
                 <Text
-                  style={[
-                    styles.menuItemSubtitle,
-                    { color: COLORS.textSecondary },
-                  ]}
+                  className="text-sm opacity-70"
+                  style={{ color: COLORS.textSecondary }}
                   numberOfLines={1}
                 >
                   {subtitle}
@@ -181,13 +171,11 @@ const MenuItem = React.memo(
               )}
             </View>
           </View>
-          <View style={styles.menuItemRight}>
+          <View className="flex-row items-center">
             {rightContent || (
               <Text
-                style={[
-                  styles.menuArrow,
-                  { color: Colors[colorScheme].secondaryText },
-                ]}
+                className="text-base"
+                style={{ color: Colors[colorScheme].secondaryText }}
               >
                 ›
               </Text>
@@ -224,20 +212,26 @@ const ProfileSection = React.memo(
     }, [isArtist, t]);
 
     return (
-      <View style={styles.profileHeader}>
-        <View style={styles.profileImageContainer}>
+      <View className="items-center mb-6">
+        <View className="relative mb-3">
           <View
-            style={[styles.profileImage, { backgroundColor: COLORS.primary }]}
+            className="w-25 h-25 rounded-full justify-center items-center shadow-lg"
+            style={{
+              backgroundColor: COLORS.primary,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
           >
-            <Text style={styles.profileImageText}>
+            <Text className="text-4xl font-bold text-white">
               {getInitials(user?.displayName || user?.name)}
             </Text>
             {isArtist && (
               <View
-                style={[
-                  styles.artistIndicator,
-                  { backgroundColor: COLORS.warning },
-                ]}
+                className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full justify-center items-center border-2 border-white"
+                style={{ backgroundColor: COLORS.warning }}
               >
                 <IconSymbol name="star.fill" size={10} color="#FFFFFF" />
               </View>
@@ -246,21 +240,17 @@ const ProfileSection = React.memo(
         </View>
 
         <Text
-          style={[
-            styles.profileName,
-            {
-              color: isDark ? "#FFFFFF" : COLORS.textPrimary,
-            },
-          ]}
+          className="text-2xl font-bold mb-1"
+          style={{
+            color: isDark ? "#FFFFFF" : COLORS.textPrimary,
+          }}
           numberOfLines={1}
         >
           {user?.name || user?.displayName || "User Name"}
         </Text>
         <Text
-          style={[
-            styles.profileEmail,
-            { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
-          ]}
+          className="text-base opacity-70"
+          style={{ color: isDark ? COLORS.textMuted : COLORS.textSecondary }}
           numberOfLines={1}
         >
           {user?.email || "user@example.com"}
@@ -268,10 +258,11 @@ const ProfileSection = React.memo(
 
         {isArtist && (
           <View
-            style={[styles.badgeContainer, { backgroundColor: COLORS.warning }]}
+            className="flex-row items-center mt-2 px-3 py-1.5 rounded-2xl"
+            style={{ backgroundColor: COLORS.warning }}
           >
             <IconSymbol name="paintbrush.fill" size={12} color="#FFFFFF" />
-            <Text style={styles.artistBadge}>
+            <Text className="text-white text-xs font-semibold ml-1">
               {t("profile.verifiedArtist")}
             </Text>
           </View>
@@ -280,26 +271,22 @@ const ProfileSection = React.memo(
         {/* Artist Stats */}
         {profileStats && (
           <View
-            style={[
-              styles.statsContainer,
-              { backgroundColor: COLORS.secondary },
-            ]}
+            className="flex-row justify-around py-4 mt-4 rounded-xl w-full"
+            style={{ backgroundColor: COLORS.secondary }}
           >
             {profileStats.map((stat, index) => (
-              <View key={stat.label} style={styles.statItem}>
+              <View key={stat.label} className="items-center">
                 <Text
-                  style={[
-                    styles.statValue,
-                    { color: isDark ? "#FFFFFF" : COLORS.textPrimary },
-                  ]}
+                  className="text-xl font-bold mb-0.5"
+                  style={{ color: isDark ? "#FFFFFF" : COLORS.textPrimary }}
                 >
                   {stat.value}
                 </Text>
                 <Text
-                  style={[
-                    styles.statLabel,
-                    { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
-                  ]}
+                  className="text-xs opacity-70"
+                  style={{
+                    color: isDark ? COLORS.textMuted : COLORS.textSecondary,
+                  }}
                 >
                   {stat.label}
                 </Text>
@@ -317,13 +304,21 @@ ProfileSection.displayName = "ProfileSection";
 // MenuSection component
 const MenuSection = ({ children, isDark }) => (
   <View
-    style={[
-      styles.menuSection,
-      {
-        backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-        shadowColor: COLORS.shadowColor,
-      },
-    ]}
+    className="rounded-xl mb-4 overflow-hidden"
+    style={{
+      backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
+      shadowColor: COLORS.shadowColor,
+      ...Platform.select({
+        ios: {
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3,
+        },
+        android: {
+          elevation: 3,
+        },
+      }),
+    }}
   >
     {children}
   </View>
@@ -369,29 +364,42 @@ const LanguageModal = React.memo(
         onRequestClose={onClose}
         statusBarTranslucent
       >
-        <Pressable style={styles.modalOverlay} onPress={handleBackdropPress}>
+        <Pressable
+          className="flex-1 justify-center items-center"
+          style={{ backgroundColor: COLORS.overlay }}
+          onPress={handleBackdropPress}
+        >
           <Animated.View
-            style={[
-              styles.modalContent,
-              {
-                backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
+            className="w-11/12 max-h-3/4 rounded-3xl overflow-hidden"
+            style={{
+              backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
+              transform: [{ translateY: slideAnim }],
+              ...Platform.select({
+                ios: {
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 16,
+                },
+                android: {
+                  elevation: 8,
+                },
+              }),
+            }}
             onStartShouldSetResponder={() => true}
           >
             <View
-              style={[
-                styles.modalHeader,
-                { borderBottomColor: Colors[colorScheme].border + "40" },
-              ]}
+              className="flex-row justify-between items-center px-6 py-5 border-b"
+              style={{ borderBottomColor: Colors[colorScheme].border + "40" }}
             >
-              <Text style={[styles.modalTitle, { color: COLORS.primary }]}>
+              <Text
+                className="text-xl font-bold"
+                style={{ color: COLORS.primary }}
+              >
                 {t("profile.selectLanguage")}
               </Text>
               <TouchableOpacity
                 onPress={onClose}
-                style={styles.closeButton}
+                className="p-1"
                 accessibilityLabel="Close language selection"
                 accessibilityRole="button"
               >
@@ -403,25 +411,22 @@ const LanguageModal = React.memo(
               </TouchableOpacity>
             </View>
             <ScrollView
-              style={styles.languageList}
+              className="max-h-96"
               showsVerticalScrollIndicator={false}
             >
               {languages.map((language, index) => (
                 <TouchableOpacity
                   key={language.code}
-                  style={[
-                    styles.languageItem,
-                    {
-                      borderBottomWidth:
-                        index === languages.length - 1
-                          ? 0
-                          : StyleSheet.hairlineWidth,
-                      borderBottomColor: Colors[colorScheme].border + "40",
-                    },
-                    currentLanguage === language.name && {
-                      backgroundColor: COLORS.primary + "15",
-                    },
-                  ]}
+                  className={`flex-row items-center justify-between py-4 px-6 ${
+                    index !== languages.length - 1 ? "border-b" : ""
+                  } ${currentLanguage === language.name ? "bg-blue-50" : ""}`}
+                  style={{
+                    borderBottomColor: Colors[colorScheme].border + "40",
+                    backgroundColor:
+                      currentLanguage === language.name
+                        ? COLORS.primary + "15"
+                        : "transparent",
+                  }}
                   onPress={() => onLanguageSelect(language)}
                   accessibilityLabel={`Select ${language.name} language`}
                   accessibilityRole="button"
@@ -429,25 +434,21 @@ const LanguageModal = React.memo(
                     selected: currentLanguage === language.name,
                   }}
                 >
-                  <View style={styles.languageTextContainer}>
+                  <View className="flex-1">
                     <Text
-                      style={[
-                        styles.languageText,
-                        { color: isDark ? "#FFFFFF" : COLORS.textPrimary },
-                      ]}
+                      className="text-lg font-medium"
+                      style={{ color: isDark ? "#FFFFFF" : COLORS.textPrimary }}
                     >
                       {language.name}
                     </Text>
                     {language.nativeName !== language.name && (
                       <Text
-                        style={[
-                          styles.languageNative,
-                          {
-                            color: isDark
-                              ? COLORS.textMuted
-                              : COLORS.textSecondary,
-                          },
-                        ]}
+                        className="text-sm opacity-70"
+                        style={{
+                          color: isDark
+                            ? COLORS.textMuted
+                            : COLORS.textSecondary,
+                        }}
                       >
                         {language.nativeName}
                       </Text>
@@ -455,10 +456,8 @@ const LanguageModal = React.memo(
                   </View>
                   {currentLanguage === language.name && (
                     <View
-                      style={[
-                        styles.checkmarkContainer,
-                        { backgroundColor: COLORS.primary },
-                      ]}
+                      className="w-6 h-6 rounded-xl justify-center items-center"
+                      style={{ backgroundColor: COLORS.primary }}
                     >
                       <IconSymbol name="checkmark" size={14} color="#FFFFFF" />
                     </View>
@@ -496,29 +495,33 @@ const ThemeToggle = React.memo(({ isDark, onToggle, colorScheme, t }) => {
   return (
     <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
       <TouchableOpacity
-        style={[
-          styles.themeToggle,
-          {
-            backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-            shadowColor: COLORS.shadowColor,
-          },
-        ]}
+        className="rounded-xl mb-4 overflow-hidden"
+        style={{
+          backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
+          shadowColor: COLORS.shadowColor,
+          ...Platform.select({
+            ios: {
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 3,
+            },
+            android: {
+              elevation: 3,
+            },
+          }),
+        }}
         onPress={handlePress}
         activeOpacity={0.7}
         accessibilityLabel={`Switch to ${isDark ? "light" : "dark"} mode`}
         accessibilityRole="button"
       >
         <View
-          style={[
-            styles.themeToggleContent,
-            { borderColor: Colors[colorScheme].border + "30" },
-          ]}
+          className="flex-row items-center p-4"
+          style={{ borderColor: Colors[colorScheme].border + "30" }}
         >
           <View
-            style={[
-              styles.themeIconContainer,
-              { backgroundColor: COLORS.primary },
-            ]}
+            className="w-10 h-10 rounded-lg justify-center items-center mr-3"
+            style={{ backgroundColor: COLORS.primary }}
           >
             <IconSymbol
               name={isDark ? "sun.max.fill" : "moon.fill"}
@@ -526,42 +529,41 @@ const ThemeToggle = React.memo(({ isDark, onToggle, colorScheme, t }) => {
               color="#FFFFFF"
             />
           </View>
-          <View style={styles.themeTextContainer}>
+          <View className="flex-1">
             <Text
-              style={[
-                styles.themeToggleText,
-                { color: isDark ? "#FFFFFF" : COLORS.textPrimary },
-              ]}
+              className="text-base font-medium mb-0.5"
+              style={{ color: isDark ? "#FFFFFF" : COLORS.textPrimary }}
             >
               {isDark ? t("profile.lightMode") : t("profile.darkMode")}
             </Text>
             <Text
-              style={[
-                styles.themeToggleSubtext,
-                { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
-              ]}
+              className="text-sm opacity-70"
+              style={{
+                color: isDark ? COLORS.textMuted : COLORS.textSecondary,
+              }}
             >
               {isDark ? t("profile.switchToLight") : t("profile.switchToDark")}
             </Text>
           </View>
           <View
-            style={[
-              styles.toggleSwitch,
-              {
-                backgroundColor: isDark
-                  ? COLORS.primary
-                  : Colors[colorScheme].border + "40",
-              },
-            ]}
+            className="w-11 h-6 rounded-xl justify-center relative"
+            style={{
+              backgroundColor: isDark
+                ? COLORS.primary
+                : Colors[colorScheme].border + "40",
+            }}
           >
             <Animated.View
-              style={[
-                styles.toggleKnob,
-                {
-                  backgroundColor: "#FFFFFF",
-                  transform: [{ translateX: isDark ? 20 : 2 }],
-                },
-              ]}
+              className="w-5 h-5 rounded-full absolute shadow-sm"
+              style={{
+                backgroundColor: "#FFFFFF",
+                transform: [{ translateX: isDark ? 20 : 2 }],
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.2,
+                shadowRadius: 2,
+                elevation: 2,
+              }}
             />
           </View>
         </View>
@@ -734,20 +736,20 @@ export default function AccountScreen({ navigation }) {
         onPress: () => setLanguageModalVisible(true),
         iconColor: COLORS.primary,
         rightContent: (
-          <View style={styles.languageValue}>
+          <View className="flex-row items-center">
             <Text
-              style={[
-                styles.languageValueText,
-                { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
-              ]}
+              className="text-base mr-2"
+              style={{
+                color: isDark ? COLORS.textMuted : COLORS.textSecondary,
+              }}
             >
               {currentLanguageName}
             </Text>
             <Text
-              style={[
-                styles.menuArrow,
-                { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
-              ]}
+              className="text-base"
+              style={{
+                color: isDark ? COLORS.textMuted : COLORS.textSecondary,
+              }}
             >
               ›
             </Text>
@@ -793,14 +795,14 @@ export default function AccountScreen({ navigation }) {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView className="flex-1">
         <StatusBar style={isDark ? "light" : "dark"} />
 
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView className="flex-1">
           <ScrollView
-            style={styles.scrollView}
+            className="p-4"
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={{ paddingBottom: 40 }}
             refreshControl={
               <RefreshControl
                 refreshing={isRefreshing}
@@ -843,13 +845,10 @@ export default function AccountScreen({ navigation }) {
 
             {/* Sign Out Button */}
             <TouchableOpacity
-              style={[
-                styles.logoutButton,
-                {
-                  backgroundColor: COLORS.error,
-                  opacity: isLoggingOut ? 0.7 : 1,
-                },
-              ]}
+              className={`rounded-xl p-4 items-center mt-2 ${
+                isLoggingOut ? "opacity-70" : ""
+              }`}
+              style={{ backgroundColor: COLORS.error }}
               onPress={handleLogout}
               disabled={isLoggingOut}
               activeOpacity={0.8}
@@ -859,21 +858,21 @@ export default function AccountScreen({ navigation }) {
               accessibilityHint="Logs you out of your account"
               accessibilityState={{ disabled: isLoggingOut }}
             >
-              <Text style={styles.logoutText}>
+              <Text className="text-white text-base font-semibold">
                 {isLoggingOut ? t("profile.signingOut") : t("profile.signOut")}
               </Text>
             </TouchableOpacity>
 
             <Text
-              style={[
-                styles.versionText,
-                { color: isDark ? COLORS.textMuted : COLORS.textSecondary },
-              ]}
+              className="text-center text-sm mt-5 opacity-60"
+              style={{
+                color: isDark ? COLORS.textMuted : COLORS.textSecondary,
+              }}
             >
               {t("profile.version")}
             </Text>
 
-            <View style={styles.bottomSpacing} />
+            <View className="h-14" />
           </ScrollView>
         </SafeAreaView>
 
@@ -892,304 +891,3 @@ export default function AccountScreen({ navigation }) {
     </>
   );
 }
-
-// Styles remain the same...
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  scrollView: {
-    padding: 16,
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
-  profileHeader: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  profileImageContainer: {
-    position: "relative",
-    marginBottom: 12,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  profileImageText: {
-    fontSize: 36,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  artistIndicator: {
-    position: "absolute",
-    top: -2,
-    right: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-  },
-  profileName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  profileEmail: {
-    fontSize: 16,
-    opacity: 0.7,
-  },
-  badgeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  artistBadge: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 16,
-    marginTop: 16,
-    borderRadius: 12,
-    width: "100%",
-  },
-  statItem: {
-    alignItems: "center",
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 12,
-    opacity: 0.7,
-  },
-  menuSection: {
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-  },
-  menuItemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  menuTextContainer: {
-    flex: 1,
-  },
-  menuItemText: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: 2,
-  },
-  menuItemSubtitle: {
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  menuItemRight: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  menuArrow: {
-    fontSize: 16,
-  },
-  languageValue: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  languageValueText: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  logoutButton: {
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  logoutText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  versionText: {
-    textAlign: "center",
-    fontSize: 14,
-    marginTop: 20,
-    opacity: 0.6,
-  },
-  bottomSpacing: {
-    height: 56,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.overlay,
-  },
-  modalContent: {
-    width: "90%",
-    maxHeight: "70%",
-    borderRadius: 24,
-    overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  languageList: {
-    maxHeight: 400,
-  },
-  languageItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-  },
-  languageTextContainer: {
-    flex: 1,
-  },
-  languageText: {
-    fontSize: 17,
-    fontWeight: "500",
-    marginBottom: 2,
-  },
-  languageNative: {
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  checkmarkContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  themeToggle: {
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  themeToggleContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 0,
-  },
-  themeIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  themeTextContainer: {
-    flex: 1,
-  },
-  themeToggleText: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: 2,
-  },
-  themeToggleSubtext: {
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  toggleSwitch: {
-    width: 44,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: "center",
-    position: "relative",
-  },
-  toggleKnob: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    position: "absolute",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-});
