@@ -45,7 +45,7 @@ const sampleVideos = [
     views: "156K",
     uploadDate: "2 days ago",
     thumbnailUrl:
-      "https://via.placeholder.com/320x180/72b7e9/FFFFFF?text=Midnight+Library",
+      "https://media.gettyimages.com/id/1426606619/video/library-background-learning-books-and-studying-at-school-university-and-college-for-exam-test.jpg?s=640x640&k=20&c=9x81CDaZaN3Qa-2pyy__23F6WiO2wCguVAGH9hCswe4=",
     videoUrl:
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
   },
@@ -60,7 +60,7 @@ const sampleVideos = [
     views: "89K",
     uploadDate: "5 days ago",
     thumbnailUrl:
-      "https://via.placeholder.com/320x180/72b7e9/FFFFFF?text=Atomic+Habits",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPVN3J79akqUsYHdk_rih-G0dMeth_1w9h2Q&s",
     videoUrl:
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
   },
@@ -75,7 +75,7 @@ const sampleVideos = [
     views: "234K",
     uploadDate: "1 week ago",
     thumbnailUrl:
-      "https://via.placeholder.com/320x180/72b7e9/FFFFFF?text=Money+Psychology",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSatECxe411KYZjMCvGhqoatpIxU1d10Rxqrg&s",
     videoUrl:
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
   },
@@ -90,7 +90,7 @@ const sampleVideos = [
     views: "67K",
     uploadDate: "3 days ago",
     thumbnailUrl:
-      "https://via.placeholder.com/320x180/72b7e9/FFFFFF?text=Sci-Fi+Books",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv_X4GwkuTABwd40Ke0oB5tlHJcg5Fm5rmUw&s",
     videoUrl:
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
   },
@@ -105,7 +105,7 @@ const sampleVideos = [
     views: "312K",
     uploadDate: "2 weeks ago",
     thumbnailUrl:
-      "https://via.placeholder.com/320x180/72b7e9/FFFFFF?text=Ishiguro+Interview",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv_X4GwkuTABwd40Ke0oB5tlHJcg5Fm5rmUw&s",
     videoUrl:
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
   },
@@ -120,7 +120,7 @@ const sampleVideos = [
     views: "45K",
     uploadDate: "4 days ago",
     thumbnailUrl:
-      "https://via.placeholder.com/320x180/72b7e9/FFFFFF?text=Reading+Challenge",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQp7VwsH6-PAlG_A2DeIKTtXLFBZ-LZW6ID_g&s",
     videoUrl:
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
   },

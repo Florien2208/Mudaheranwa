@@ -14,7 +14,7 @@ interface Notification {
   title: string;
   message: string;
   time: string;
-  isRead: boolean;
+  received: boolean;
 }
 
 interface NotificationDropdownProps {
@@ -108,7 +108,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               style={[
                 styles.notificationItem,
                 {
-                  backgroundColor: notification.isRead
+                  backgroundColor: notification.received
                     ? "transparent"
                     : isDark
                     ? "rgba(76, 175, 80, 0.1)"
@@ -162,7 +162,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 </Text>
               </View>
 
-              {!notification.isRead && <View style={styles.unreadDot} />}
+              {!notification.received && <View style={styles.unreadDot} />}
             </TouchableOpacity>
           ))
         )}

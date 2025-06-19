@@ -16,6 +16,7 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   token: string | null;
+  isAuthenticating: boolean; // New flag to track auth in progress
   initialize: () => Promise<void>;
   login: (credentials: LoginCredentials) => Promise<void>;
   signup: (userData: SignupData) => Promise<void>;
@@ -44,6 +45,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
   loading: true,
   error: null,
   token: null,
+  isAuthenticating: false,
 
   // Initialize auth state from storage
   initialize: async () => {
@@ -53,23 +55,21 @@ const useAuthStore = create<AuthState>((set, get) => ({
 
       if (token && userJson) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        const user = JSON.parse(userJson);
 
-        // If validation failed, clear storage
-        await AsyncStorage.removeItem("@auth_token");
-        await AsyncStorage.removeItem("user");
-        delete axios.defaults.headers.common["Authorization"];
+        set({ user, token, loading: false });
+      } else {
+        set({ user: null, token: null, loading: false });
       }
-
-      set({ user: null, token: null, loading: false });
     } catch (error) {
       console.error("Error initializing auth:", error);
       set({ loading: false, error: "Failed to initialize authentication" });
     }
   },
 
-  // Login function
+  // Login function with delayed navigation
   login: async (credentials: LoginCredentials) => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, isAuthenticating: true });
     console.log("login called", credentials);
     try {
       // API call to authenticate
@@ -88,24 +88,27 @@ const useAuthStore = create<AuthState>((set, get) => ({
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       set({ user, token, loading: false, error: null });
-      // Navigation will be handled by RootLayout
-      router.replace("/(tabs)");
+
+      // Navigate after a small delay to allow UI to update
+      setTimeout(() => {
+        set({ isAuthenticating: false });
+        router.replace("/(tabs)");
+      }, 200);
     } catch (error: any) {
       console.error("Login error:", error.response?.data || error.message);
       set({
         loading: false,
+        isAuthenticating: false,
         error:
           error.response?.data?.message ||
           "Login failed. Please check your credentials.",
-        // Don't clear user state on login failure - stay on auth screen
       });
-      // Don't navigate anywhere on failure - let user stay on auth screen
     }
   },
 
-  // Signup function
+  // Signup function with delayed navigation
   signup: async (userData: SignupData) => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, isAuthenticating: true });
     console.log("signup called", userData);
     try {
       // API call to register
@@ -124,18 +127,21 @@ const useAuthStore = create<AuthState>((set, get) => ({
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       set({ user, token, loading: false, error: null });
-      // Navigation will be handled by RootLayout
-      router.replace("/(tabs)");
+
+      // Navigate after a small delay to allow UI to update
+      setTimeout(() => {
+        set({ isAuthenticating: false });
+        router.replace("/(tabs)");
+      }, 200);
     } catch (error: any) {
       console.error("Signup error:", error.response?.data || error.message);
       set({
         loading: false,
+        isAuthenticating: false,
         error:
           error.response?.data?.message ||
           "Registration failed. Please try again.",
-        // Don't clear user state on signup failure - stay on auth screen
       });
-      // Don't navigate anywhere on failure - let user stay on auth screen
     }
   },
 
@@ -149,8 +155,8 @@ const useAuthStore = create<AuthState>((set, get) => ({
       // Clear auth header
       delete axios.defaults.headers.common["Authorization"];
 
-      set({ user: null, token: null });
-      router.replace("/auth");
+      set({ user: null, token: null, isAuthenticating: false });
+      router.replace("/");
     } catch (error) {
       console.error("Logout error:", error);
       set({ error: "Failed to logout properly" });

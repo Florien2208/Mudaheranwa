@@ -6,18 +6,27 @@ import {
   StyleSheet,
   FlatList,
   RefreshControl,
-
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { API_BASE_URL } from "@/constants";
 
 interface Notification {
-  id: string;
-  type: "like" | "follow" | "comment" | "release";
+  _id: string;
+  userId: string;
   title: string;
+  body: string;
+  data: any;
+  read: boolean;
+  createdAt: string;
+  // Computed properties for display
+  id: string;
+  type: "like" | "follow" | "comment" | "release" | "offer";
   message: string;
   time: string;
   isRead: boolean;
@@ -31,93 +40,179 @@ const AllNotificationsScreen: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data - replace with actual API call
   useEffect(() => {
     loadNotifications();
   }, []);
 
-  const loadNotifications = () => {
-    // Mock notifications - replace with actual API call
-    const mockNotifications: Notification[] = [
-      {
-        id: "1",
-        type: "like",
-        title: "New Like",
-        message: "Sarah Connor liked your track 'Midnight Dreams'",
-        time: "2 minutes ago",
-        date: "Today",
-        isRead: false,
-      },
-      {
-        id: "2",
-        type: "follow",
-        title: "New Follower",
-        message: "John Doe started following you",
-        time: "15 minutes ago",
-        date: "Today",
-        isRead: false,
-      },
-      {
-        id: "3",
-        type: "comment",
-        title: "New Comment",
-        message: "Alex wrote: 'Amazing beat! Can't stop listening to this'",
-        time: "1 hour ago",
-        date: "Today",
-        isRead: true,
-      },
-      {
-        id: "4",
-        type: "release",
-        title: "Track Published",
-        message: "Your track 'Summer Vibes' has been successfully published",
-        time: "3 hours ago",
-        date: "Today",
-        isRead: true,
-      },
-      {
-        id: "5",
-        type: "like",
-        title: "Track Milestone",
-        message: "Your track 'Night Drive' reached 100 likes!",
-        time: "Yesterday",
-        date: "Yesterday",
-        isRead: true,
-      },
-      {
-        id: "6",
-        type: "follow",
-        title: "New Follower",
-        message: "Emma Watson started following you",
-        time: "Yesterday",
-        date: "Yesterday",
-        isRead: true,
-      },
-    ];
-    setNotifications(mockNotifications);
+  const loadNotifications = async () => {
+    try {
+      setIsLoading(true);
+      const token = await AsyncStorage.getItem("@auth_token");
+
+      if (!token) {
+        console.error("No auth token found");
+        return;
+      }
+
+      const response = await axios.get(
+        `${API_BASE_URL}/api/v1/notification/my-notifications`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const transformedNotifications: Notification[] =
+        response.data.notifications.map((notification: any) => ({
+          ...notification,
+          id: notification._id, // Map _id to id for compatibility
+          message: notification.body, // Map body to message for display
+          time: getTimeAgo(notification.createdAt),
+          type: determineNotificationType(
+            notification.title,
+            notification.body
+          ),
+          isRead: notification.read, 
+          received:notification.received,
+          date: getDateCategory(notification.createdAt),
+        }));
+
+      setNotifications(transformedNotifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      // Keep empty array on error to show empty state
+      setNotifications([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    loadNotifications();
+    await loadNotifications();
     setRefreshing(false);
   };
 
-  const markAsRead = (id: string) => {
+  const getTimeAgo = (createdAt: string): string => {
+    const now = new Date();
+    const notificationTime = new Date(createdAt);
+    const diffInMinutes = Math.floor(
+      (now.getTime() - notificationTime.getTime()) / (1000 * 60)
+    );
+
+    if (diffInMinutes < 1) return "Just now";
+    if (diffInMinutes < 60)
+      return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24)
+      return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7)
+      return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    return `${diffInWeeks} week${diffInWeeks > 1 ? "s" : ""} ago`;
+  };
+
+  const getDateCategory = (createdAt: string): string => {
+    const now = new Date();
+    const notificationDate = new Date(createdAt);
+    const diffInDays = Math.floor(
+      (now.getTime() - notificationDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diffInDays === 0) return "Today";
+    if (diffInDays === 1) return "Yesterday";
+    if (diffInDays < 7) return "This Week";
+    if (diffInDays < 30) return "This Month";
+    return "Earlier";
+  };
+
+  const determineNotificationType = (
+    title: string,
+    body: string
+  ): "like" | "follow" | "comment" | "release" | "offer" => {
+    const titleLower = title.toLowerCase();
+    const bodyLower = body.toLowerCase();
+
+    if (titleLower.includes("like") || bodyLower.includes("liked"))
+      return "like";
+    if (titleLower.includes("follow") || bodyLower.includes("follow"))
+      return "follow";
+    if (titleLower.includes("comment") || bodyLower.includes("comment"))
+      return "comment";
+    if (titleLower.includes("release") || bodyLower.includes("released"))
+      return "release";
+    return "offer"; // Default for offers and other types
+  };
+
+  const markAsRead = async (id: string) => {
+    // Optimistically update UI
     setNotifications((prev) =>
       prev.map((notification) =>
-        notification.id === id
-          ? { ...notification, isRead: true }
+        notification.id === id || notification._id === id
+          ? { ...notification, isRead: true, read: true }
           : notification
       )
     );
+
+    // Send request to server
+    try {
+      const token = await AsyncStorage.getItem("@auth_token");
+      await axios.patch(
+        `${API_BASE_URL}/api/v1/notification/${id}/read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      // Revert optimistic update on error
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.id === id || notification._id === id
+            ? { ...notification, isRead: false, read: false }
+            : notification
+        )
+      );
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((notification) => ({ ...notification, isRead: true }))
+  const markAllAsRead = async () => {
+    const unreadNotifications = notifications.filter(
+      (n) => n.isRead && !n.reveived
     );
+
+    if (unreadNotifications.length === 0) return;
+
+    // Optimistically update UI
+    setNotifications((prev) =>
+      prev.map((notification) => ({
+        ...notification,
+        isRead: true,
+        read: true,
+      }))
+    );
+
+    // Send requests to server for all unread notifications
+    try {
+      const token = await AsyncStorage.getItem("@auth_token");
+      const promises = unreadNotifications.map((notification) =>
+        axios.patch(
+          `${API_BASE_URL}/api/v1/notification/${notification._id}/read`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+      );
+
+      await Promise.all(promises);
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      // Reload notifications on error to get correct state
+      await loadNotifications();
+    }
   };
 
   const getNotificationIcon = (type: string) => {
@@ -130,6 +225,8 @@ const AllNotificationsScreen: React.FC = () => {
         return "message.fill";
       case "release":
         return "music.note";
+      case "offer":
+        return "star.fill";
       default:
         return "bell.fill";
     }
@@ -145,13 +242,15 @@ const AllNotificationsScreen: React.FC = () => {
         return "#45B7D1";
       case "release":
         return "#4CAF50";
+      case "offer":
+        return "#FFB74D";
       default:
         return "#666";
     }
   };
 
   const filteredNotifications = notifications.filter((notification) =>
-    filter === "all" ? true : !notification.isRead
+    filter === "all" ? true : !notification.isRead && !notification.read
   );
 
   const groupedNotifications = filteredNotifications.reduce(
@@ -178,15 +277,16 @@ const AllNotificationsScreen: React.FC = () => {
         style={[
           styles.notificationItem,
           {
-            backgroundColor: item.isRead
-              ? "transparent"
-              : isDark
-              ? "rgba(76, 175, 80, 0.1)"
-              : "rgba(76, 175, 80, 0.05)",
+            backgroundColor:
+              item.isRead || item.read
+                ? "transparent"
+                : isDark
+                  ? "rgba(76, 175, 80, 0.1)"
+                  : "rgba(76, 175, 80, 0.05)",
             borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
           },
         ]}
-        onPress={() => markAsRead(item.id)}
+        onPress={() => markAsRead(item._id || item.id)}
       >
         <View
           style={[
@@ -218,7 +318,7 @@ const AllNotificationsScreen: React.FC = () => {
               { color: isDark ? "#CCCCCC" : "#666666" },
             ]}
           >
-            {item.message}
+            {item.message || item.body}
           </Text>
           <Text
             style={[
@@ -230,7 +330,7 @@ const AllNotificationsScreen: React.FC = () => {
           </Text>
         </View>
 
-        {!item.isRead && <View style={styles.unreadDot} />}
+        {item.isRead && !item.received && <View style={styles.unreadDot} />}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -254,7 +354,7 @@ const AllNotificationsScreen: React.FC = () => {
     );
   };
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => n.isRead && !n.received).length;
 
   return (
     <SafeAreaView
@@ -324,8 +424,8 @@ const AllNotificationsScreen: React.FC = () => {
                 filter === "all"
                   ? "#4CAF50"
                   : isDark
-                  ? "rgba(255,255,255,0.1)"
-                  : "rgba(0,0,0,0.05)",
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.05)",
             },
           ]}
           onPress={() => setFilter("all")}
@@ -352,8 +452,8 @@ const AllNotificationsScreen: React.FC = () => {
                 filter === "unread"
                   ? "#4CAF50"
                   : isDark
-                  ? "rgba(255,255,255,0.1)"
-                  : "rgba(0,0,0,0.05)",
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.05)",
             },
           ]}
           onPress={() => setFilter("unread")}
@@ -366,8 +466,8 @@ const AllNotificationsScreen: React.FC = () => {
                   filter === "unread"
                     ? "#FFFFFF"
                     : isDark
-                    ? "#FFFFFF"
-                    : "#000000",
+                      ? "#FFFFFF"
+                      : "#000000",
               },
             ]}
           >
@@ -389,21 +489,23 @@ const AllNotificationsScreen: React.FC = () => {
         ListEmptyComponent={() => (
           <View style={styles.emptyState}>
             <IconSymbol
-              name="bell.slash"
+              name={isLoading ? "arrow.clockwise" : "bell.slash"}
               size={48}
               color={isDark ? "#666" : "#999"}
             />
             <Text
               style={[styles.emptyText, { color: isDark ? "#666" : "#999" }]}
             >
-              {filter === "unread"
-                ? "No unread notifications"
-                : "No notifications yet"}
+              {isLoading
+                ? "Loading notifications..."
+                : filter === "unread"
+                  ? "No unread notifications"
+                  : "No notifications yet"}
             </Text>
             <Text
               style={[styles.emptySubtext, { color: isDark ? "#555" : "#BBB" }]}
             >
-              We'll notify you when something happens
+              {!isLoading && "We'll notify you when something happens"}
             </Text>
           </View>
         )}

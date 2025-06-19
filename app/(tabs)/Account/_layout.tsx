@@ -9,6 +9,9 @@ const AccountLayout = () => {
       <Stack.Screen name="subscription" options={{ headerShown: false }} />
       <Stack.Screen name="payment" options={{ headerShown: false }} />
       <Stack.Screen name="notification" options={{ headerShown: false }} />
+      <Stack.Screen name="profile" options={{ headerShown: false }} />
+      <Stack.Screen name="helpCenter" options={{ headerShown: false }} />
+      <Stack.Screen name="about" options={{ headerShown: false }} />
 
     </Stack>
   );

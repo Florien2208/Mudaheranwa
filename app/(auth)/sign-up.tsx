@@ -2,6 +2,7 @@ import { ThemedText } from "@/components/ThemedText";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import useAuthStore from "@/store/useAuthStore";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -26,8 +27,13 @@ interface ValidationErrors {
   name?: string;
 }
 
-export default function AuthScreen(): React.ReactElement {
-  const [isLogin, setIsLogin] = useState<boolean>(true); // Changed to true to default to signin
+interface SignUpScreenProps {
+  onNavigateToSignIn?: () => void;
+}
+
+export default function SignUpScreen({
+  onNavigateToSignIn,
+}: SignUpScreenProps): React.ReactElement {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -39,7 +45,7 @@ export default function AuthScreen(): React.ReactElement {
   );
 
   // Use Zustand store instead of context
-  const { login, signup, error, loading, clearError } = useAuthStore();
+  const { signup, error, loading, clearError } = useAuthStore();
   const colorScheme = useColorScheme();
 
   // Show error alerts when they occur
@@ -49,12 +55,6 @@ export default function AuthScreen(): React.ReactElement {
       clearError();
     }
   }, [error, clearError]);
-
-  // Revalidate when switching between login/signup
-  useEffect(() => {
-    setErrors({});
-    setTouchedFields({});
-  }, [isLogin]);
 
   const validateEmail = (value: string): string | undefined => {
     if (!value.trim()) return "Email is required";
@@ -121,7 +121,7 @@ export default function AuthScreen(): React.ReactElement {
     const newErrors: ValidationErrors = {};
     let isValid = true;
 
-    // Validate email and password for both login and signup
+    // Validate email and password
     const emailError = validateEmail(email);
     if (emailError) {
       newErrors.email = emailError;
@@ -134,30 +134,27 @@ export default function AuthScreen(): React.ReactElement {
       isValid = false;
     }
 
-    // Additional validations for signup
-    if (!isLogin) {
-      const nameError = validateName(name);
-      if (nameError) {
-        newErrors.name = nameError;
-        isValid = false;
-      }
+    const nameError = validateName(name);
+    if (nameError) {
+      newErrors.name = nameError;
+      isValid = false;
+    }
 
-      const confirmPasswordError = validateConfirmPassword(
-        confirmPassword,
-        password
+    const confirmPasswordError = validateConfirmPassword(
+      confirmPassword,
+      password
+    );
+    if (confirmPasswordError) {
+      newErrors.confirmPassword = confirmPasswordError;
+      isValid = false;
+    }
+
+    if (!agreeToTerms) {
+      Alert.alert(
+        "Terms Agreement",
+        "You must agree to the Terms of Service and Privacy Policy"
       );
-      if (confirmPasswordError) {
-        newErrors.confirmPassword = confirmPasswordError;
-        isValid = false;
-      }
-
-      if (!agreeToTerms) {
-        Alert.alert(
-          "Terms Agreement",
-          "You must agree to the Terms of Service and Privacy Policy"
-        );
-        isValid = false;
-      }
+      isValid = false;
     }
 
     setErrors(newErrors);
@@ -165,7 +162,8 @@ export default function AuthScreen(): React.ReactElement {
     setTouchedFields({
       email: true,
       password: true,
-      ...(isLogin ? {} : { name: true, confirmPassword: true }),
+      name: true,
+      confirmPassword: true,
     });
 
     return isValid;
@@ -175,27 +173,16 @@ export default function AuthScreen(): React.ReactElement {
     if (!validateForm()) return;
 
     try {
-      if (isLogin) {
-        await login({
-          email,
-          password,
-        });
-      } else {
-        await signup({
-          email,
-          password,
-          name,
-        });
-      }
+      await signup({
+        email,
+        password,
+        name,
+      });
     } catch (authError) {
       // Handle authentication error without resetting form
       console.log("Authentication failed:", authError);
       // Form state remains intact
     }
-  };
-
-  const toggleMode = (): void => {
-    setIsLogin(!isLogin);
   };
 
   // Color definitions using the specified color strategically
@@ -226,65 +213,61 @@ export default function AuthScreen(): React.ReactElement {
               type="title"
               style={[styles.headerText, { color: primaryColor }]}
             >
-              {isLogin ? "Sign in to your account" : "Create a new account"}
+              Create a new account
             </ThemedText>
 
-            {!isLogin && (
-              <View style={styles.subheaderContainer}>
+            <View style={styles.subheaderContainer}>
+              <ThemedText
+                style={[styles.subheaderText, { color: secondaryTextColor }]}
+              >
+                Or{" "}
                 <ThemedText
-                  style={[styles.subheaderText, { color: secondaryTextColor }]}
-                >
-                  Or{" "}
-                  <ThemedText
-                    style={[
-                      styles.subheaderText,
-                      styles.linkText,
-                      { color: primaryColor },
-                    ]}
-                    onPress={toggleMode}
-                  >
-                    sign in
-                  </ThemedText>{" "}
-                  to your existing account
-                </ThemedText>
-              </View>
-            )}
-
-            {!isLogin && (
-              <View style={styles.inputGroup}>
-                <ThemedText style={[styles.inputLabel, { color: textColor }]}>
-                  Full Name
-                </ThemedText>
-                <TextInput
                   style={[
-                    styles.input,
-                    {
-                      backgroundColor: inputBgColor,
-                      color: textColor,
-                      borderColor:
-                        touchedFields.name && errors.name
-                          ? errorColor
-                          : borderColor,
-                    },
+                    styles.subheaderText,
+                    styles.linkText,
+                    { color: primaryColor },
                   ]}
-                  placeholder="Enter your full name"
-                  placeholderTextColor={placeholderColor}
-                  value={name}
-                  onChangeText={(value) => {
-                    setFullName(value);
-                    if (touchedFields.name) {
-                      validateField("name");
-                    }
-                  }}
-                  onBlur={() => handleBlur("name")}
-                />
-                {touchedFields.name && errors.name && (
-                  <ThemedText style={[styles.errorText, { color: errorColor }]}>
-                    {errors.name}
-                  </ThemedText>
-                )}
-              </View>
-            )}
+                  onPress={() => router.push("/sign-in")}
+                >
+                  sign in
+                </ThemedText>{" "}
+                to your existing account
+              </ThemedText>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <ThemedText style={[styles.inputLabel, { color: textColor }]}>
+                Full Name
+              </ThemedText>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: inputBgColor,
+                    color: textColor,
+                    borderColor:
+                      touchedFields.name && errors.name
+                        ? errorColor
+                        : borderColor,
+                  },
+                ]}
+                placeholder="Enter your full name"
+                placeholderTextColor={placeholderColor}
+                value={name}
+                onChangeText={(value) => {
+                  setFullName(value);
+                  if (touchedFields.name) {
+                    validateField("name");
+                  }
+                }}
+                onBlur={() => handleBlur("name")}
+              />
+              {touchedFields.name && errors.name && (
+                <ThemedText style={[styles.errorText, { color: errorColor }]}>
+                  {errors.name}
+                </ThemedText>
+              )}
+            </View>
 
             <View style={styles.inputGroup}>
               <ThemedText style={[styles.inputLabel, { color: textColor }]}>
@@ -361,88 +344,86 @@ export default function AuthScreen(): React.ReactElement {
               )}
             </View>
 
-            {!isLogin && (
-              <View style={styles.inputGroup}>
-                <ThemedText style={[styles.inputLabel, { color: textColor }]}>
-                  Confirm Password
+            <View style={styles.inputGroup}>
+              <ThemedText style={[styles.inputLabel, { color: textColor }]}>
+                Confirm Password
+              </ThemedText>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: inputBgColor,
+                    color: textColor,
+                    borderColor:
+                      touchedFields.confirmPassword && errors.confirmPassword
+                        ? errorColor
+                        : borderColor,
+                  },
+                ]}
+                placeholder="Confirm your password"
+                placeholderTextColor={placeholderColor}
+                value={confirmPassword}
+                onChangeText={(value) => {
+                  setConfirmPassword(value);
+                  if (touchedFields.confirmPassword) {
+                    validateField("confirmPassword");
+                  }
+                }}
+                onBlur={() => handleBlur("confirmPassword")}
+                secureTextEntry
+              />
+              {touchedFields.confirmPassword && errors.confirmPassword && (
+                <ThemedText style={[styles.errorText, { color: errorColor }]}>
+                  {errors.confirmPassword}
                 </ThemedText>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: inputBgColor,
-                      color: textColor,
-                      borderColor:
-                        touchedFields.confirmPassword && errors.confirmPassword
-                          ? errorColor
-                          : borderColor,
-                    },
-                  ]}
-                  placeholder="Confirm your password"
-                  placeholderTextColor={placeholderColor}
-                  value={confirmPassword}
-                  onChangeText={(value) => {
-                    setConfirmPassword(value);
-                    if (touchedFields.confirmPassword) {
-                      validateField("confirmPassword");
-                    }
-                  }}
-                  onBlur={() => handleBlur("confirmPassword")}
-                  secureTextEntry
-                />
-                {touchedFields.confirmPassword && errors.confirmPassword && (
-                  <ThemedText style={[styles.errorText, { color: errorColor }]}>
-                    {errors.confirmPassword}
+              )}
+            </View>
+
+            <View style={styles.termsContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.checkbox,
+                  {
+                    borderColor: agreeToTerms ? primaryColor : borderColor,
+                    backgroundColor: agreeToTerms
+                      ? primaryColor
+                      : "transparent",
+                  },
+                ]}
+                onPress={() => setAgreeToTerms(!agreeToTerms)}
+              >
+                {agreeToTerms && (
+                  <ThemedText
+                    style={[
+                      styles.checkMark,
+                      {
+                        color: "white",
+                      },
+                    ]}
+                  >
+                    ✓
                   </ThemedText>
                 )}
-              </View>
-            )}
-
-            {!isLogin && (
-              <View style={styles.termsContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.checkbox,
-                    {
-                      borderColor: agreeToTerms ? primaryColor : borderColor,
-                      backgroundColor: agreeToTerms
-                        ? primaryColor
-                        : "transparent",
-                    },
-                  ]}
-                  onPress={() => setAgreeToTerms(!agreeToTerms)}
-                >
-                  {agreeToTerms && (
-                    <ThemedText
-                      style={[
-                        styles.checkMark,
-                        {
-                          color: "white",
-                        },
-                      ]}
-                    >
-                      ✓
-                    </ThemedText>
-                  )}
-                </TouchableOpacity>
+              </TouchableOpacity>
+              <ThemedText
+                style={[styles.termsText, { color: secondaryTextColor }]}
+              >
+                I agree to the{" "}
                 <ThemedText
-                  style={[styles.termsText, { color: secondaryTextColor }]}
+                  style={[styles.linkText, { color: primaryColor }]}
+                  onPress={() => router.push("/termsandcondition")}
                 >
-                  I agree to the{" "}
-                  <ThemedText
-                    style={[styles.linkText, { color: primaryColor }]}
-                  >
-                    Terms of Service
-                  </ThemedText>{" "}
-                  and{" "}
-                  <ThemedText
-                    style={[styles.linkText, { color: primaryColor }]}
-                  >
-                    Privacy Policy
-                  </ThemedText>
+                  Terms of Service
+                </ThemedText>{" "}
+                and{" "}
+                <ThemedText
+                  style={[styles.linkText, { color: primaryColor }]}
+                  onPress={() => router.push("/(auth)/privacypolicy")}
+                >
+                  Privacy Policy
                 </ThemedText>
-              </View>
-            )}
+              </ThemedText>
+            </View>
 
             <TouchableOpacity
               style={[
@@ -454,33 +435,9 @@ export default function AuthScreen(): React.ReactElement {
               disabled={loading}
             >
               <ThemedText style={styles.buttonText}>
-                {isLogin
-                  ? loading
-                    ? "Signing in..."
-                    : "Sign in"
-                  : loading
-                  ? "Creating account..."
-                  : "Create account"}
+                {loading ? "Creating account..." : "Create account"}
               </ThemedText>
             </TouchableOpacity>
-
-            {isLogin && (
-              <TouchableOpacity
-                style={styles.toggleButton}
-                onPress={toggleMode}
-              >
-                <ThemedText
-                  style={[styles.toggleText, { color: secondaryTextColor }]}
-                >
-                  Don&apos;t have an account?{" "}
-                  <ThemedText
-                    style={[styles.linkText, { color: primaryColor }]}
-                  >
-                    Sign up
-                  </ThemedText>
-                </ThemedText>
-              </TouchableOpacity>
-            )}
           </Animated.View>
         </>
       </ScrollView>

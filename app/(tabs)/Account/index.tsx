@@ -695,7 +695,7 @@ export default function AccountScreen({ navigation }) {
         title: t("profile.editProfile"),
         subtitle: t("profile.updateInfo"),
         icon: "person.crop.circle",
-        onPress: () => navigateTo("EditProfile"),
+        onPress: () => navigateTo("profile"),
         iconColor: COLORS.primary,
       },
       {
@@ -763,14 +763,14 @@ export default function AccountScreen({ navigation }) {
         title: t("profile.helpSupport"),
         subtitle: t("profile.getHelp"),
         icon: "questionmark.circle",
-        onPress: () => navigateTo("Support"),
+        onPress: () => navigateTo("helpCenter"),
         iconColor: COLORS.accent,
       },
       {
         title: t("profile.about"),
         subtitle: t("profile.appInfo"),
         icon: "info.circle",
-        onPress: () => navigateTo("About"),
+        onPress: () => navigateTo("about"),
         iconColor: COLORS.primaryDark,
       },
     ];
