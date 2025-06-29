@@ -14,6 +14,7 @@ import {
 } from "react-native";
 
 import { API_BASE_URL } from "@/constants";
+import { AntDesign } from "@expo/vector-icons";
 
 // Enhanced icons with better visual design
 const BookIcon = () => (
@@ -30,11 +31,10 @@ const SearchIcon = () => (
 
 const DownloadIcon = () => (
   <View className="mr-2">
-    <Text className="text-white">⬇️</Text>
+    <AntDesign name="download" size={20} color="white" />
   </View>
 );
 
-const BackIcon = () => <Text className="text-xl">⬅️</Text>;
 
 const HeartIcon = () => (
   <View className="mr-1">
@@ -351,9 +351,9 @@ const BookList = ({ books, onSelectBook, loading }) => {
             </Text>
             <Text className="text-gray-500 text-sm">Handpicked for you</Text>
           </View>
-          <TouchableOpacity className="bg-[#72b7e9] rounded-full px-4 py-2">
+          {/* <TouchableOpacity className="bg-[#72b7e9] rounded-full px-4 py-2">
             <Text className="text-white text-sm font-medium">View all</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         <FlatList
@@ -403,7 +403,7 @@ const BookDetail = ({ book, onBack, onDownload }) => {
           className="flex-row items-center mb-6 bg-white rounded-2xl px-4 py-3 shadow-sm"
           onPress={onBack}
         >
-          <BackIcon />
+          <AntDesign name="arrowleft" size={24} color="black" />
           <Text className="text-[#72b7e9] ml-3 text-base font-medium">
             Back to books
           </Text>

@@ -14,6 +14,7 @@ import {
   Modal,
 } from "react-native";
 import { Video } from "expo-av";
+import { AntDesign } from "@expo/vector-icons";
 
 // Mock icons
 const VideoIcon = () => (
@@ -28,9 +29,23 @@ const SearchIcon = () => (
   </View>
 );
 
-const PlayIcon = () => <Text style={{ fontSize: 24 }}>▶️</Text>;
+const PlayIcon = ({ size = 24, color = "white" }) => (
+  <View style={[styles.playIconContainer, { width: size, height: size }]}>
+    <View
+      style={[
+        styles.playTriangle,
+        {
+          borderLeftColor: color,
+          borderLeftWidth: size * 0.4,
+          borderTopWidth: size * 0.25,
+          borderBottomWidth: size * 0.25,
+        },
+      ]}
+    />
+  </View>
+);
 
-const BackIcon = () => <Text>⬅️</Text>;
+const BackIcon = () => <AntDesign name="arrowleft" size={24} color="#60a5fa" />;
 
 // Sample video data
 const sampleVideos = [
@@ -42,7 +57,7 @@ const sampleVideos = [
       "A comprehensive review of Matt Haig's thought-provoking novel about life choices and parallel universes.",
     category: "Reviews",
     duration: "12:45",
-    views: "156K",
+
     uploadDate: "2 days ago",
     thumbnailUrl:
       "https://media.gettyimages.com/id/1426606619/video/library-background-learning-books-and-studying-at-school-university-and-college-for-exam-test.jpg?s=640x640&k=20&c=9x81CDaZaN3Qa-2pyy__23F6WiO2wCguVAGH9hCswe4=",
@@ -57,7 +72,7 @@ const sampleVideos = [
       "Personal journey and practical tips from implementing James Clear's atomic habits system.",
     category: "Self-Help",
     duration: "18:32",
-    views: "89K",
+
     uploadDate: "5 days ago",
     thumbnailUrl:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPVN3J79akqUsYHdk_rih-G0dMeth_1w9h2Q&s",
@@ -72,7 +87,7 @@ const sampleVideos = [
       "Breaking down the key concepts from Morgan Housel's Psychology of Money.",
     category: "Finance",
     duration: "25:18",
-    views: "234K",
+
     uploadDate: "1 week ago",
     thumbnailUrl:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSatECxe411KYZjMCvGhqoatpIxU1d10Rxqrg&s",
@@ -87,7 +102,7 @@ const sampleVideos = [
       "Top science fiction books you need to read this year, including Project Hail Mary.",
     category: "Recommendations",
     duration: "15:47",
-    views: "67K",
+  
     uploadDate: "3 days ago",
     thumbnailUrl:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv_X4GwkuTABwd40Ke0oB5tlHJcg5Fm5rmUw&s",
@@ -102,7 +117,7 @@ const sampleVideos = [
       "Exclusive interview discussing Klara and the Sun and the future of AI in literature.",
     category: "Interviews",
     duration: "42:15",
-    views: "312K",
+
     uploadDate: "2 weeks ago",
     thumbnailUrl:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv_X4GwkuTABwd40Ke0oB5tlHJcg5Fm5rmUw&s",
@@ -117,7 +132,7 @@ const sampleVideos = [
       "Join me as I tackle 52 books this year with tips on how to read more effectively.",
     category: "Tips",
     duration: "8:23",
-    views: "45K",
+
     uploadDate: "4 days ago",
     thumbnailUrl:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQp7VwsH6-PAlG_A2DeIKTtXLFBZ-LZW6ID_g&s",
@@ -228,7 +243,7 @@ const VideoList = ({ videos, onVideoPress }) => {
         {item.author}
       </Text>
       <Text style={styles.videoViews} numberOfLines={1}>
-        {item.views} views • {item.uploadDate}
+         {item.uploadDate}
       </Text>
     </TouchableOpacity>
   );
@@ -245,7 +260,7 @@ const VideoList = ({ videos, onVideoPress }) => {
           resizeMode="cover"
         />
         <View style={styles.playOverlay}>
-          <Text style={{ fontSize: 16 }}>▶️</Text>
+          <PlayIcon size={16} color="white" />
         </View>
         <View style={styles.durationBadge}>
           <Text style={styles.durationText}>{item.duration}</Text>
@@ -260,9 +275,7 @@ const VideoList = ({ videos, onVideoPress }) => {
           {item.author}
         </Text>
         <View style={styles.videoMeta}>
-          <Text style={styles.videoViews}>
-            {item.views} views • {item.uploadDate}
-          </Text>
+          <Text style={styles.videoViews}>{item.uploadDate}</Text>
           <View style={styles.categoryBadge}>
             <Text style={styles.categoryText}>{item.category}</Text>
           </View>
@@ -273,12 +286,10 @@ const VideoList = ({ videos, onVideoPress }) => {
 
   return (
     <ScrollView style={styles.scrollContainer}>
-      {/* Featured Videos Section */}
+    
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Featured Videos</Text>
-        <TouchableOpacity>
-          <Text style={styles.viewAllText}>View all</Text>
-        </TouchableOpacity>
+    
       </View>
 
       <FlatList
@@ -349,7 +360,7 @@ const VideoPlayer = ({ video, onClose }) => {
 
           <View style={styles.videoStats}>
             <Text style={styles.videoStatsText}>
-              {video.views} views • {video.uploadDate}
+               {video.uploadDate}
             </Text>
           </View>
 
@@ -438,6 +449,32 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
   },
+  playIconContainer: {
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+playTriangle: {
+  width: 0,
+  height: 0,
+  borderTopColor: 'transparent',
+  borderBottomColor: 'transparent',
+  borderLeftColor: 'white',
+  marginLeft: 2, // Slight offset to center the triangle visually
+},
+
+// Update the playOverlay in your existing styles to:
+playOverlay: {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: [{ translateX: -20 }, { translateY: -20 }],
+  backgroundColor: "rgba(0,0,0,0.7)",
+  borderRadius: 20,
+  width: 40,
+  height: 40,
+  alignItems: "center",
+  justifyContent: "center",
+},
   viewAllText: {
     color: "#72b7e9",
     fontSize: 14,
@@ -469,18 +506,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#72b7e9",
   },
-  playOverlay: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: [{ translateX: -12 }, { translateY: -12 }],
-    backgroundColor: "rgba(0,0,0,0.7)",
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  // playOverlay: {
+  //   position: "absolute",
+  //   top: "50%",
+  //   left: "50%",
+  //   transform: [{ translateX: -12 }, { translateY: -12 }],
+  //   backgroundColor: "rgba(0,0,0,0.7)",
+  //   borderRadius: 20,
+  //   width: 40,
+  //   height: 40,
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  // },
   durationBadge: {
     position: "absolute",
     bottom: 4,
