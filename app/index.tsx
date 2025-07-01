@@ -518,13 +518,7 @@ export default function WelcomeScreen({
               >
                 Get Started
               </Text>
-            
-                <Text
-                  className="text-white font-bold"
-                  style={{ fontSize: isSmallScreen ? 16 : 20 }}
-                >
-                  →
-                </Text>
+             
               
             </LinearGradient>
           </TouchableOpacity>

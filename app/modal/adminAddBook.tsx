@@ -175,7 +175,7 @@ const AdminAddBookScreen = ({ navigation }) => {
         });
       }
 
-      const token = await AsyncStorage.getItem("auth_token");
+      const token = await AsyncStorage.getItem("@auth_token");
       // Actual API call would look like this:
 
       const response = await fetch(`${API_BASE_URL}/api/v1/books`, {

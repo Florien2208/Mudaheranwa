@@ -646,6 +646,7 @@ export default function AccountScreen({ navigation }) {
             Haptics?.notificationAsync?.(
               Haptics.NotificationFeedbackType.Success
             );
+            router.push("/")
           } catch (error) {
             console.error("Logout failed:", error);
             Alert.alert(
