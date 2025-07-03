@@ -716,13 +716,7 @@ export default function AccountScreen({ navigation }) {
     ];
 
     const appItems = [
-      {
-        title: t("profile.paymentMethods"),
-        subtitle: t("profile.manageCards"),
-        icon: "creditcard",
-        onPress: () => navigateTo("PaymentMethods"),
-        iconColor: COLORS.success,
-      },
+  
       {
         title: t("profile.subscription"),
         subtitle: t("profile.managePlan"),
