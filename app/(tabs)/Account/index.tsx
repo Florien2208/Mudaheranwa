@@ -1,70 +1,85 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { useLanguage } from "@/hooks/useLanguage";
 import useAuthStore from "@/store/useAuthStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   Animated,
   Haptics,
+  Image,
   Modal,
-  Platform,
   Pressable,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
-import { useTranslation } from "react-i18next";
-import { useLanguage } from "@/hooks/useLanguage";
-
-// Constants
+// Enhanced Constants with better color palette
 const COLORS = {
-  primary: "#4A90E2",
-  primaryLight: "#6BA6F2",
-  primaryDark: "#2C5282",
-  secondary: "#E2F4FF",
-  accent: "#FF6B6B",
-  success: "#4ECDC4",
-  warning: "#FFD93D",
-  error: "#FF6B6B",
-  purple: "#9F7AEA",
-  orange: "#FF8C42",
-  textPrimary: "#1A202C",
-  textSecondary: "#4A5568",
-  textAccent: "#2D3748",
-  textMuted: "#718096",
-  textBlue: "#4A90E2",
-  textPurple: "#805AD5",
-  textTeal: "#319795",
-  lightBg: "#f8fbff",
-  darkBg: "#0a1a24",
-  cardLight: "#ffffff",
-  cardDark: "#1a2832",
+  primary: "#3B82F6",
+  primaryLight: "#60A5FA",
+  primaryDark: "#1D4ED8",
+  secondary: "#F1F5F9",
+  accent: "#EF4444",
+  success: "#10B981",
+  warning: "#F59E0B",
+  error: "#EF4444",
+  purple: "#8B5CF6",
+  orange: "#F97316",
+  pink: "#EC4899",
+  emerald: "#059669",
+  indigo: "#6366F1",
+  textPrimary: "#0F172A",
+  textSecondary: "#475569",
+  textTertiary: "#64748B",
+  textMuted: "#94A3B8",
+  lightBg: "#F8FAFC",
+  darkBg: "#0F172A",
+  cardLight: "#FFFFFF",
+  cardDark: "#1E293B",
+  borderLight: "#E2E8F0",
+  borderDark: "#334155",
   shadowColor: "#000",
-  overlay: "rgba(0, 0, 0, 0.6)",
+  overlay: "rgba(0, 0, 0, 0.5)",
+} as const;
+
+const GRADIENTS = {
+  primary: ["#3B82F6", "#1D4ED8"],
+  success: ["#10B981", "#059669"],
+  warning: ["#F59E0B", "#D97706"],
+  purple: ["#8B5CF6", "#7C3AED"],
+  pink: ["#EC4899", "#BE185D"],
 } as const;
 
 const ANIMATION_CONFIG = {
   spring: {
     useNativeDriver: true,
-    speed: 20,
-    bounciness: 4,
+    tension: 300,
+    friction: 20,
   },
   timing: {
     useNativeDriver: true,
-    duration: 200,
+    duration: 250,
+  },
+  bounce: {
+    useNativeDriver: true,
+    speed: 12,
+    bounciness: 8,
   },
 } as const;
 
-// Enhanced MenuItem component
+// Enhanced MenuItem component with better animations and accessibility
 const MenuItem = React.memo(
   ({
     icon,
@@ -76,9 +91,11 @@ const MenuItem = React.memo(
     isLast,
     disabled = false,
     iconColor = COLORS.primary,
+    badge,
+    showChevron = true,
   }) => {
     const scaleValue = useRef(new Animated.Value(1)).current;
-    const opacityValue = useRef(new Animated.Value(1)).current;
+    const shadowValue = useRef(new Animated.Value(0)).current;
 
     const handlePressIn = useCallback(() => {
       if (disabled) return;
@@ -86,15 +103,15 @@ const MenuItem = React.memo(
 
       Animated.parallel([
         Animated.spring(scaleValue, {
-          toValue: 0.98,
+          toValue: 0.97,
           ...ANIMATION_CONFIG.spring,
         }),
-        Animated.timing(opacityValue, {
-          toValue: 0.7,
+        Animated.timing(shadowValue, {
+          toValue: 1,
           ...ANIMATION_CONFIG.timing,
         }),
       ]).start();
-    }, [disabled, scaleValue, opacityValue]);
+    }, [disabled, scaleValue, shadowValue]);
 
     const handlePressOut = useCallback(() => {
       if (disabled) return;
@@ -104,29 +121,36 @@ const MenuItem = React.memo(
           toValue: 1,
           ...ANIMATION_CONFIG.spring,
         }),
-        Animated.timing(opacityValue, {
-          toValue: 1,
+        Animated.timing(shadowValue, {
+          toValue: 0,
           ...ANIMATION_CONFIG.timing,
         }),
       ]).start();
-    }, [disabled, scaleValue, opacityValue]);
+    }, [disabled, scaleValue, shadowValue]);
 
-    const borderColor = Colors[colorScheme].border;
-    const iconBackgroundColor = disabled
-      ? Colors[colorScheme].secondaryText + "20"
-      : iconColor;
+    const isDark = colorScheme === "dark";
+    const shadowOpacity = shadowValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 0.1],
+    });
 
     return (
       <Animated.View
         style={{
           transform: [{ scale: scaleValue }],
-          opacity: opacityValue,
+          shadowOpacity,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 2 },
+          shadowColor: COLORS.shadowColor,
         }}
+        className={`mx-1 mb-1 rounded-2xl overflow-hidden ${
+          isDark ? "bg-slate-800" : "bg-white"
+        }`}
       >
         <Pressable
           className={`flex-row items-center p-4 ${
-            !isLast ? "border-b border-gray-200/30" : ""
-          } ${disabled ? "opacity-50" : ""}`}
+            disabled ? "opacity-50" : ""
+          }`}
           onPress={disabled ? undefined : onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
@@ -141,45 +165,75 @@ const MenuItem = React.memo(
           }
           accessibilityState={{ disabled }}
         >
-          <View className="flex-row items-center flex-1">
+          {/* Icon Container */}
+          <View className="relative mr-4">
             <View
-              className="w-10 h-10 rounded-lg justify-center items-center mr-3"
-              style={{ backgroundColor: iconBackgroundColor }}
+              className="w-12 h-12 rounded-2xl justify-center items-center shadow-sm"
+              style={{
+                backgroundColor: disabled
+                  ? isDark
+                    ? COLORS.borderDark
+                    : COLORS.borderLight
+                  : iconColor,
+                shadowColor: iconColor,
+                shadowOpacity: disabled ? 0 : 0.2,
+                shadowRadius: 4,
+                shadowOffset: { width: 0, height: 2 },
+              }}
             >
               <IconSymbol
                 name={icon}
-                size={20}
-                color={disabled ? Colors[colorScheme].secondaryText : "#FFFFFF"}
+                size={22}
+                color={disabled ? COLORS.textMuted : "#FFFFFF"}
               />
             </View>
-            <View className="flex-1">
+            {badge && (
+              <View
+                className="absolute -top-1 -right-1 w-5 h-5 rounded-full justify-center items-center border-2"
+                style={{
+                  backgroundColor: COLORS.error,
+                  borderColor: isDark ? COLORS.cardDark : COLORS.cardLight,
+                }}
+              >
+                <Text className="text-white text-xs font-bold">{badge}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Content */}
+          <View className="flex-1 justify-center">
+            <Text
+              className="text-base font-semibold mb-1"
+              style={{
+                color: isDark ? "#FFFFFF" : COLORS.textPrimary,
+              }}
+              numberOfLines={1}
+            >
+              {title}
+            </Text>
+            {subtitle && (
               <Text
-                className="text-base font-medium mb-0.5"
-                style={{ color: COLORS.textPrimary }}
+                className="text-sm"
+                style={{
+                  color: isDark ? COLORS.textMuted : COLORS.textSecondary,
+                }}
                 numberOfLines={1}
               >
-                {title}
-              </Text>
-              {subtitle && (
-                <Text
-                  className="text-sm opacity-70"
-                  style={{ color: COLORS.textSecondary }}
-                  numberOfLines={1}
-                >
-                  {subtitle}
-                </Text>
-              )}
-            </View>
-          </View>
-          <View className="flex-row items-center">
-            {rightContent || (
-              <Text
-                className="text-base"
-                style={{ color: Colors[colorScheme].secondaryText }}
-              >
-                ›
+                {subtitle}
               </Text>
             )}
+          </View>
+
+          {/* Right Content */}
+          <View className="flex-row items-center">
+            {rightContent ||
+              (showChevron && (
+                <IconSymbol
+                  name="chevron.right"
+                  size={16}
+                  color={isDark ? COLORS.textMuted : COLORS.textTertiary}
+                />
+              ))}
           </View>
         </Pressable>
       </Animated.View>
@@ -189,107 +243,223 @@ const MenuItem = React.memo(
 
 MenuItem.displayName = "MenuItem";
 
-// Enhanced ProfileSection component
+// Enhanced ProfileSection with better visual hierarchy
 const ProfileSection = React.memo(
   ({ user, isArtist, colorScheme, onEditPress, isDark, t }) => {
-    const getInitials = useCallback((name) => {
-      if (!name) return "👤";
-      return name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .substring(0, 2);
-    }, []);
+    const [imageLoading, setImageLoading] = useState(true);
+    const [imageError, setImageError] = useState(false);
+    const pulseValue = useRef(new Animated.Value(1)).current;
+
+    console.log("Profile user data:", user);
+    console.log("Profile picture URL:", user?.profilePicture);
+
+    // Pulse animation for loading state
+    React.useEffect(() => {
+      if (imageLoading) {
+        const pulse = Animated.loop(
+          Animated.sequence([
+            Animated.timing(pulseValue, {
+              toValue: 0.8,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+            Animated.timing(pulseValue, {
+              toValue: 1,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+          ])
+        );
+        pulse.start();
+        return () => pulse.stop();
+      }
+    }, [imageLoading, pulseValue]);
 
     const profileStats = useMemo(() => {
       if (!isArtist) return null;
       return [
-        { label: t("profile.artworks"), value: "12" },
-        { label: t("profile.followers"), value: "1.2K" },
-        { label: t("profile.sales"), value: "24" },
+        { label: t("profile.artworks"), value: "12", icon: "paintbrush.fill" },
+        { label: t("profile.followers"), value: "1.2K", icon: "person.2.fill" },
+        {
+          label: t("profile.sales"),
+          value: "24",
+          icon: "chart.line.uptrend.xyaxis",
+        },
       ];
     }, [isArtist, t]);
 
+    const handleImageLoad = useCallback(() => {
+      setImageLoading(false);
+      setImageError(false);
+    }, []);
+
+    const handleImageError = useCallback(() => {
+      console.warn("Profile picture failed to load:", user?.profilePicture);
+      setImageLoading(false);
+      setImageError(true);
+    }, [user?.profilePicture]);
+
     return (
-      <View className="items-center mb-6">
-        <View className="relative mb-3">
-          <View
-            className="w-25 h-25 rounded-full justify-center items-center shadow-lg"
+      <View className="items-center mb-8">
+        {/* Profile Picture */}
+        <View className="relative mb-4">
+          <Animated.View
+            className="w-32 h-32 rounded-full justify-center items-center shadow-2xl overflow-hidden"
             style={{
-              backgroundColor: COLORS.primary,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.15,
-              shadowRadius: 8,
-              elevation: 4,
+              backgroundColor:
+                user?.profilePicture && !imageError
+                  ? "transparent"
+                  : COLORS.primary,
+              shadowColor: COLORS.primary,
+              shadowOpacity: 0.3,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 6 },
+              elevation: 8,
+              transform: [{ scale: pulseValue }],
             }}
           >
-            <Text className="text-4xl font-bold text-white">
-              {getInitials(user?.displayName || user?.name)}
-            </Text>
+            {user?.profilePicture && !imageError ? (
+              <>
+                {imageLoading && (
+                  <View className="absolute inset-0 justify-center items-center">
+                    <IconSymbol
+                      name="person.crop.circle.fill"
+                      size={70}
+                      color="#FFFFFF"
+                    />
+                  </View>
+                )}
+                <Image
+                  source={{ uri: user.profilePicture }}
+                  className="w-32 h-32 rounded-full"
+                  onLoad={handleImageLoad}
+                  onError={handleImageError}
+                  resizeMode="cover"
+                />
+              </>
+            ) : (
+              <IconSymbol
+                name="person.crop.circle.fill"
+                size={70}
+                color="#FFFFFF"
+              />
+            )}
+
+            {/* Artist Badge */}
             {isArtist && (
               <View
-                className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full justify-center items-center border-2 border-white"
-                style={{ backgroundColor: COLORS.warning }}
+                className="absolute -top-1 -right-1 w-8 h-8 rounded-full justify-center items-center border-4 shadow-lg"
+                style={{
+                  backgroundColor: COLORS.warning,
+                  borderColor: isDark ? COLORS.cardDark : COLORS.cardLight,
+                }}
               >
-                <IconSymbol name="star.fill" size={10} color="#FFFFFF" />
+                <IconSymbol name="star.fill" size={14} color="#FFFFFF" />
               </View>
             )}
-          </View>
+
+            {/* Edit Button */}
+            <TouchableOpacity
+              className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full justify-center items-center border-4 shadow-lg"
+              style={{
+                backgroundColor: COLORS.primary,
+                borderColor: isDark ? COLORS.cardDark : COLORS.cardLight,
+              }}
+              onPress={onEditPress}
+              activeOpacity={0.8}
+            >
+              <IconSymbol name="pencil" size={12} color="#FFFFFF" />
+            </TouchableOpacity>
+          </Animated.View>
         </View>
 
-        <Text
-          className="text-2xl font-bold mb-1"
-          style={{
-            color: isDark ? "#FFFFFF" : COLORS.textPrimary,
-          }}
-          numberOfLines={1}
-        >
-          {user?.name || user?.displayName || "User Name"}
-        </Text>
-        <Text
-          className="text-base opacity-70"
-          style={{ color: isDark ? COLORS.textMuted : COLORS.textSecondary }}
-          numberOfLines={1}
-        >
-          {user?.email || "user@example.com"}
-        </Text>
-
-        {isArtist && (
-          <View
-            className="flex-row items-center mt-2 px-3 py-1.5 rounded-2xl"
-            style={{ backgroundColor: COLORS.warning }}
+        {/* User Info */}
+        <View className="items-center mb-4">
+          <Text
+            className="text-3xl font-bold mb-2"
+            style={{
+              color: isDark ? "#FFFFFF" : COLORS.textPrimary,
+            }}
+            numberOfLines={1}
           >
-            <IconSymbol name="paintbrush.fill" size={12} color="#FFFFFF" />
-            <Text className="text-white text-xs font-semibold ml-1">
-              {t("profile.verifiedArtist")}
-            </Text>
-          </View>
-        )}
+            {user?.name || user?.displayName || "User Name"}
+          </Text>
+          <Text
+            className="text-base mb-3"
+            style={{ color: isDark ? COLORS.textMuted : COLORS.textSecondary }}
+            numberOfLines={1}
+          >
+            {user?.email || "user@example.com"}
+          </Text>
+
+          {/* Artist Badge */}
+          {isArtist && (
+            <View
+              className="flex-row items-center px-4 py-2 rounded-full shadow-sm"
+              style={{
+                backgroundColor: COLORS.warning,
+                shadowColor: COLORS.warning,
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                shadowOffset: { width: 0, height: 2 },
+              }}
+            >
+              <IconSymbol name="paintbrush.fill" size={14} color="#FFFFFF" />
+              <Text className="text-white text-sm font-bold ml-2">
+                {t("profile.verifiedArtist")}
+              </Text>
+            </View>
+          )}
+        </View>
 
         {/* Artist Stats */}
         {profileStats && (
           <View
-            className="flex-row justify-around py-4 mt-4 rounded-xl w-full"
-            style={{ backgroundColor: COLORS.secondary }}
+            className="flex-row w-full rounded-3xl p-6 shadow-lg"
+            style={{
+              backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
+              shadowColor: COLORS.shadowColor,
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 4 },
+            }}
           >
             {profileStats.map((stat, index) => (
-              <View key={stat.label} className="items-center">
+              <View key={stat.label} className="flex-1 items-center">
+                <View
+                  className="w-12 h-12 rounded-2xl justify-center items-center mb-2"
+                  style={{ backgroundColor: COLORS.primary + "20" }}
+                >
+                  <IconSymbol
+                    name={stat.icon}
+                    size={20}
+                    color={COLORS.primary}
+                  />
+                </View>
                 <Text
-                  className="text-xl font-bold mb-0.5"
+                  className="text-2xl font-bold mb-1"
                   style={{ color: isDark ? "#FFFFFF" : COLORS.textPrimary }}
                 >
                   {stat.value}
                 </Text>
                 <Text
-                  className="text-xs opacity-70"
+                  className="text-sm text-center"
                   style={{
                     color: isDark ? COLORS.textMuted : COLORS.textSecondary,
                   }}
                 >
                   {stat.label}
                 </Text>
+                {index < profileStats.length - 1 && (
+                  <View
+                    className="absolute right-0 w-px h-12 top-6"
+                    style={{
+                      backgroundColor: isDark
+                        ? COLORS.borderDark
+                        : COLORS.borderLight,
+                    }}
+                  />
+                )}
               </View>
             ))}
           </View>
@@ -301,30 +471,47 @@ const ProfileSection = React.memo(
 
 ProfileSection.displayName = "ProfileSection";
 
-// MenuSection component
-const MenuSection = ({ children, isDark }) => (
-  <View
-    className="rounded-xl mb-4 overflow-hidden"
-    style={{
-      backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-      shadowColor: COLORS.shadowColor,
-      ...Platform.select({
-        ios: {
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.1,
-          shadowRadius: 3,
-        },
-        android: {
-          elevation: 3,
-        },
-      }),
-    }}
-  >
-    {children}
+// Enhanced MenuSection with better visual grouping
+const MenuSection = ({ title, children, isDark, icon }) => (
+  <View className="mb-6">
+    {title && (
+      <View className="flex-row items-center mb-4 px-2">
+        {icon && (
+          <IconSymbol
+            name={icon}
+            size={18}
+            color={isDark ? COLORS.textMuted : COLORS.textSecondary}
+            className="mr-2"
+          />
+        )}
+        <Text
+          className="text-lg font-bold"
+          style={{
+            color: isDark ? COLORS.textMuted : COLORS.textSecondary,
+          }}
+        >
+          {title}
+        </Text>
+      </View>
+    )}
+    <View
+      className="rounded-3xl p-2 shadow-lg"
+      style={{
+        backgroundColor: isDark
+          ? COLORS.cardDark + "80"
+          : COLORS.cardLight + "80",
+        shadowColor: COLORS.shadowColor,
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 4 },
+      }}
+    >
+      {children}
+    </View>
   </View>
 );
 
-// Enhanced Language Modal
+// Enhanced Language Modal with better animations
 const LanguageModal = React.memo(
   ({
     visible,
@@ -337,20 +524,33 @@ const LanguageModal = React.memo(
     t,
   }) => {
     const slideAnim = useRef(new Animated.Value(300)).current;
+    const backdropOpacity = useRef(new Animated.Value(0)).current;
 
     React.useEffect(() => {
       if (visible) {
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          ...ANIMATION_CONFIG.spring,
-        }).start();
+        Animated.parallel([
+          Animated.spring(slideAnim, {
+            toValue: 0,
+            ...ANIMATION_CONFIG.bounce,
+          }),
+          Animated.timing(backdropOpacity, {
+            toValue: 1,
+            ...ANIMATION_CONFIG.timing,
+          }),
+        ]).start();
       } else {
-        Animated.spring(slideAnim, {
-          toValue: 300,
-          ...ANIMATION_CONFIG.spring,
-        }).start();
+        Animated.parallel([
+          Animated.spring(slideAnim, {
+            toValue: 300,
+            ...ANIMATION_CONFIG.spring,
+          }),
+          Animated.timing(backdropOpacity, {
+            toValue: 0,
+            ...ANIMATION_CONFIG.timing,
+          }),
+        ]).start();
       }
-    }, [visible, slideAnim]);
+    }, [visible, slideAnim, backdropOpacity]);
 
     const handleBackdropPress = useCallback(() => {
       onClose();
@@ -358,96 +558,127 @@ const LanguageModal = React.memo(
 
     return (
       <Modal
-        animationType="fade"
+        animationType="none"
         transparent={true}
         visible={visible}
         onRequestClose={onClose}
         statusBarTranslucent
       >
-        <Pressable
-          className="flex-1 justify-center items-center"
-          style={{ backgroundColor: COLORS.overlay }}
-          onPress={handleBackdropPress}
+        <Animated.View
+          className="flex-1 justify-center items-center px-4"
+          style={{
+            backgroundColor: COLORS.overlay,
+            opacity: backdropOpacity,
+          }}
         >
+          <Pressable
+            className="absolute inset-0"
+            onPress={handleBackdropPress}
+          />
           <Animated.View
-            className="w-11/12 max-h-3/4 rounded-3xl overflow-hidden"
+            className="w-full max-w-md max-h-3/4 rounded-3xl overflow-hidden"
             style={{
               backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
               transform: [{ translateY: slideAnim }],
-              ...Platform.select({
-                ios: {
-                  shadowOffset: { width: 0, height: 8 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 16,
-                },
-                android: {
-                  elevation: 8,
-                },
-              }),
+              shadowColor: COLORS.shadowColor,
+              shadowOpacity: 0.3,
+              shadowRadius: 20,
+              shadowOffset: { width: 0, height: 10 },
+              elevation: 20,
             }}
-            onStartShouldSetResponder={() => true}
           >
+            {/* Header */}
             <View
-              className="flex-row justify-between items-center px-6 py-5 border-b"
-              style={{ borderBottomColor: Colors[colorScheme].border + "40" }}
+              className="flex-row justify-between items-center px-6 py-6 border-b"
+              style={{
+                borderBottomColor: isDark
+                  ? COLORS.borderDark
+                  : COLORS.borderLight,
+                backgroundColor: isDark ? COLORS.cardDark : COLORS.lightBg,
+              }}
             >
-              <Text
-                className="text-xl font-bold"
-                style={{ color: COLORS.primary }}
-              >
-                {t("profile.selectLanguage")}
-              </Text>
+              <View className="flex-row items-center">
+                <View
+                  className="w-10 h-10 rounded-2xl justify-center items-center mr-3"
+                  style={{ backgroundColor: COLORS.primary }}
+                >
+                  <IconSymbol name="globe" size={20} color="#FFFFFF" />
+                </View>
+                <Text
+                  className="text-xl font-bold"
+                  style={{ color: isDark ? "#FFFFFF" : COLORS.textPrimary }}
+                >
+                  {t("profile.selectLanguage")}
+                </Text>
+              </View>
               <TouchableOpacity
                 onPress={onClose}
-                className="p-1"
-                accessibilityLabel="Close language selection"
-                accessibilityRole="button"
+                className="w-10 h-10 rounded-2xl justify-center items-center"
+                style={{
+                  backgroundColor: isDark
+                    ? COLORS.borderDark
+                    : COLORS.borderLight,
+                }}
+                activeOpacity={0.8}
               >
                 <IconSymbol
-                  name="xmark.circle.fill"
-                  size={28}
-                  color={Colors[colorScheme].secondaryText}
+                  name="xmark"
+                  size={18}
+                  color={isDark ? "#FFFFFF" : COLORS.textPrimary}
                 />
               </TouchableOpacity>
             </View>
+
+            {/* Language List */}
             <ScrollView
-              className="max-h-96"
+              className="max-h-96 p-2"
               showsVerticalScrollIndicator={false}
             >
               {languages.map((language, index) => (
                 <TouchableOpacity
                   key={language.code}
-                  className={`flex-row items-center justify-between py-4 px-6 ${
-                    index !== languages.length - 1 ? "border-b" : ""
-                  } ${currentLanguage === language.name ? "bg-blue-50" : ""}`}
+                  className={`flex-row items-center justify-between p-4 m-1 rounded-2xl ${
+                    currentLanguage === language.name ? "shadow-lg" : ""
+                  }`}
                   style={{
-                    borderBottomColor: Colors[colorScheme].border + "40",
                     backgroundColor:
                       currentLanguage === language.name
-                        ? COLORS.primary + "15"
-                        : "transparent",
+                        ? COLORS.primary
+                        : isDark
+                          ? COLORS.cardDark
+                          : COLORS.lightBg,
+                    shadowColor: COLORS.primary,
+                    shadowOpacity: currentLanguage === language.name ? 0.3 : 0,
+                    shadowRadius: 8,
+                    shadowOffset: { width: 0, height: 4 },
                   }}
                   onPress={() => onLanguageSelect(language)}
-                  accessibilityLabel={`Select ${language.name} language`}
-                  accessibilityRole="button"
-                  accessibilityState={{
-                    selected: currentLanguage === language.name,
-                  }}
+                  activeOpacity={0.8}
                 >
                   <View className="flex-1">
                     <Text
-                      className="text-lg font-medium"
-                      style={{ color: isDark ? "#FFFFFF" : COLORS.textPrimary }}
+                      className="text-lg font-semibold mb-1"
+                      style={{
+                        color:
+                          currentLanguage === language.name
+                            ? "#FFFFFF"
+                            : isDark
+                              ? "#FFFFFF"
+                              : COLORS.textPrimary,
+                      }}
                     >
                       {language.name}
                     </Text>
                     {language.nativeName !== language.name && (
                       <Text
-                        className="text-sm opacity-70"
+                        className="text-sm"
                         style={{
-                          color: isDark
-                            ? COLORS.textMuted
-                            : COLORS.textSecondary,
+                          color:
+                            currentLanguage === language.name
+                              ? "#FFFFFF"
+                              : isDark
+                                ? COLORS.textMuted
+                                : COLORS.textSecondary,
                         }}
                       >
                         {language.nativeName}
@@ -456,8 +687,8 @@ const LanguageModal = React.memo(
                   </View>
                   {currentLanguage === language.name && (
                     <View
-                      className="w-6 h-6 rounded-xl justify-center items-center"
-                      style={{ backgroundColor: COLORS.primary }}
+                      className="w-6 h-6 rounded-full justify-center items-center"
+                      style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
                     >
                       <IconSymbol name="checkmark" size={14} color="#FFFFFF" />
                     </View>
@@ -466,7 +697,7 @@ const LanguageModal = React.memo(
               ))}
             </ScrollView>
           </Animated.View>
-        </Pressable>
+        </Animated.View>
       </Modal>
     );
   }
@@ -474,13 +705,45 @@ const LanguageModal = React.memo(
 
 LanguageModal.displayName = "LanguageModal";
 
+// Enhanced Logout Button
+const LogoutButton = ({ onPress, isLoading, isDark, t }) => (
+  <TouchableOpacity
+    className={`rounded-3xl p-4 items-center shadow-lg ${
+      isLoading ? "opacity-70" : ""
+    }`}
+    style={{
+      backgroundColor: COLORS.error,
+      shadowColor: COLORS.error,
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 4 },
+    }}
+    onPress={onPress}
+    disabled={isLoading}
+    activeOpacity={0.8}
+  >
+    <View className="flex-row items-center">
+      <IconSymbol
+        name={
+          isLoading ? "arrow.clockwise" : "rectangle.portrait.and.arrow.right"
+        }
+        size={20}
+        color="#FFFFFF"
+        className="mr-2"
+      />
+      <Text className="text-white text-lg font-bold">
+        {isLoading ? t("profile.signingOut") : t("profile.signOut")}
+      </Text>
+    </View>
+  </TouchableOpacity>
+);
+
 // Main Component
 export default function AccountScreen({ navigation }) {
   const colorScheme = useColorScheme();
   const { user, logout, refreshUser } = useAuthStore();
   const isArtist = user?.isArtist;
   const insets = useSafeAreaInsets();
-  const [userPreferredTheme, setUserPreferredTheme] = useState(null);
 
   // i18n hooks
   const { t } = useTranslation();
@@ -545,7 +808,7 @@ export default function AccountScreen({ navigation }) {
             Haptics?.notificationAsync?.(
               Haptics.NotificationFeedbackType.Success
             );
-            router.push("/")
+            router.push("/");
           } catch (error) {
             console.error("Logout failed:", error);
             Alert.alert(
@@ -563,8 +826,6 @@ export default function AccountScreen({ navigation }) {
     ]);
   }, [logout, t]);
 
-
-
   const navigateTo = useCallback((screenName) => {
     Haptics?.selectionAsync?.();
     router.push(`/Account/${screenName}`);
@@ -573,17 +834,22 @@ export default function AccountScreen({ navigation }) {
   const handleLanguageSelect = useCallback(
     async (language) => {
       try {
+        setLanguageModalVisible(false); // Close modal first
         await changeLanguage(language.code);
-        setLanguageModalVisible(false);
         Haptics?.selectionAsync?.();
       } catch (error) {
         console.error("Failed to change language:", error);
+        // Show error alert if language change fails
+        Alert.alert(
+          t("common.error"),
+          "Failed to change language. Please try again."
+        );
       }
     },
-    [changeLanguage]
+    [changeLanguage, t]
   );
 
-  // Memoized menu sections with translations
+  // Memoized menu sections with better organization
   const menuSections = useMemo(() => {
     const accountItems = [
       {
@@ -594,23 +860,16 @@ export default function AccountScreen({ navigation }) {
         iconColor: COLORS.primary,
       },
       {
-        title: t("profile.privacySettings"),
-        subtitle: t("profile.controlPrivacy"),
-        icon: "lock.fill",
-        onPress: () => navigateTo("PrivacySettings"),
-        iconColor: COLORS.purple,
-      },
-      {
         title: t("profile.notificationSettings"),
         subtitle: t("profile.customizeNotifications"),
         icon: "bell.fill",
-        onPress: () => navigateTo("NotificationSettings"),
+        onPress: () => navigateTo("notification-settings"),
         iconColor: COLORS.orange,
+        badge: "3",
       },
     ];
 
     const appItems = [
-  
       {
         title: t("profile.subscription"),
         subtitle: t("profile.managePlan"),
@@ -623,27 +882,28 @@ export default function AccountScreen({ navigation }) {
         subtitle: t("profile.currentlySet", { language: currentLanguageName }),
         icon: "globe",
         onPress: () => setLanguageModalVisible(true),
-        iconColor: COLORS.primary,
+        iconColor: COLORS.indigo,
         rightContent: (
           <View className="flex-row items-center">
-            <Text
-              className="text-base mr-2"
-              style={{
-                color: isDark ? COLORS.textMuted : COLORS.textSecondary,
-              }}
+            <View
+              className="px-3 py-1 rounded-full mr-2"
+              style={{ backgroundColor: COLORS.indigo + "20" }}
             >
-              {currentLanguageName}
-            </Text>
-            <Text
-              className="text-base"
-              style={{
-                color: isDark ? COLORS.textMuted : COLORS.textSecondary,
-              }}
-            >
-              ›
-            </Text>
+              <Text
+                className="text-sm font-semibold"
+                style={{ color: COLORS.indigo }}
+              >
+                {currentLanguageName}
+              </Text>
+            </View>
+            <IconSymbol
+              name="chevron.right"
+              size={16}
+              color={isDark ? COLORS.textMuted : COLORS.textTertiary}
+            />
           </View>
         ),
+        showChevron: false,
       },
     ];
 
@@ -653,22 +913,22 @@ export default function AccountScreen({ navigation }) {
         subtitle: t("profile.getHelp"),
         icon: "questionmark.circle",
         onPress: () => navigateTo("helpCenter"),
-        iconColor: COLORS.accent,
+        iconColor: COLORS.purple,
       },
       {
         title: t("profile.about"),
         subtitle: t("profile.appInfo"),
         icon: "info.circle",
         onPress: () => navigateTo("about"),
-        iconColor: COLORS.primaryDark,
+        iconColor: COLORS.emerald,
       },
     ];
 
-    // Add artist-specific items if user is an artist
+    // Add artist-specific items
     if (isArtist) {
-      appItems.splice(1, 0, {
-        title: "Payout Settings", // Add this to translations
-        subtitle: "Manage your earnings and payouts", // Add this to translations
+      accountItems.push({
+        title: "Payout Settings",
+        subtitle: "Manage your earnings and payouts",
         icon: "dollarsign.circle",
         onPress: () => navigateTo("PayoutSettings"),
         iconColor: COLORS.success,
@@ -676,102 +936,105 @@ export default function AccountScreen({ navigation }) {
     }
 
     return [
-      { title: "Account", items: accountItems },
-      { title: "App", items: appItems },
-      { title: "Support", items: supportItems },
+      {
+        title: t("profile.account"),
+        items: accountItems,
+        icon: "person.circle",
+      },
+      { title: t("profile.preferences"), items: appItems, icon: "gear" },
+      {
+        title: t("profile.support"),
+        items: supportItems,
+        icon: "questionmark.circle",
+      },
     ];
   }, [isArtist, currentLanguageName, t, navigateTo, isDark]);
 
   return (
-    <>
-      <SafeAreaView className="flex-1">
-        <StatusBar style={isDark ? "light" : "dark"} />
+    <SafeAreaView
+      className="flex-1"
+      style={{ backgroundColor: isDark ? COLORS.darkBg : COLORS.lightBg }}
+    >
+      <StatusBar style={isDark ? "light" : "dark"} />
 
-        <SafeAreaView className="flex-1">
-          <ScrollView
-            className="p-4"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 40 }}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                tintColor={COLORS.primary}
-                colors={[COLORS.primary]}
-              />
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          padding: 20,
+          paddingBottom: 100,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={COLORS.primary}
+            colors={[COLORS.primary]}
+            progressBackgroundColor={
+              isDark ? COLORS.cardDark : COLORS.cardLight
             }
-          >
-            {/* Profile Section */}
-            <ProfileSection
-              user={user}
-              isArtist={isArtist}
-              colorScheme={colorScheme}
-              onEditPress={() => navigateTo("EditProfile")}
-              isDark={isDark}
-              t={t}
-            />
-
-           
-
-            {/* Menu Sections */}
-            {menuSections.map((section, sectionIndex) => (
-              <MenuSection key={section.title} isDark={isDark}>
-                {section.items.map((item, index) => (
-                  <MenuItem
-                    key={`${section.title}-${index}`}
-                    {...item}
-                    colorScheme={colorScheme}
-                    isLast={index === section.items.length - 1}
-                  />
-                ))}
-              </MenuSection>
-            ))}
-
-            {/* Sign Out Button */}
-            <TouchableOpacity
-              className={`rounded-xl p-4 items-center mt-2 ${
-                isLoggingOut ? "opacity-70" : ""
-              }`}
-              style={{ backgroundColor: COLORS.error }}
-              onPress={handleLogout}
-              disabled={isLoggingOut}
-              activeOpacity={0.8}
-              accessible={true}
-              accessibilityRole="button"
-              accessibilityLabel="Sign out from account"
-              accessibilityHint="Logs you out of your account"
-              accessibilityState={{ disabled: isLoggingOut }}
-            >
-              <Text className="text-white text-base font-semibold">
-                {isLoggingOut ? t("profile.signingOut") : t("profile.signOut")}
-              </Text>
-            </TouchableOpacity>
-
-            <Text
-              className="text-center text-sm mt-5 opacity-60"
-              style={{
-                color: isDark ? COLORS.textMuted : COLORS.textSecondary,
-              }}
-            >
-              {t("profile.version")}
-            </Text>
-
-            <View className="h-14" />
-          </ScrollView>
-        </SafeAreaView>
-
-        {/* Language Selection Modal */}
-        <LanguageModal
-          visible={languageModalVisible}
-          onClose={() => setLanguageModalVisible(false)}
-          currentLanguage={currentLanguageName}
-          onLanguageSelect={handleLanguageSelect}
+          />
+        }
+      >
+        {/* Profile Section */}
+        <ProfileSection
+          user={user}
+          isArtist={isArtist}
           colorScheme={colorScheme}
+          onEditPress={() => navigateTo("EditProfile")}
           isDark={isDark}
-          languages={languages}
           t={t}
         />
-      </SafeAreaView>
-    </>
+
+        {/* Menu Sections */}
+        {menuSections.map((section) => (
+          <MenuSection
+            key={section.title}
+            title={section.title}
+            icon={section.icon}
+            isDark={isDark}
+          >
+            {section.items.map((item, index) => (
+              <MenuItem
+                key={`${section.title}-${index}`}
+                {...item}
+                colorScheme={colorScheme}
+                isLast={index === section.items.length - 1}
+              />
+            ))}
+          </MenuSection>
+        ))}
+
+        {/* Sign Out Button */}
+        <LogoutButton
+          onPress={handleLogout}
+          isLoading={isLoggingOut}
+          isDark={isDark}
+          t={t}
+        />
+
+        {/* Version Info */}
+        <Text
+          className="text-center text-sm mt-6 opacity-60"
+          style={{
+            color: isDark ? COLORS.textMuted : COLORS.textSecondary,
+          }}
+        >
+          {t("profile.version")} 1.0.0
+        </Text>
+      </ScrollView>
+
+      {/* Language Selection Modal */}
+      <LanguageModal
+        visible={languageModalVisible}
+        onClose={() => setLanguageModalVisible(false)}
+        currentLanguage={currentLanguageName}
+        onLanguageSelect={handleLanguageSelect}
+        colorScheme={colorScheme}
+        isDark={isDark}
+        languages={languages}
+        t={t}
+      />
+    </SafeAreaView>
   );
 }

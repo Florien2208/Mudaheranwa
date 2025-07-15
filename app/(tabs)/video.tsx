@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { Video } from "expo-av";
 import { AntDesign } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 // Mock icons
 const VideoIcon = () => (
@@ -143,6 +144,7 @@ const sampleVideos = [
 
 // Main Video App Component
 const VideoApp = () => {
+  const {t}=useTranslation()
   const [videos, setVideos] = useState(sampleVideos);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -175,14 +177,14 @@ const VideoApp = () => {
           <View style={styles.logo}>
             <VideoIcon />
           </View>
-          <Text style={styles.appTitle}>BookSpot Videos</Text>
+          <Text style={styles.appTitle}>{t("videos.title")}</Text>
         </View>
 
         <View style={styles.searchContainer}>
           <SearchIcon />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search videos..."
+            placeholder={t("videos.searchPlaceholder")}
             placeholderTextColor="#999"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -191,7 +193,7 @@ const VideoApp = () => {
       </View>
 
       {/* Video List */}
-      <VideoList videos={filteredVideos} onVideoPress={handleVideoPress} />
+      <VideoList videos={filteredVideos} onVideoPress={handleVideoPress} t={t}/>
 
       {/* Video Player Modal */}
       <Modal
@@ -200,7 +202,7 @@ const VideoApp = () => {
         onRequestClose={closeVideoModal}
       >
         {selectedVideo && (
-          <VideoPlayer video={selectedVideo} onClose={closeVideoModal} />
+          <VideoPlayer video={selectedVideo} onClose={closeVideoModal} t={t} />
         )}
       </Modal>
     </SafeAreaView>
@@ -208,12 +210,12 @@ const VideoApp = () => {
 };
 
 // Video List Component
-const VideoList = ({ videos, onVideoPress }) => {
+const VideoList = ({ videos, onVideoPress,t }) => {
   if (videos.length === 0) {
     return (
       <View style={styles.emptyContainer}>
         <VideoIcon />
-        <Text style={styles.emptyText}>No videos found</Text>
+        <Text style={styles.emptyText}>{t("videos.noVideosFound")}</Text>
       </View>
     );
   }
@@ -286,10 +288,8 @@ const VideoList = ({ videos, onVideoPress }) => {
 
   return (
     <ScrollView style={styles.scrollContainer}>
-    
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Featured Videos</Text>
-    
+        <Text style={styles.sectionTitle}>{t("videos.featuredVideos")}</Text>
       </View>
 
       <FlatList
@@ -303,7 +303,7 @@ const VideoList = ({ videos, onVideoPress }) => {
 
       {/* All Videos Section */}
       <Text style={[styles.sectionTitle, { marginTop: 20, marginBottom: 15 }]}>
-        All Videos
+        {t("videos.allVideos")}
       </Text>
       <FlatList
         data={videos}
@@ -311,13 +311,14 @@ const VideoList = ({ videos, onVideoPress }) => {
         keyExtractor={(item) => item.id.toString()}
         scrollEnabled={false}
         contentContainerStyle={styles.videoList}
+      
       />
     </ScrollView>
   );
 };
 
 // Video Player Component
-const VideoPlayer = ({ video, onClose }) => {
+const VideoPlayer = ({ video, onClose,t }) => {
   const videoRef = useRef(null);
   const [status, setStatus] = useState({});
 
@@ -329,7 +330,7 @@ const VideoPlayer = ({ video, onClose }) => {
       <View style={styles.playerHeader}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <BackIcon />
-          <Text style={styles.backText}>Back to videos</Text>
+          <Text style={styles.backText}>{t("videos.backToVideos")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -343,6 +344,7 @@ const VideoPlayer = ({ video, onClose }) => {
           resizeMode="contain"
           isLooping={false}
           onPlaybackStatusUpdate={setStatus}
+          t={t}
         />
       </View>
 
@@ -359,9 +361,7 @@ const VideoPlayer = ({ video, onClose }) => {
           </View>
 
           <View style={styles.videoStats}>
-            <Text style={styles.videoStatsText}>
-               {video.uploadDate}
-            </Text>
+            <Text style={styles.videoStatsText}>{video.uploadDate}</Text>
           </View>
 
           <Text style={styles.videoDescription}>{video.description}</Text>

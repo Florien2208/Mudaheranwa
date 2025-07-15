@@ -9,7 +9,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -17,6 +16,7 @@ import {
   Haptics,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 
 const COLORS = {
   primary: "#2563eb", // Rich blue
@@ -39,52 +39,72 @@ const COLORS = {
   textSecondary: "#64748b", // Medium slate
   textDarkPrimary: "#f1f5f9", // Light for dark mode
   textDarkSecondary: "#94a3b8", // Medium slate for dark mode
+  gradient: {
+    primary: ["#2563eb", "#3b82f6"],
+    secondary: ["#64748b", "#475569"],
+    accent: ["#6366f1", "#8b5cf6"],
+    success: ["#10b981", "#059669"],
+    premium: ["#f59e0b", "#d97706"],
+  },
 } as const;
 
-// Subscription plans data
+// Subscription plans data with RWF pricing
 const SUBSCRIPTION_PLANS = [
   {
     id: "free",
     name: "Free",
-    price: "$0",
+    price: "0",
+    currency: "RWF",
     period: "forever",
     color: COLORS.secondary,
+    gradient: COLORS.gradient.secondary,
     features: [
       "Browse artworks",
-      "Basic search",
+      "Basic search functionality",
       "Save favorites (up to 10)",
       "Community access",
+      "Basic profile creation",
     ],
     limitations: [
       "Limited artwork uploads (2 per month)",
-      "No premium features",
+      "No premium features access",
       "Basic support only",
+      "Watermarked downloads",
     ],
+    icon: "person.circle",
   },
   {
     id: "premium",
     name: "Premium",
-    price: "$9.99",
+    price: "12,500",
+    currency: "RWF",
     period: "month",
     color: COLORS.primary,
+    gradient: COLORS.gradient.primary,
     popular: true,
     features: [
       "Unlimited artwork uploads",
-      "Advanced analytics",
-      "Priority support",
+      "Advanced analytics dashboard",
+      "Priority customer support",
       "Exclusive content access",
       "Advanced search filters",
       "HD artwork downloads",
-      "Remove watermarks",
+      "Remove all watermarks",
+      "Custom artwork collections",
+      "Export portfolio as PDF",
     ],
     limitations: [],
+    icon: "star.fill",
+    savings: "Save 15% vs monthly",
   },
   {
     id: "artist_pro",
     name: "Artist Pro",
-    price: "$19.99",
+    price: "25,000",
+    currency: "RWF",
     period: "month",
     color: COLORS.accent,
+    gradient: COLORS.gradient.accent,
     features: [
       "Everything in Premium",
       "Commission marketplace access",
@@ -94,13 +114,18 @@ const SUBSCRIPTION_PLANS = [
       "Direct client messaging",
       "Exhibition opportunities",
       "NFT minting tools",
+      "Revenue tracking",
+      "Tax report generation",
+      "API access for integrations",
     ],
     limitations: [],
     badge: "Best for Artists",
+    icon: "crown.fill",
+    savings: "Most comprehensive",
   },
 ];
 
-// Current Subscription Card Component
+// Enhanced Current Subscription Card Component
 const CurrentSubscriptionCard = React.memo(
   ({ subscription, colorScheme, isDark, onManage }) => {
     const currentPlan =
@@ -109,72 +134,59 @@ const CurrentSubscriptionCard = React.memo(
 
     return (
       <View
-        style={[
-          styles.currentSubscriptionCard,
-          {
-            backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-            shadowColor: COLORS.shadowColor,
-          },
-        ]}
+        className={`${isDark ? "bg-slate-800/90" : "bg-white"} rounded-2xl p-5 mb-6 shadow-lg border ${isDark ? "border-slate-700" : "border-slate-200"}`}
+        style={{
+          shadowColor: COLORS.shadowColor,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 12,
+          elevation: 8,
+        }}
       >
-        <View style={styles.currentSubscriptionHeader}>
-          <View style={styles.currentPlanInfo}>
+        <View className="flex-row justify-between items-start mb-4">
+          <View className="flex-1">
             <Text
-              style={[
-                styles.currentPlanTitle,
-                {
-                  color: isDark
-                    ? COLORS.textDarkSecondary
-                    : COLORS.textSecondary,
-                },
-              ]}
+              className={`text-xs font-semibold uppercase tracking-wide mb-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}
             >
               Current Plan
             </Text>
-            <View style={styles.currentPlanNameContainer}>
+            <View className="flex-row items-center mb-2">
               <Text
-                style={[styles.currentPlanName, { color: currentPlan.color }]}
+                className="text-xl font-bold mr-3"
+                style={{ color: currentPlan.color }}
               >
                 {currentPlan.name}
               </Text>
               {currentPlan.popular && (
-                <View
-                  style={[
-                    styles.popularBadge,
-                    { backgroundColor: COLORS.primary },
-                  ]}
-                >
-                  <Text style={styles.popularBadgeText}>Popular</Text>
+                <View className="bg-gradient-to-r from-blue-600 to-blue-700 px-3 py-1 rounded-full">
+                  <Text className="text-white text-xs font-bold">Popular</Text>
                 </View>
               )}
             </View>
-            <Text
-              style={[
-                styles.currentPlanDetails,
-                {
-                  color: isDark
-                    ? COLORS.textDarkSecondary
-                    : COLORS.textSecondary,
-                },
-              ]}
-            >
-              {currentPlan.price}/{currentPlan.period}
-            </Text>
+            <View className="flex-row items-baseline">
+              <Text
+                className="text-lg font-bold"
+                style={{ color: currentPlan.color }}
+              >
+                {currentPlan.price === "0"
+                  ? "Free"
+                  : `${currentPlan.price} ${currentPlan.currency}`}
+              </Text>
+              {currentPlan.price !== "0" && (
+                <Text
+                  className={`text-sm ml-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                >
+                  /{currentPlan.period}
+                </Text>
+              )}
+            </View>
           </View>
           <View
-            style={[
-              styles.planIcon,
-              { backgroundColor: currentPlan.color + "20" },
-            ]}
+            className="w-14 h-14 rounded-2xl justify-center items-center"
+            style={{ backgroundColor: currentPlan.color + "20" }}
           >
             <IconSymbol
-              name={
-                currentPlan.id === "free"
-                  ? "person.circle"
-                  : currentPlan.id === "premium"
-                  ? "star.fill"
-                  : "crown.fill"
-              }
+              name={currentPlan.icon}
               size={24}
               color={currentPlan.color}
             />
@@ -182,33 +194,26 @@ const CurrentSubscriptionCard = React.memo(
         </View>
 
         {subscription.status && (
-          <View style={styles.subscriptionStatus}>
+          <View className="flex-row items-center justify-between mb-4">
             <View
-              style={[
-                styles.statusIndicator,
-                {
-                  backgroundColor:
-                    subscription.status === "active"
-                      ? COLORS.success
-                      : COLORS.warning,
-                },
-              ]}
+              className="px-4 py-2 rounded-full"
+              style={{
+                backgroundColor:
+                  subscription.status === "active"
+                    ? COLORS.success
+                    : subscription.status === "canceled"
+                      ? COLORS.warning
+                      : COLORS.error,
+              }}
             >
-              <Text style={styles.statusText}>
+              <Text className="text-white text-xs font-bold">
                 {subscription.status.charAt(0).toUpperCase() +
                   subscription.status.slice(1)}
               </Text>
             </View>
             {subscription.nextBillingDate && (
               <Text
-                style={[
-                  styles.billingInfo,
-                  {
-                    color: isDark
-                      ? COLORS.textDarkSecondary
-                      : COLORS.textSecondary,
-                  },
-                ]}
+                className={`text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}
               >
                 {subscription.status === "active"
                   ? "Next billing: "
@@ -220,21 +225,17 @@ const CurrentSubscriptionCard = React.memo(
         )}
 
         <TouchableOpacity
-          style={[
-            styles.manageButton,
-            {
-              backgroundColor: isDark
-                ? COLORS.primary + "20"
-                : COLORS.primary + "15",
-              borderColor: COLORS.primary + "40",
-            },
-          ]}
+          className={`flex-row items-center justify-center p-4 rounded-xl border-2 ${
+            isDark
+              ? "bg-blue-600/10 border-blue-600/30"
+              : "bg-blue-50 border-blue-200"
+          }`}
           onPress={onManage}
           accessibilityLabel="Manage subscription"
           accessibilityRole="button"
         >
           <IconSymbol name="gear" size={16} color={COLORS.primary} />
-          <Text style={[styles.manageButtonText, { color: COLORS.primary }]}>
+          <Text className="text-blue-600 text-sm font-bold ml-2">
             Manage Subscription
           </Text>
         </TouchableOpacity>
@@ -243,7 +244,7 @@ const CurrentSubscriptionCard = React.memo(
   }
 );
 
-// Subscription Plan Card Component
+// Enhanced Subscription Plan Card Component
 const SubscriptionPlanCard = React.memo(
   ({ plan, colorScheme, isDark, isCurrentPlan, onSelect }) => {
     const handleSelect = useCallback(() => {
@@ -255,16 +256,19 @@ const SubscriptionPlanCard = React.memo(
 
     return (
       <TouchableOpacity
-        style={[
-          styles.subscriptionPlanCard,
-          {
-            backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-            shadowColor: COLORS.shadowColor,
-            borderColor: isCurrentPlan ? plan.color + "60" : "transparent",
-            borderWidth: isCurrentPlan ? 2 : 0,
-          },
-          plan.popular && styles.popularCard,
-        ]}
+        className={`relative rounded-2xl p-6 mb-4 ${
+          isDark ? "bg-slate-800/90" : "bg-white"
+        } ${isCurrentPlan ? "border-2" : "border"} ${
+          isDark ? "border-slate-700" : "border-slate-200"
+        }`}
+        style={{
+          borderColor: isCurrentPlan ? plan.color : undefined,
+          shadowColor: COLORS.shadowColor,
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.1,
+          shadowRadius: 16,
+          elevation: 10,
+        }}
         onPress={handleSelect}
         disabled={isCurrentPlan}
         accessibilityLabel={`${plan.name} subscription plan`}
@@ -272,88 +276,75 @@ const SubscriptionPlanCard = React.memo(
         accessibilityState={{ selected: isCurrentPlan }}
       >
         {plan.popular && (
-          <View
-            style={[styles.popularLabel, { backgroundColor: COLORS.primary }]}
-          >
-            <Text style={styles.popularLabelText}>Most Popular</Text>
+          <View className="absolute -top-px left-6 right-6 bg-gradient-to-r from-blue-600 to-blue-700 py-2 rounded-t-2xl items-center">
+            <Text className="text-white text-xs font-bold">
+              🔥 Most Popular
+            </Text>
           </View>
         )}
 
         {plan.badge && (
-          <View style={[styles.planBadge, { backgroundColor: plan.color }]}>
-            <Text style={styles.planBadgeText}>{plan.badge}</Text>
+          <View
+            className="absolute top-4 right-4 px-3 py-1 rounded-full"
+            style={{ backgroundColor: plan.color }}
+          >
+            <Text className="text-white text-xs font-bold">{plan.badge}</Text>
           </View>
         )}
 
-        <View style={styles.planHeader}>
+        <View className={`items-center mb-6 ${plan.popular ? "mt-4" : ""}`}>
           <View
-            style={[
-              styles.planIconContainer,
-              { backgroundColor: plan.color + "20" },
-            ]}
+            className="w-16 h-16 rounded-2xl justify-center items-center mb-3"
+            style={{ backgroundColor: plan.color + "20" }}
           >
-            <IconSymbol
-              name={
-                plan.id === "free"
-                  ? "person.circle"
-                  : plan.id === "premium"
-                  ? "star.fill"
-                  : "crown.fill"
-              }
-              size={28}
-              color={plan.color}
-            />
+            <IconSymbol name={plan.icon} size={28} color={plan.color} />
           </View>
           <Text
-            style={[
-              styles.planName,
-              { color: isDark ? COLORS.textDarkPrimary : COLORS.textPrimary },
-            ]}
+            className={`text-xl font-bold mb-2 ${isDark ? "text-slate-100" : "text-slate-900"}`}
           >
             {plan.name}
           </Text>
-          <View style={styles.planPricing}>
-            <Text style={[styles.planPrice, { color: plan.color }]}>
-              {plan.price}
+          <View className="flex-row items-baseline mb-2">
+            <Text className="text-3xl font-bold" style={{ color: plan.color }}>
+              {plan.price === "0" ? "Free" : plan.price}
             </Text>
-            <Text
-              style={[
-                styles.planPeriod,
-                {
-                  color: isDark
-                    ? COLORS.textDarkSecondary
-                    : COLORS.textSecondary,
-                },
-              ]}
-            >
-              /{plan.period}
-            </Text>
+            {plan.price !== "0" && (
+              <>
+                <Text
+                  className={`text-sm ml-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                >
+                  {plan.currency}
+                </Text>
+                <Text
+                  className={`text-sm ml-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                >
+                  /{plan.period}
+                </Text>
+              </>
+            )}
           </View>
+          {plan.savings && (
+            <View className="bg-green-100 px-3 py-1 rounded-full">
+              <Text className="text-green-800 text-xs font-semibold">
+                {plan.savings}
+              </Text>
+            </View>
+          )}
         </View>
 
-        <View style={styles.planFeatures}>
+        <View className="mb-6">
           <Text
-            style={[
-              styles.featuresTitle,
-              { color: isDark ? COLORS.textDarkPrimary : COLORS.textPrimary },
-            ]}
+            className={`text-sm font-bold mb-3 ${isDark ? "text-slate-100" : "text-slate-900"}`}
           >
-            Features:
+            ✨ Features:
           </Text>
           {plan.features.map((feature, index) => (
-            <View key={index} style={styles.featureItem}>
-              <IconSymbol
-                name="checkmark.circle.fill"
-                size={16}
-                color={COLORS.success}
-              />
+            <View key={index} className="flex-row items-center mb-2">
+              <View className="w-5 h-5 rounded-full bg-green-100 items-center justify-center mr-3">
+                <IconSymbol name="checkmark" size={12} color={COLORS.success} />
+              </View>
               <Text
-                style={[
-                  styles.featureText,
-                  {
-                    color: isDark ? COLORS.textDarkPrimary : COLORS.textPrimary,
-                  },
-                ]}
+                className={`text-sm flex-1 ${isDark ? "text-slate-200" : "text-slate-800"}`}
               >
                 {feature}
               </Text>
@@ -363,33 +354,17 @@ const SubscriptionPlanCard = React.memo(
           {plan.limitations.length > 0 && (
             <>
               <Text
-                style={[
-                  styles.limitationsTitle,
-                  {
-                    color: isDark
-                      ? COLORS.textDarkSecondary
-                      : COLORS.textSecondary,
-                  },
-                ]}
+                className={`text-sm font-bold mb-3 mt-4 ${isDark ? "text-slate-300" : "text-slate-600"}`}
               >
-                Limitations:
+                ⚠️ Limitations:
               </Text>
               {plan.limitations.map((limitation, index) => (
-                <View key={index} style={styles.limitationItem}>
-                  <IconSymbol
-                    name="xmark.circle"
-                    size={16}
-                    color={COLORS.error}
-                  />
+                <View key={index} className="flex-row items-center mb-2">
+                  <View className="w-5 h-5 rounded-full bg-red-100 items-center justify-center mr-3">
+                    <IconSymbol name="xmark" size={12} color={COLORS.error} />
+                  </View>
                   <Text
-                    style={[
-                      styles.limitationText,
-                      {
-                        color: isDark
-                          ? COLORS.textDarkSecondary
-                          : COLORS.textSecondary,
-                      },
-                    ]}
+                    className={`text-sm flex-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}
                   >
                     {limitation}
                   </Text>
@@ -399,19 +374,16 @@ const SubscriptionPlanCard = React.memo(
           )}
         </View>
 
-        <View style={styles.planFooter}>
+        <View className="items-center">
           <TouchableOpacity
-            style={[
-              styles.selectButton,
+            className={`w-full py-4 rounded-xl items-center ${
               isCurrentPlan
-                ? {
-                    backgroundColor:
-                      (isDark
-                        ? COLORS.textDarkSecondary
-                        : COLORS.textSecondary) + "20",
-                  }
-                : { backgroundColor: plan.color },
-            ]}
+                ? `${isDark ? "bg-slate-600/20" : "bg-slate-100"}`
+                : ""
+            }`}
+            style={{
+              backgroundColor: isCurrentPlan ? undefined : plan.color,
+            }}
             onPress={handleSelect}
             disabled={isCurrentPlan}
             accessibilityLabel={
@@ -420,18 +392,13 @@ const SubscriptionPlanCard = React.memo(
             accessibilityRole="button"
           >
             <Text
-              style={[
-                styles.selectButtonText,
-                {
-                  color: isCurrentPlan
-                    ? isDark
-                      ? COLORS.textDarkSecondary
-                      : COLORS.textSecondary
-                    : "#FFFFFF",
-                },
-              ]}
+              className={`text-base font-bold ${
+                isCurrentPlan
+                  ? `${isDark ? "text-slate-400" : "text-slate-600"}`
+                  : "text-white"
+              }`}
             >
-              {isCurrentPlan ? "Current Plan" : `Choose ${plan.name}`}
+              {isCurrentPlan ? "✅ Current Plan" : `Choose ${plan.name}`}
             </Text>
           </TouchableOpacity>
         </View>
@@ -457,7 +424,7 @@ export default function SubscriptionScreen({ navigation }) {
   const handlePlanSelect = useCallback((plan) => {
     Alert.alert(
       "Upgrade Subscription",
-      `Would you like to upgrade to ${plan.name} for ${plan.price}/${plan.period}?`,
+      `Would you like to upgrade to ${plan.name} for ${plan.price} ${plan.currency}/${plan.period}?`,
       [
         {
           text: "Cancel",
@@ -514,45 +481,41 @@ export default function SubscriptionScreen({ navigation }) {
   }, []);
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: isDark ? COLORS.darkBg : COLORS.lightBg },
-      ]}
-    >
+    <View className={`flex-1 ${isDark ? "bg-slate-900" : "bg-slate-50"}`}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <TouchableOpacity
-          onPress={() => navigation && navigation.goBack && navigation.goBack()}
-          style={styles.backButton}
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-        >
-          <IconSymbol name="chevron.left" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={[styles.headerTitle, { color: COLORS.primary }]}>
-            Subscription
-          </Text>
-          <Text
-            style={[
-              styles.headerSubtitle,
-              {
-                color: isDark ? COLORS.textDarkSecondary : COLORS.textSecondary,
-              },
-            ]}
+      {/* Enhanced Header */}
+      <View
+        className={`${isDark ? "bg-slate-800/50" : "bg-white/80"} backdrop-blur-lg`}
+        style={{ paddingTop: insets.top }}
+      >
+        <View className="flex-row items-center px-6 py-4">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="p-2 mr-4 rounded-full"
+            style={{ backgroundColor: COLORS.primary + "20" }}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
           >
-            Manage your subscription and billing
-          </Text>
+            <IconSymbol name="chevron.left" size={20} color={COLORS.primary} />
+          </TouchableOpacity>
+          <View className="flex-1">
+            <Text className="text-xl font-bold text-blue-600">
+              💎 Subscription
+            </Text>
+            <Text
+              className={`text-sm mt-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+            >
+              Choose the perfect plan for your needs
+            </Text>
+          </View>
         </View>
       </View>
 
       <ScrollView
-        style={styles.content}
+        className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
       >
         {/* Current Subscription */}
         <CurrentSubscriptionCard
@@ -563,14 +526,18 @@ export default function SubscriptionScreen({ navigation }) {
         />
 
         {/* Available Plans */}
-        <Text
-          style={[
-            styles.sectionTitle,
-            { color: isDark ? COLORS.textDarkPrimary : COLORS.textPrimary },
-          ]}
-        >
-          Available Plans
-        </Text>
+        <View className="mb-4">
+          <Text
+            className={`text-2xl font-bold mb-2 ${isDark ? "text-slate-100" : "text-slate-900"}`}
+          >
+            🚀 Available Plans
+          </Text>
+          <Text
+            className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}
+          >
+            Unlock your creative potential with our premium features
+          </Text>
+        </View>
 
         {SUBSCRIPTION_PLANS.map((plan) => (
           <SubscriptionPlanCard
@@ -583,301 +550,76 @@ export default function SubscriptionScreen({ navigation }) {
           />
         ))}
 
-        {/* Additional Info */}
+        {/* Enhanced Additional Info */}
         <View
-          style={[
-            styles.infoCard,
-            { backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight },
-          ]}
+          className={`p-5 rounded-2xl mt-4 border ${
+            isDark
+              ? "bg-slate-800/90 border-slate-700"
+              : "bg-blue-50 border-blue-200"
+          }`}
         >
-          <IconSymbol name="info.circle" size={20} color={COLORS.primary} />
-          <Text
-            style={[
-              styles.infoText,
-              {
-                color: isDark ? COLORS.textDarkSecondary : COLORS.textSecondary,
-              },
-            ]}
-          >
-            You can upgrade, downgrade, or cancel your subscription at any time.
-            Changes will take effect at the next billing cycle.
-          </Text>
+          <View className="flex-row items-start">
+            <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mr-4">
+              <IconSymbol name="info.circle" size={20} color={COLORS.primary} />
+            </View>
+            <View className="flex-1">
+              <Text
+                className={`text-sm font-semibold mb-2 ${isDark ? "text-slate-200" : "text-slate-800"}`}
+              >
+                💡 Subscription Benefits
+              </Text>
+              <Text
+                className={`text-sm leading-5 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+              >
+                • Upgrade, downgrade, or cancel anytime{"\n"}• Changes take
+                effect at next billing cycle{"\n"}• All prices are in Rwandan
+                Francs (RWF){"\n"}• Secure payment processing{"\n"}• 30-day
+                money-back guarantee
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Trust Indicators */}
+        <View className="flex-row justify-center items-center mt-6 space-x-6">
+          <View className="items-center">
+            <IconSymbol
+              name="shield.checkered"
+              size={24}
+              color={COLORS.success}
+            />
+            <Text
+              className={`text-xs mt-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+            >
+              Secure
+            </Text>
+          </View>
+          <View className="items-center">
+            <IconSymbol
+              name="arrow.clockwise"
+              size={24}
+              color={COLORS.primary}
+            />
+            <Text
+              className={`text-xs mt-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+            >
+              Cancel Anytime
+            </Text>
+          </View>
+          <View className="items-center">
+            <IconSymbol
+              name="checkmark.seal"
+              size={24}
+              color={COLORS.warning}
+            />
+            <Text
+              className={`text-xs mt-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+            >
+              Guaranteed
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 12,
-  },
-  headerContent: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    marginTop: 4,
-    opacity: 0.7,
-  },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  currentSubscriptionCard: {
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 24,
-    ...Platform.select({
-      ios: {
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  currentSubscriptionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 16,
-  },
-  currentPlanInfo: {
-    flex: 1,
-  },
-  currentPlanTitle: {
-    fontSize: 14,
-    fontWeight: "500",
-    opacity: 0.7,
-    marginBottom: 4,
-  },
-  currentPlanNameContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  currentPlanName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginRight: 8,
-  },
-  popularBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  popularBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  currentPlanDetails: {
-    fontSize: 16,
-    opacity: 0.7,
-  },
-  planIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  subscriptionStatus: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  statusIndicator: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  statusText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  billingInfo: {
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  manageButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  manageButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
-    paddingHorizontal: 4,
-  },
-  subscriptionPlanCard: {
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 16,
-    position: "relative",
-    ...Platform.select({
-      ios: {
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  popularCard: {
-    borderWidth: 2,
-    borderColor: COLORS.primary + "40",
-  },
-  popularLabel: {
-    position: "absolute",
-    top: -1,
-    left: 20,
-    right: 20,
-    paddingVertical: 6,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    alignItems: "center",
-  },
-  popularLabelText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  planBadge: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  planBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  planHeader: {
-    alignItems: "center",
-    marginBottom: 20,
-    marginTop: 8,
-  },
-  planIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  planName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  planPricing: {
-    flexDirection: "row",
-    alignItems: "baseline",
-  },
-  planPrice: {
-    fontSize: 32,
-    fontWeight: "bold",
-  },
-  planPeriod: {
-    fontSize: 16,
-    opacity: 0.7,
-  },
-  planFeatures: {
-    marginBottom: 24,
-  },
-  featuresTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 12,
-  },
-  featureItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  featureText: {
-    fontSize: 14,
-    marginLeft: 8,
-    flex: 1,
-  },
-  limitationsTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 12,
-    marginTop: 16,
-  },
-  limitationItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  limitationText: {
-    fontSize: 14,
-    marginLeft: 8,
-    flex: 1,
-    opacity: 0.7,
-  },
-  planFooter: {
-    alignItems: "center",
-  },
-  selectButton: {
-    width: "100%",
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: "center",
-  },
-  selectButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  infoCard: {
-    flexDirection: "row",
-    padding: 16,
-    borderRadius: 16,
-    marginTop: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    marginLeft: 12,
-    flex: 1,
-    lineHeight: 20,
-  },
-});

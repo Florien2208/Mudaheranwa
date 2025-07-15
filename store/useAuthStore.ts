@@ -8,6 +8,11 @@ interface User {
   id?: string;
   email?: string;
   fullName?: string;
+  name?: string;
+  displayName?: string;
+  profilePicture?: string;
+  phone?: string;
+  isArtist?: boolean;
   [key: string]: any;
 }
 
@@ -16,12 +21,14 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   token: string | null;
-  isAuthenticating: boolean; // New flag to track auth in progress
+  isAuthenticating: boolean;
   initialize: () => Promise<void>;
   login: (credentials: LoginCredentials) => Promise<void>;
   signup: (userData: SignupData) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
+  updateProfile: (userData: Partial<User>) => Promise<void>; // ADD THIS
+  refreshUser: () => Promise<void>; // ADD THIS
 }
 
 interface LoginCredentials {
@@ -165,6 +172,48 @@ const useAuthStore = create<AuthState>((set, get) => ({
 
   // Clear any error messages
   clearError: () => set({ error: null }),
+
+  // ADD THIS: Update profile method
+  updateProfile: async (userData: Partial<User>) => {
+    try {
+      const { user } = get();
+      if (!user) return;
+
+      const updatedUser = { ...user, ...userData };
+
+      // Update AsyncStorage
+      await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
+
+      // Update state
+      set({ user: updatedUser });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      throw error;
+    }
+  },
+
+  // ADD THIS: Refresh user data from server
+  refreshUser: async () => {
+    try {
+      const { token } = get();
+      if (!token) return;
+
+      const response = await axios.get(`${API_BASE_URL}/api/v1/auth/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const updatedUser = response.data.user || response.data;
+
+      // Update AsyncStorage
+      await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
+
+      // Update state
+      set({ user: updatedUser });
+    } catch (error) {
+      console.error("Error refreshing user:", error);
+      throw error;
+    }
+  },
 }));
 
 export default useAuthStore;

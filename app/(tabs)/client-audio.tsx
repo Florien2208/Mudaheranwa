@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  SafeAreaView,
+
   View,
   Text,
   Image,
@@ -15,6 +15,8 @@ import {
 
 import { API_BASE_URL } from "@/constants";
 import { AntDesign } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 
 // Enhanced icons with better visual design
 const BookIcon = () => (
@@ -54,6 +56,7 @@ const BookApp = () => {
   const [selectedBook, setSelectedBook] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const {t}=useTranslation()
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -191,10 +194,11 @@ const BookApp = () => {
               </View>
               <View>
                 <Text className="text-[#72b7e9] text-2xl font-bold">
-                  Books
+                  
+                  {t("books.title")}
                 </Text>
                 <Text className="text-gray-500 text-sm">
-                  Discover amazing books
+                  {t("books.subtitle")}
                 </Text>
               </View>
             </View>
@@ -204,7 +208,7 @@ const BookApp = () => {
             <SearchIcon />
             <TextInput
               className="flex-1 text-gray-800 text-base"
-              placeholder="Search books or authors..."
+              placeholder={t("books.searchPlaceholder")}
               placeholderTextColor="#9ca3af"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -218,12 +222,14 @@ const BookApp = () => {
             book={selectedBook}
             onBack={() => setSelectedBook(null)}
             onDownload={handleDownload}
+            t={t}
           />
         ) : (
           <BookList
             books={filteredBooks}
             onSelectBook={setSelectedBook}
             loading={loading}
+            t={t}
           />
         )}
       </View>
@@ -232,14 +238,14 @@ const BookApp = () => {
 };
 
 // Enhanced Book List Component
-const BookList = ({ books, onSelectBook, loading }) => {
+const BookList = ({ books, onSelectBook, loading,t }) => {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-gray-50">
         <View className="bg-white rounded-3xl p-8 shadow-lg items-center">
           <ActivityIndicator size="large" color="#72b7e9" />
           <Text className="text-gray-600 mt-4 text-lg font-medium">
-            Loading books...
+            {t("books.loading")}
           </Text>
         </View>
       </View>
@@ -254,10 +260,10 @@ const BookList = ({ books, onSelectBook, loading }) => {
             <BookIcon />
           </View>
           <Text className="text-gray-600 text-lg font-medium">
-            No books found
+            {t("books.noBooks")}
           </Text>
           <Text className="text-gray-400 text-sm mt-2">
-            Try adjusting your search
+            {t("books.tryAdjusting")}
           </Text>
         </View>
       </View>
@@ -347,9 +353,11 @@ const BookList = ({ books, onSelectBook, loading }) => {
         <View className="flex-row justify-between items-center mb-4">
           <View>
             <Text className="text-gray-800 text-2xl font-bold">
-              Featured Books
+              {t("books.featured")}
             </Text>
-            <Text className="text-gray-500 text-sm">Handpicked for you</Text>
+            <Text className="text-gray-500 text-sm">
+              {t("books.featuredSubtitle")}
+            </Text>
           </View>
           {/* <TouchableOpacity className="bg-[#72b7e9] rounded-full px-4 py-2">
             <Text className="text-white text-sm font-medium">View all</Text>
@@ -370,10 +378,10 @@ const BookList = ({ books, onSelectBook, loading }) => {
       <View className="px-5 pt-8 pb-5">
         <View className="mb-4">
           <Text className="text-gray-800 text-2xl font-bold mb-1">
-            All Books
+            {t("books.allBooks")}
           </Text>
           <Text className="text-gray-500 text-sm">
-            Explore our entire collection
+            {t("books.allBooksSubtitle")}
           </Text>
         </View>
 
@@ -392,9 +400,9 @@ const BookList = ({ books, onSelectBook, loading }) => {
 };
 
 // Enhanced Book Detail Component
-const BookDetail = ({ book, onBack, onDownload }) => {
+const BookDetail = ({ book, onBack, onDownload ,t}) => {
   return (
-    <ScrollView
+    <SafeAreaView
       className="flex-1 bg-gray-50"
       showsVerticalScrollIndicator={false}
     >
@@ -405,7 +413,7 @@ const BookDetail = ({ book, onBack, onDownload }) => {
         >
           <AntDesign name="arrowleft" size={24} color="black" />
           <Text className="text-[#72b7e9] ml-3 text-base font-medium">
-            Back to books
+            {t("books.backToBooks")}
           </Text>
         </TouchableOpacity>
 
@@ -467,10 +475,10 @@ const BookDetail = ({ book, onBack, onDownload }) => {
               )}
               <Text className="text-white font-bold text-lg ml-2">
                 {book.downloading
-                  ? "Downloading..."
+                  ? t("books.downloading")
                   : book.downloaded
-                    ? "Downloaded ✓"
-                    : "Download Book"}
+                    ? t("books.downloaded")
+                    : t("books.downloadBook")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -478,7 +486,7 @@ const BookDetail = ({ book, onBack, onDownload }) => {
 
         <View className="bg-white rounded-3xl p-6 shadow-lg mb-6">
           <Text className="text-gray-800 text-xl font-bold mb-4">
-            About this book
+            {t("books.aboutBook")}
           </Text>
           <Text className="text-gray-600 leading-6 mb-6 text-base">
             {book.description}
@@ -488,7 +496,7 @@ const BookDetail = ({ book, onBack, onDownload }) => {
             <View className="flex-row">
               <View className="flex-1 bg-gray-50 rounded-2xl p-4 mr-2">
                 <Text className="text-[#72b7e9] text-sm font-bold mb-1">
-                  Publisher
+                  {t("books.publisher")}
                 </Text>
                 <Text className="text-gray-800 text-base font-medium">
                   {book.publisher}
@@ -496,7 +504,7 @@ const BookDetail = ({ book, onBack, onDownload }) => {
               </View>
               <View className="flex-1 bg-gray-50 rounded-2xl p-4 ml-2">
                 <Text className="text-[#72b7e9] text-sm font-bold mb-1">
-                  Published
+                  {t("books.published")}
                 </Text>
                 <Text className="text-gray-800 text-base font-medium">
                   {book.publicationDate}
@@ -507,7 +515,7 @@ const BookDetail = ({ book, onBack, onDownload }) => {
             <View className="flex-row">
               <View className="flex-1 bg-gray-50 rounded-2xl p-4 mr-2">
                 <Text className="text-[#72b7e9] text-sm font-bold mb-1">
-                  Language
+                  {t("books.language")}
                 </Text>
                 <Text className="text-gray-800 text-base font-medium">
                   {book.language}
@@ -515,7 +523,7 @@ const BookDetail = ({ book, onBack, onDownload }) => {
               </View>
               <View className="flex-1 bg-gray-50 rounded-2xl p-4 ml-2">
                 <Text className="text-[#72b7e9] text-sm font-bold mb-1">
-                  ISBN
+                  {t("books.isbn")}
                 </Text>
                 <Text className="text-gray-800 text-base font-medium">
                   {book.isbn}
@@ -525,7 +533,7 @@ const BookDetail = ({ book, onBack, onDownload }) => {
           </View>
         </View>
       </View>
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 

@@ -5,7 +5,6 @@ import { StatusBar } from "expo-status-bar";
 import React, { useState, useCallback } from "react";
 import {
   Platform,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -16,32 +15,26 @@ import {
   ScrollView,
   Image,
 } from "react-native";
-import MtnIcon from "../../../assets/images/mtn.png"; // Ensure you have the correct path to your images
-import AirtelIcon from "../../../assets/images/aitel.png"; 
+import MtnIcon from "../../../assets/images/mtn.png";
+import AirtelIcon from "../../../assets/images/aitel.png";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const COLORS = {
-  primary: "#72b7e9",
-  primaryLight: "#8fc5ed",
-  primaryDark: "#5ca8d8",
-  success: "#34c759",
-  warning: "#ff9500",
-  error: "#ff3b30",
-  lightBg: "#f8fbff",
-  darkBg: "#0a1a24",
-  cardLight: "#ffffff",
-  cardDark: "#1a2832",
-  shadowColor: "#000",
-  mtnYellow: "#FFCC00",
-} as const;
+interface PaymentMethod {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  image?: any;
+  selected: boolean;
+}
 
-const PAYMENT_METHODS = [
+const PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: "mtn_mobile_money",
     name: "MTN Mobile Money",
     icon: "creditcard.fill",
-    color: COLORS.mtnYellow,
-    image: MtnIcon, // add this
+    color: "#FFCC00",
+    image: MtnIcon,
     selected: true,
   },
   {
@@ -52,38 +45,38 @@ const PAYMENT_METHODS = [
     image: AirtelIcon,
     selected: false,
   },
-  // {
-  //   id: "card",
-  //   name: "Credit/Debit Card",
-  //   icon: "creditcard",
-  //   color: COLORS.primary,
-  //   selected: false,
-  // },
 ];
 
-export default function PaymentScreen({ navigation, route }) {
+interface PaymentScreenProps {
+  navigation: any;
+  route: any;
+}
+
+export default function PaymentScreen({
+  navigation,
+  route,
+}: PaymentScreenProps) {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const isDark = colorScheme === "dark";
 
-  // Get plan details from route params (passed from subscription screen)
+  // Get plan details from route params
   const { plan, amount = "2,000 RWF" } = route?.params || {
     plan: { name: "Premium", price: "$9.99" },
     amount: "2,000 RWF",
   };
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState("mtn_mobile_money");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
+    useState<string>("mtn_mobile_money");
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  const handlePaymentMethodSelect = useCallback((methodId) => {
+  const handlePaymentMethodSelect = useCallback((methodId: string) => {
     Haptics?.selectionAsync?.();
     setSelectedPaymentMethod(methodId);
   }, []);
 
-  const handlePhoneNumberChange = useCallback((text) => {
-    // Format phone number and remove non-digits
+  const handlePhoneNumberChange = useCallback((text: string) => {
     const cleaned = text.replace(/[^\d]/g, "");
     setPhoneNumber(cleaned);
   }, []);
@@ -108,7 +101,6 @@ export default function PaymentScreen({ navigation, route }) {
           {
             text: "OK",
             onPress: () => {
-              // Navigate back to subscription screen or success screen
               navigation?.goBack?.();
             },
           },
@@ -127,35 +119,38 @@ export default function PaymentScreen({ navigation, route }) {
 
   return (
     <KeyboardAvoidingView
-      style={[
-        styles.container,
-        { backgroundColor: isDark ? COLORS.darkBg : COLORS.lightBg },
-      ]}
+      className={`flex-1 ${isDark ? "bg-black" : "bg-white"}`}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ paddingTop: insets.top }}
     >
       <StatusBar style={isDark ? "light" : "dark"} />
 
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View className="flex-row items-center px-6 pt-4 pb-6">
         <TouchableOpacity
           onPress={() => navigation?.goBack?.()}
-          style={styles.backButton}
+          className="mr-4"
           accessibilityLabel="Go back"
           accessibilityRole="button"
         >
-          <IconSymbol name="chevron.left" size={24} color={COLORS.primary} />
+          <View
+            className={`w-10 h-10 rounded-full justify-center items-center ${isDark ? "bg-gray-800" : "bg-gray-100"}`}
+          >
+            <IconSymbol
+              name="chevron.left"
+              size={20}
+              color={isDark ? "#FFFFFF" : "#000000"}
+            />
+          </View>
         </TouchableOpacity>
-        <View style={styles.headerContent}>
+        <View className="flex-1">
           <Text
-            style={[styles.headerTitle, { color: Colors[colorScheme].text }]}
+            className={`text-3xl font-bold tracking-tight ${isDark ? "text-white" : "text-black"}`}
           >
             Complete Payment
           </Text>
           <Text
-            style={[
-              styles.headerSubtitle,
-              { color: Colors[colorScheme].secondaryText },
-            ]}
+            className={`text-base font-medium mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}
           >
             Upgrade to {plan.name}
           </Text>
@@ -163,177 +158,179 @@ export default function PaymentScreen({ navigation, route }) {
       </View>
 
       <ScrollView
-        style={styles.content}
+        className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
       >
         {/* Payment Amount Card */}
         <View
-          style={[
-            styles.amountCard,
-            { backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight },
-          ]}
+          className={`rounded-3xl p-8 mb-8 items-center border ${
+            isDark
+              ? "bg-gray-900 border-gray-700 shadow-lg"
+              : "bg-white border-gray-200 shadow-sm"
+          }`}
         >
           <Text
-            style={[
-              styles.amountLabel,
-              { color: Colors[colorScheme].secondaryText },
-            ]}
+            className={`text-base font-medium mb-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}
           >
             Total Amount
           </Text>
-          <Text style={[styles.amountText, { color: COLORS.primary }]}>
+          <Text
+            className={`text-4xl font-extrabold mb-2 tracking-tight ${isDark ? "text-white" : "text-black"}`}
+          >
             {amount}
           </Text>
           <Text
-            style={[
-              styles.planDetails,
-              { color: Colors[colorScheme].secondaryText },
-            ]}
+            className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-600"}`}
           >
-            {plan.name} subscription - Monthly billing
+            {plan.name} subscription • Monthly billing
           </Text>
         </View>
 
         {/* Payment Method Selection */}
         <Text
-          style={[styles.sectionTitle, { color: Colors[colorScheme].text }]}
+          className={`text-xl font-bold mb-5 tracking-tight ${isDark ? "text-white" : "text-black"}`}
         >
-          How would you like to pay?
+          Select Payment Method
         </Text>
 
-        {PAYMENT_METHODS.map((method) => (
-          <TouchableOpacity
-            key={method.id}
-            style={[
-              styles.paymentMethodCard,
-              {
-                backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-                borderColor:
-                  selectedPaymentMethod === method.id
-                    ? COLORS.primary
-                    : "transparent",
-                borderWidth: selectedPaymentMethod === method.id ? 2 : 0,
-              },
-            ]}
-            onPress={() => handlePaymentMethodSelect(method.id)}
-            accessibilityLabel={`Select ${method.name}`}
-            accessibilityRole="radio"
-            accessibilityState={{
-              selected: selectedPaymentMethod === method.id,
-            }}
-          >
-            <View style={styles.paymentMethodContent}>
+        <View className="mb-6">
+          {PAYMENT_METHODS.map((method) => (
+            <TouchableOpacity
+              key={method.id}
+              className={`flex-row items-center justify-between rounded-2xl p-5 mb-4 border-2 ${
+                selectedPaymentMethod === method.id
+                  ? isDark
+                    ? "bg-gray-900 border-white"
+                    : "bg-white border-black"
+                  : isDark
+                    ? "bg-gray-900 border-gray-700"
+                    : "bg-white border-gray-200"
+              } ${Platform.OS === "ios" ? "shadow-sm" : "elevation-1"}`}
+              onPress={() => handlePaymentMethodSelect(method.id)}
+              accessibilityLabel={`Select ${method.name}`}
+              accessibilityRole="radio"
+              accessibilityState={{
+                selected: selectedPaymentMethod === method.id,
+              }}
+            >
+              <View className="flex-row items-center flex-1">
+                <View
+                  className={`w-13 h-13 rounded-full justify-center items-center mr-4 ${
+                    isDark ? "bg-gray-800" : "bg-gray-100"
+                  }`}
+                >
+                  {method.image ? (
+                    <Image
+                      source={method.image}
+                      className="w-7 h-7"
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <IconSymbol
+                      name={method.icon}
+                      size={24}
+                      color={method.color}
+                    />
+                  )}
+                </View>
+                <Text
+                  className={`text-base font-semibold ${isDark ? "text-white" : "text-black"}`}
+                >
+                  {method.name}
+                </Text>
+              </View>
               <View
-                style={[
-                  styles.paymentMethodIcon,
-                  { backgroundColor: method.color + "20" },
-                ]}
+                className={`w-6 h-6 rounded-full border-2 justify-center items-center ${
+                  selectedPaymentMethod === method.id
+                    ? isDark
+                      ? "border-white"
+                      : "border-black"
+                    : isDark
+                      ? "border-gray-400"
+                      : "border-gray-600"
+                }`}
               >
-                {method.image ? (
-                  <Image
-                    source={method.image}
-                    style={{ width: 24, height: 24 }}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <IconSymbol
-                    name={method.icon}
-                    size={24}
-                    color={method.color}
+                {selectedPaymentMethod === method.id && (
+                  <View
+                    className={`w-3 h-3 rounded-full ${isDark ? "bg-white" : "bg-black"}`}
                   />
                 )}
               </View>
-              <Text
-                style={[
-                  styles.paymentMethodName,
-                  { color: Colors[colorScheme].text },
-                ]}
-              >
-                {method.name}
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.radioButton,
-                {
-                  borderColor:
-                    selectedPaymentMethod === method.id
-                      ? COLORS.primary
-                      : Colors[colorScheme].secondaryText,
-                },
-              ]}
-            >
-              {selectedPaymentMethod === method.id && (
-                <View
-                  style={[
-                    styles.radioButtonInner,
-                    { backgroundColor: COLORS.primary },
-                  ]}
-                />
-              )}
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {/* Mobile Money Payment Details */}
         {selectedPaymentMethod === "mtn_mobile_money" && (
           <View
-            style={[
-              styles.paymentDetailsCard,
-              { backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight },
-            ]}
+            className={`rounded-2xl p-6 mb-8 border ${
+              isDark
+                ? "bg-gray-900 border-gray-700 shadow-lg"
+                : "bg-white border-gray-200 shadow-sm"
+            }`}
           >
             <Text
-              style={[
-                styles.paymentDetailsTitle,
-                { color: Colors[colorScheme].text },
-              ]}
+              className={`text-lg font-bold mb-5 ${isDark ? "text-white" : "text-black"}`}
             >
-              Dial this on your MTN phone to pay:
+              Quick Payment Options
             </Text>
 
-            <View style={styles.ussdCodeContainer}>
+            <View className="mb-6">
               <View
-                style={[
-                  styles.ussdCodeBox,
-                  { backgroundColor: COLORS.mtnYellow + "20" },
-                ]}
+                className={`flex-row items-center justify-center p-5 rounded-2xl border ${
+                  isDark
+                    ? "bg-gray-800 border-gray-700"
+                    : "bg-gray-100 border-gray-200"
+                }`}
               >
                 <IconSymbol
                   name="phone.fill"
                   size={20}
-                  color={COLORS.mtnYellow}
+                  color={isDark ? "#FFFFFF" : "#000000"}
                 />
-                <Text style={[styles.ussdCode, { color: COLORS.mtnYellow }]}>
+                <Text
+                  className={`text-lg font-bold ml-3 tracking-wide ${isDark ? "text-white" : "text-black"}`}
+                >
                   *182*3*7*2031006246#
                 </Text>
               </View>
+              <Text
+                className={`text-sm font-medium mt-3 text-center ${isDark ? "text-gray-400" : "text-gray-600"}`}
+              >
+                Dial this code on your MTN phone
+              </Text>
+            </View>
+
+            <View className="flex-row items-center mb-6">
+              <View
+                className={`flex-1 h-px ${isDark ? "bg-gray-700" : "bg-gray-200"}`}
+              />
+              <Text
+                className={`text-sm font-semibold px-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}
+              >
+                OR
+              </Text>
+              <View
+                className={`flex-1 h-px ${isDark ? "bg-gray-700" : "bg-gray-200"}`}
+              />
             </View>
 
             <Text
-              style={[
-                styles.orText,
-                { color: Colors[colorScheme].secondaryText },
-              ]}
+              className={`text-base font-semibold mb-3 ${isDark ? "text-white" : "text-black"}`}
             >
-              Or just enter your MTN momo phone number to pay
+              Enter your MTN Mobile Money number
             </Text>
 
-            <View style={styles.phoneInputContainer}>
+            <View className="mb-2">
               <TextInput
-                style={[
-                  styles.phoneInput,
-                  {
-                    backgroundColor: isDark
-                      ? COLORS.darkBg + "80"
-                      : COLORS.lightBg + "80",
-                    color: Colors[colorScheme].text,
-                    borderColor: Colors[colorScheme].secondaryText + "30",
-                  },
-                ]}
-                placeholder="ex. 0780000000"
-                placeholderTextColor={Colors[colorScheme].secondaryText + "60"}
+                className={`border rounded-2xl p-4 text-base font-semibold ${
+                  isDark
+                    ? "bg-black text-white border-gray-700"
+                    : "bg-gray-50 text-black border-gray-200"
+                }`}
+                placeholder="078 000 0000"
+                placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
                 value={phoneNumber}
                 onChangeText={handlePhoneNumberChange}
                 keyboardType="phone-pad"
@@ -346,257 +343,70 @@ export default function PaymentScreen({ navigation, route }) {
 
         {/* Payment Button */}
         <TouchableOpacity
-          style={[
-            styles.payButton,
-            {
-              backgroundColor:
-                phoneNumber.length >= 10 && !isProcessing
-                  ? COLORS.success
-                  : Colors[colorScheme].secondaryText + "40",
-            },
-          ]}
+          className={`rounded-2xl py-5 items-center mb-6 ${
+            phoneNumber.length >= 10 && !isProcessing
+              ? isDark
+                ? "bg-white shadow-lg"
+                : "bg-black shadow-lg"
+              : isDark
+                ? "bg-gray-800"
+                : "bg-gray-300"
+          } ${Platform.OS === "ios" ? "shadow-lg" : "elevation-2"}`}
           onPress={handlePayment}
           disabled={phoneNumber.length < 10 || isProcessing}
           accessibilityLabel={`Pay ${amount}`}
           accessibilityRole="button"
         >
           {isProcessing ? (
-            <View style={styles.processingContainer}>
-              <Text style={styles.payButtonText}>Processing...</Text>
+            <View className="flex-row items-center">
+              <Text
+                className={`text-lg font-bold tracking-tight ${
+                  isDark ? "text-black" : "text-white"
+                }`}
+              >
+                Processing...
+              </Text>
             </View>
           ) : (
-            <Text style={styles.payButtonText}>Pay {amount}</Text>
+            <Text
+              className={`text-lg font-bold tracking-tight ${
+                phoneNumber.length >= 10
+                  ? isDark
+                    ? "text-black"
+                    : "text-white"
+                  : isDark
+                    ? "text-gray-400"
+                    : "text-gray-600"
+              }`}
+            >
+              Pay {amount}
+            </Text>
           )}
         </TouchableOpacity>
 
         {/* Payment Info */}
         <View
-          style={[
-            styles.infoCard,
-            { backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight },
-          ]}
+          className={`flex-row p-5 rounded-2xl items-start border ${
+            isDark
+              ? "bg-gray-900 border-gray-700 shadow-lg"
+              : "bg-white border-gray-200 shadow-sm"
+          }`}
         >
-          <IconSymbol name="info.circle" size={20} color={COLORS.primary} />
+          <IconSymbol
+            name="info.circle"
+            size={20}
+            color={isDark ? "#FFFFFF" : "#000000"}
+          />
           <Text
-            style={[
-              styles.infoText,
-              { color: Colors[colorScheme].secondaryText },
-            ]}
+            className={`text-sm font-medium ml-3 flex-1 leading-5 ${
+              isDark ? "text-gray-400" : "text-gray-600"
+            }`}
           >
-            After you press pay, you will be prompted to submit your Mobile
-            Money PIN on your phone to complete the payment.
+            You'll receive a payment prompt on your phone. Enter your Mobile
+            Money PIN to complete the transaction securely.
           </Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 12,
-  },
-  headerContent: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    marginTop: 4,
-    opacity: 0.7,
-  },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  amountCard: {
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 24,
-    alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  amountLabel: {
-    fontSize: 16,
-    opacity: 0.7,
-    marginBottom: 8,
-  },
-  amountText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  planDetails: {
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 16,
-    paddingHorizontal: 4,
-  },
-  paymentMethodCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 12,
-    ...Platform.select({
-      ios: {
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  paymentMethodContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  paymentMethodIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  paymentMethodName: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  radioButtonInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  paymentDetailsCard: {
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 8,
-    marginBottom: 24,
-    ...Platform.select({
-      ios: {
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  paymentDetailsTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 16,
-  },
-  ussdCodeContainer: {
-    marginBottom: 20,
-  },
-  ussdCodeBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 12,
-    justifyContent: "center",
-  },
-  ussdCode: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 12,
-    letterSpacing: 1,
-  },
-  orText: {
-    fontSize: 14,
-    marginBottom: 16,
-    opacity: 0.7,
-  },
-  phoneInputContainer: {
-    marginBottom: 8,
-  },
-  phoneInput: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  payButton: {
-    borderRadius: 16,
-    paddingVertical: 18,
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  payButtonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  processingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  infoCard: {
-    flexDirection: "row",
-    padding: 16,
-    borderRadius: 16,
-    marginTop: 8,
-    ...Platform.select({
-      ios: {
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  infoText: {
-    fontSize: 14,
-    marginLeft: 12,
-    flex: 1,
-    lineHeight: 20,
-  },
-});

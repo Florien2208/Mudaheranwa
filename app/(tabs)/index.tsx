@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Audio } from "expo-av";
 import NotificationDropdown from "./Account/dropdownNotification";
+import { useTranslation } from "react-i18next";
 
 // Define types for our data
 interface Song {
@@ -93,6 +94,7 @@ export default function HomeScreen(): React.ReactElement {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const isDark = colorScheme === "dark";
+  const { t } = useTranslation();
 
   // Add this useEffect after your existing useEffects to load notifications
   useEffect(() => {
@@ -292,15 +294,15 @@ export default function HomeScreen(): React.ReactElement {
 
   useEffect(() => {
     // Set greeting based on time of day
-    const hour = new Date().getHours();
-    if (hour < 12) {
-      setGreeting("Good Morning");
-    } else if (hour < 18) {
-      setGreeting("Good Afternoon");
-    } else {
-      setGreeting("Good Evening");
-    }
-  }, []);
+   const hour = new Date().getHours();
+   if (hour < 12) {
+     setGreeting(t("home.goodMorning"));
+   } else if (hour < 18) {
+     setGreeting(t("home.goodAfternoon"));
+   } else {
+     setGreeting(t("home.goodEvening"));
+   }
+  }, [t]);
 
   const playAudio = async (song: Song) => {
     try {
@@ -509,7 +511,7 @@ export default function HomeScreen(): React.ReactElement {
             type="title"
             style={{ fontFamily: "PoppinsBold" }}
           >
-            {user?.username || "Music Lover"}
+            {t("home.musiclover")}
           </ThemedText>
         </View>
         <TouchableOpacity
@@ -561,7 +563,7 @@ export default function HomeScreen(): React.ReactElement {
                 type="title"
                 style={{ fontFamily: "PoppinsSemiBold" }}
               >
-                Featured
+                {t("home.featured")}
               </ThemedText>
               <FlatList
                 horizontal
@@ -580,7 +582,7 @@ export default function HomeScreen(): React.ReactElement {
                 type="title"
                 style={{ fontFamily: "PoppinsSemiBold" }}
               >
-                Trending Now
+                {t("home.trendingNow")}
               </ThemedText>
               <View className="px-5">
                 {songs.map((item) => (
@@ -599,7 +601,7 @@ export default function HomeScreen(): React.ReactElement {
                   type="title"
                   style={{ fontFamily: "PoppinsSemiBold" }}
                 >
-                  Your Music
+                  {t("home.yourMusic")}
                 </ThemedText>
                 <TouchableOpacity
                   className="mx-5 rounded-2xl overflow-hidden shadow-md"
@@ -634,12 +636,25 @@ export default function HomeScreen(): React.ReactElement {
       />
 
       {showNotifications && (
-        <NotificationDropdown
-          notifications={notifications}
-          onNotificationPress={handleNotificationPress}
-          onSeeAll={handleSeeAllNotifications}
-          isDark={isDark}
-        />
+        <TouchableOpacity
+          className="absolute inset-0 z-40"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
+          onPress={() => setShowNotifications(false)}
+          activeOpacity={1}
+        >
+          <TouchableOpacity
+            className="absolute top-10 right-0 z-50"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <NotificationDropdown
+              notifications={notifications}
+              onNotificationPress={handleNotificationPress}
+              onSeeAll={handleSeeAllNotifications}
+              isDark={isDark}
+            />
+          </TouchableOpacity>
+        </TouchableOpacity>
       )}
 
       {/* Now Playing Bar - only shown when a track is playing */}

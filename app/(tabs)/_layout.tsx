@@ -8,9 +8,10 @@ import TabBarBackground from "@/components/ui/TabBarBackground";
 import useAuthStore from "@/store/useAuthStore";
 import NotificationHandler from "@/components/notificationHandler";
 import ChatBot from "@/components/chatbot";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function TabLayout() {
-  
+   const { t } = useLanguage();
   const { user } = useAuthStore();
   const [showChatBot] = useState(true);
   const [chatBotVisible, setChatBotVisible] = useState(true);
@@ -86,7 +87,7 @@ export default function TabLayout() {
             name="index"
             redirect={user?.role !== "user"}
             options={{
-              title: "Audio",
+              title: t("tabs.audio"),
               tabBarIcon: ({ color }) => (
                 <IconSymbol size={28} name="headphones" color={color} />
               ),
@@ -97,7 +98,7 @@ export default function TabLayout() {
             name="dashboard"
             redirect={user?.role !== "sound prof"}
             options={{
-              title: "Dashboard",
+              title: t("tabs.dashboard"),
               tabBarIcon: ({ color }) => (
                 <IconSymbol size={28} name="chart.bar.fill" color={color} />
               ),
@@ -108,7 +109,7 @@ export default function TabLayout() {
             name="subscribers"
             redirect={user?.role !== "non"}
             options={{
-              title: "Subscribers",
+              title: t("tabs.subscribers"),
               tabBarIcon: ({ color }) => (
                 <IconSymbol size={28} name="person.3.fill" color={color} />
               ),
@@ -119,7 +120,7 @@ export default function TabLayout() {
             name="library"
             redirect={user?.role !== "admin"}
             options={{
-              title: "Audio",
+              title: t("tabs.audio"),
               tabBarIcon: ({ color }) => (
                 <IconSymbol size={28} name="headphones" color={color} />
               ),
@@ -130,7 +131,7 @@ export default function TabLayout() {
             name="audio"
             redirect={user?.role !== "admin"}
             options={{
-              title: "Library",
+              title: t("tabs.library"),
               tabBarIcon: ({ color }) => (
                 <IconSymbol size={28} name="book.fill" color={color} />
               ),
@@ -141,7 +142,7 @@ export default function TabLayout() {
             name="client-audio"
             redirect={user?.role !== "user"}
             options={{
-              title: "Books",
+              title: t("tabs.books"),
               tabBarIcon: ({ color }) => (
                 <IconSymbol
                   size={28}
@@ -155,7 +156,7 @@ export default function TabLayout() {
             name="video"
             redirect={user?.role !== "user"}
             options={{
-              title: "Videos",
+              title: t("tabs.videos"),
               tabBarIcon: ({ color }) => (
                 <IconSymbol
                   size={28}
@@ -169,7 +170,7 @@ export default function TabLayout() {
             name="advideo"
             redirect={user?.role !== "admin"}
             options={{
-              title: "Videos",
+              title: t("tabs.videos"),
               tabBarIcon: ({ color }) => (
                 <IconSymbol
                   size={28}
@@ -182,7 +183,7 @@ export default function TabLayout() {
           <Tabs.Screen
             name="map"
             options={{
-              title: "Map",
+              title: t("tabs.map"),
               tabBarIcon: ({ color }) => (
                 <IconSymbol size={28} name="map.fill" color={color} />
               ),
@@ -192,7 +193,7 @@ export default function TabLayout() {
             name="subscription"
             redirect={user?.role !== "non"}
             options={{
-              title: "Subscription",
+              title: t("tabs.subscription"),
               tabBarIcon: ({ color }) => (
                 <IconSymbol size={28} name="star.fill" color={color} />
               ),
@@ -202,7 +203,7 @@ export default function TabLayout() {
           <Tabs.Screen
             name="Account"
             options={{
-              title: "My Account",
+              title: t("tabs.account"),
               tabBarIcon: ({ color }) => (
                 <IconSymbol size={28} name="person.fill" color={color} />
               ),

@@ -79,6 +79,13 @@ const MAPPING = {
   "play.rectangle.fill": "smart-display",
   "sun.max.fill": "light-mode",
   "moon.fill": "dark-mode",
+  "person.crop.circle.fill": "account-circle",
+  "camera.fill": "photo-camera",
+  "paintbrush.fill": "palette",
+  "chart.line.uptrend.xyaxis": "show-chart",
+  "rectangle.portrait.and.arrow.right": "logout",
+  "arrow.clockwise": "sync",
+  checkmark: "done",
 } as IconMapping;
 
 /**

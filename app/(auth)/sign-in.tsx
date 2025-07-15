@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
   View,
@@ -148,58 +147,103 @@ export default function SignInScreen({
     }
   };
 
-  // Color definitions
-  const primaryColor = "#72b7e9";
-  const textColor = colorScheme === "dark" ? "#FFFFFF" : "#1C1C1E";
-  const inputBgColor = colorScheme === "dark" ? "#1C1C1E" : "#FFFFFF";
-  const containerBgColor = colorScheme === "dark" ? "#000000" : "#F2F2F7";
-  const placeholderColor = colorScheme === "dark" ? "#8E8E93" : "#8E8E93";
-  const borderColor = colorScheme === "dark" ? "#38383A" : "#C6C6C8";
-  const errorColor = "#FF3B30";
-  const secondaryTextColor = colorScheme === "dark" ? "#8E8E93" : "#8E8E93";
+  const handleForgotPassword = (): void => {
+    // Navigate to forgot password screen or show modal
+    router.push("/(auth)/forgot-password");
+  };
 
   const isDisabled = loading || isAuthenticating;
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={[styles.container, { backgroundColor: containerBgColor }]}
+      style={{
+        flex: 1,
+        backgroundColor: colorScheme === "dark" ? "#000000" : "#FFFFFF",
+      }}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          padding: 20,
+        }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         <Animated.View
           entering={FadeInDown.duration(800)}
-          style={[styles.formContainer, { backgroundColor: inputBgColor }]}
+          style={{
+            width: "100%",
+            maxWidth: 400,
+            alignSelf: "center",
+            backgroundColor: colorScheme === "dark" ? "#000000" : "#FFFFFF",
+            borderRadius: 8,
+            padding: 32,
+            shadowColor: "#000000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 5,
+            borderWidth: 1,
+            borderColor: colorScheme === "dark" ? "#333333" : "#E5E5E5",
+          }}
         >
           <ThemedText
-            type="title"
-            style={[styles.headerText, { color: primaryColor }]}
+            style={{
+              fontSize: 24,
+              fontWeight: "bold",
+              color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+              marginBottom: 8,
+              textAlign: "center",
+            }}
           >
-            Sign in to your account
+            Sign In
           </ThemedText>
 
-          <View style={styles.inputGroup}>
-            <ThemedText style={[styles.inputLabel, { color: textColor }]}>
-              Email address
+          <ThemedText
+            style={{
+              color: colorScheme === "dark" ? "#CCCCCC" : "#666666",
+              textAlign: "center",
+              marginBottom: 32,
+              fontSize: 16,
+            }}
+          >
+            Welcome back! Please sign in to your account
+          </ThemedText>
+
+          <View style={{ marginBottom: 24 }}>
+            <ThemedText
+              style={{
+                color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                fontSize: 16,
+                fontWeight: "500",
+                marginBottom: 8,
+              }}
+            >
+              Email Address
             </ThemedText>
             <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: inputBgColor,
-                  color: textColor,
-                  borderColor:
-                    touchedFields.email && errors.email
-                      ? errorColor
-                      : borderColor,
-                  opacity: isDisabled ? 0.7 : 1,
-                },
-              ]}
+              style={{
+                height: 48,
+                borderWidth: 1,
+                borderRadius: 8,
+                paddingHorizontal: 16,
+                fontSize: 16,
+                backgroundColor: colorScheme === "dark" ? "#111111" : "#F9F9F9",
+                color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                borderColor:
+                  touchedFields.email && errors.email
+                    ? "#FF0000"
+                    : colorScheme === "dark"
+                      ? "#333333"
+                      : "#CCCCCC",
+                opacity: isDisabled ? 0.7 : 1,
+              }}
               placeholder="Enter your email"
-              placeholderTextColor={placeholderColor}
+              placeholderTextColor={
+                colorScheme === "dark" ? "#888888" : "#999999"
+              }
               value={email}
               onChangeText={(value) => {
                 setEmail(value);
@@ -213,31 +257,50 @@ export default function SignInScreen({
               editable={!isDisabled}
             />
             {touchedFields.email && errors.email && (
-              <ThemedText style={[styles.errorText, { color: errorColor }]}>
+              <ThemedText
+                style={{
+                  color: "#FF0000",
+                  fontSize: 14,
+                  marginTop: 4,
+                }}
+              >
                 {errors.email}
               </ThemedText>
             )}
           </View>
 
-          <View style={styles.inputGroup}>
-            <ThemedText style={[styles.inputLabel, { color: textColor }]}>
+          <View style={{ marginBottom: 24 }}>
+            <ThemedText
+              style={{
+                color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                fontSize: 16,
+                fontWeight: "500",
+                marginBottom: 8,
+              }}
+            >
               Password
             </ThemedText>
             <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: inputBgColor,
-                  color: textColor,
-                  borderColor:
-                    touchedFields.password && errors.password
-                      ? errorColor
-                      : borderColor,
-                  opacity: isDisabled ? 0.7 : 1,
-                },
-              ]}
+              style={{
+                height: 48,
+                borderWidth: 1,
+                borderRadius: 8,
+                paddingHorizontal: 16,
+                fontSize: 16,
+                backgroundColor: colorScheme === "dark" ? "#111111" : "#F9F9F9",
+                color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                borderColor:
+                  touchedFields.password && errors.password
+                    ? "#FF0000"
+                    : colorScheme === "dark"
+                      ? "#333333"
+                      : "#CCCCCC",
+                opacity: isDisabled ? 0.7 : 1,
+              }}
               placeholder="Enter your password"
-              placeholderTextColor={placeholderColor}
+              placeholderTextColor={
+                colorScheme === "dark" ? "#888888" : "#999999"
+              }
               value={password}
               onChangeText={(value) => {
                 setPassword(value);
@@ -250,112 +313,93 @@ export default function SignInScreen({
               editable={!isDisabled}
             />
             {touchedFields.password && errors.password && (
-              <ThemedText style={[styles.errorText, { color: errorColor }]}>
+              <ThemedText
+                style={{
+                  color: "#FF0000",
+                  fontSize: 14,
+                  marginTop: 4,
+                }}
+              >
                 {errors.password}
               </ThemedText>
             )}
           </View>
 
           <TouchableOpacity
-            style={[
-              styles.button,
-              { backgroundColor: primaryColor },
-              isDisabled && { opacity: 0.6 },
-            ]}
-            onPress={handleAuth}
+            style={{
+              alignItems: "flex-end",
+              marginBottom: 24,
+            }}
+            onPress={handleForgotPassword}
             disabled={isDisabled}
-            activeOpacity={0.8}
           >
-            <ThemedText style={styles.buttonText}>
-              {isDisabled ? "Signing in..." : "Sign in"}
+            <ThemedText
+              style={{
+                color: colorScheme === "dark" ? "#CCCCCC" : "#666666",
+                fontSize: 14,
+                fontWeight: "500",
+              }}
+            >
+              Forgot Password?
             </ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.toggleButton, isDisabled && { opacity: 0.6 }]}
-            onPress={() => router.push("/(auth)/sign-up")}
+            style={{
+              height: 48,
+              backgroundColor: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+              borderRadius: 8,
+              justifyContent: "center",
+              alignItems: "center",
+              marginBottom: 24,
+              opacity: isDisabled ? 0.6 : 1,
+            }}
+            onPress={handleAuth}
             disabled={isDisabled}
+            activeOpacity={0.8}
           >
             <ThemedText
-              style={[styles.toggleText, { color: secondaryTextColor }]}
+              style={{
+                color: colorScheme === "dark" ? "#000000" : "#FFFFFF",
+                fontSize: 16,
+                fontWeight: "600",
+              }}
             >
-              Don&apos;t have an account?{" "}
-              <ThemedText style={[styles.linkText, { color: primaryColor }]}>
-                Sign up
-              </ThemedText>
+              {isDisabled ? "Signing In..." : "Sign In"}
             </ThemedText>
           </TouchableOpacity>
+
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+            }}
+          >
+            <ThemedText
+              style={{
+                color: colorScheme === "dark" ? "#CCCCCC" : "#666666",
+                fontSize: 14,
+              }}
+            >
+              Don&apos;t have an account?{" "}
+            </ThemedText>
+            <TouchableOpacity
+              onPress={() => router.push("/(auth)/sign-up")}
+              disabled={isDisabled}
+            >
+              <ThemedText
+                style={{
+                  color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                  fontSize: 14,
+                  fontWeight: "500",
+                }}
+              >
+                Sign Up
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-  formContainer: {
-    width: "100%",
-    maxWidth: 450,
-    borderRadius: 8,
-    padding: 30,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  inputGroup: {
-    marginBottom: 16,
-    width: "100%",
-  },
-  inputLabel: {
-    fontSize: 15,
-    fontWeight: "500",
-    marginBottom: 6,
-  },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    fontSize: 16,
-  },
-  errorText: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  button: {
-    height: 50,
-    borderRadius: 6,
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 10,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  toggleButton: {
-    marginTop: 15,
-    alignItems: "center",
-  },
-  toggleText: {
-    fontSize: 14,
-  },
-  linkText: {
-    fontWeight: "500",
-  },
-});
