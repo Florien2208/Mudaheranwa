@@ -472,107 +472,6 @@ const LanguageModal = React.memo(
   }
 );
 
-const ThemeToggle = React.memo(({ isDark, onToggle, colorScheme, t }) => {
-  const scaleValue = useRef(new Animated.Value(1)).current;
-
-  const handlePress = useCallback(() => {
-    Haptics?.selectionAsync?.();
-
-    Animated.sequence([
-      Animated.spring(scaleValue, {
-        toValue: 0.95,
-        ...ANIMATION_CONFIG.spring,
-      }),
-      Animated.spring(scaleValue, {
-        toValue: 1,
-        ...ANIMATION_CONFIG.spring,
-      }),
-    ]).start();
-
-    onToggle();
-  }, [onToggle, scaleValue]);
-
-  return (
-    <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-      <TouchableOpacity
-        className="rounded-xl mb-4 overflow-hidden"
-        style={{
-          backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-          shadowColor: COLORS.shadowColor,
-          ...Platform.select({
-            ios: {
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.1,
-              shadowRadius: 3,
-            },
-            android: {
-              elevation: 3,
-            },
-          }),
-        }}
-        onPress={handlePress}
-        activeOpacity={0.7}
-        accessibilityLabel={`Switch to ${isDark ? "light" : "dark"} mode`}
-        accessibilityRole="button"
-      >
-        <View
-          className="flex-row items-center p-4"
-          style={{ borderColor: Colors[colorScheme].border + "30" }}
-        >
-          <View
-            className="w-10 h-10 rounded-lg justify-center items-center mr-3"
-            style={{ backgroundColor: COLORS.primary }}
-          >
-            <IconSymbol
-              name={isDark ? "sun.max.fill" : "moon.fill"}
-              size={18}
-              color="#FFFFFF"
-            />
-          </View>
-          <View className="flex-1">
-            <Text
-              className="text-base font-medium mb-0.5"
-              style={{ color: isDark ? "#FFFFFF" : COLORS.textPrimary }}
-            >
-              {isDark ? t("profile.lightMode") : t("profile.darkMode")}
-            </Text>
-            <Text
-              className="text-sm opacity-70"
-              style={{
-                color: isDark ? COLORS.textMuted : COLORS.textSecondary,
-              }}
-            >
-              {isDark ? t("profile.switchToLight") : t("profile.switchToDark")}
-            </Text>
-          </View>
-          <View
-            className="w-11 h-6 rounded-xl justify-center relative"
-            style={{
-              backgroundColor: isDark
-                ? COLORS.primary
-                : Colors[colorScheme].border + "40",
-            }}
-          >
-            <Animated.View
-              className="w-5 h-5 rounded-full absolute shadow-sm"
-              style={{
-                backgroundColor: "#FFFFFF",
-                transform: [{ translateX: isDark ? 20 : 2 }],
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.2,
-                shadowRadius: 2,
-                elevation: 2,
-              }}
-            />
-          </View>
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-});
-
-ThemeToggle.displayName = "ThemeToggle";
 LanguageModal.displayName = "LanguageModal";
 
 // Main Component
@@ -664,12 +563,7 @@ export default function AccountScreen({ navigation }) {
     ]);
   }, [logout, t]);
 
-  const handleThemeToggle = useCallback(() => {
-    const newTheme = isDark ? "light" : "dark";
-    setUserPreferredTheme(newTheme);
-    // Save preference to AsyncStorage
-    // AsyncStorage.setItem('userTheme', newTheme);
-  }, [isDark]);
+
 
   const navigateTo = useCallback((screenName) => {
     Haptics?.selectionAsync?.();
@@ -817,12 +711,7 @@ export default function AccountScreen({ navigation }) {
               t={t}
             />
 
-            <ThemeToggle
-              isDark={isDark}
-              onToggle={handleThemeToggle}
-              colorScheme={colorScheme}
-              t={t}
-            />
+           
 
             {/* Menu Sections */}
             {menuSections.map((section, sectionIndex) => (

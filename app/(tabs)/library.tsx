@@ -1,7 +1,6 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { API_BASE_URL } from "@/constants";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import useAuthStore from "@/store/useAuthStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import * as DocumentPicker from "expo-document-picker";
@@ -41,7 +40,7 @@ export default function LibraryScreen() {
   const [tracks, setTracks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user } = useAuthStore();
+
   const [sound, setSound] = useState(null);
   const [playingTrackId, setPlayingTrackId] = useState(null);
   const [editingTrack, setEditingTrack] = useState(null);

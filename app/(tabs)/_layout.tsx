@@ -95,7 +95,7 @@ export default function TabLayout() {
 
           <Tabs.Screen
             name="dashboard"
-            redirect={user?.role !== "admin"}
+            redirect={user?.role !== "sound prof"}
             options={{
               title: "Dashboard",
               tabBarIcon: ({ color }) => (

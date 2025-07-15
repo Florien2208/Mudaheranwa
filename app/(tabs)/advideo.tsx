@@ -154,7 +154,7 @@ const VideoAdminPanel = () => {
       return false;
     }
 
-    const durationPattern = /^\d{1,2}:\d{2}$/;
+    const durationPattern = /^\d{1,2}\d{2}$/;
     if (!durationPattern.test(formData.duration)) {
       Alert.alert(
         "Invalid Duration",

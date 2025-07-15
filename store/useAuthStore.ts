@@ -155,11 +155,11 @@ const useAuthStore = create<AuthState>((set, get) => ({
       // Clear auth header
       delete axios.defaults.headers.common["Authorization"];
 
-      set({ user: null, token: null, isAuthenticating: false });
-      router.replace("/");
+      set({ user: null, token: null, isAuthenticating: false, loading: false });
+      router.replace("/(auth)/sign-in");
     } catch (error) {
       console.error("Logout error:", error);
-      set({ error: "Failed to logout properly" });
+      set({ error: "Failed to logout properly", loading: false });
     }
   },
 
