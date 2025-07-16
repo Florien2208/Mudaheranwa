@@ -14,19 +14,13 @@ import {
   Modal,
 } from "react-native";
 import { Video } from "expo-av";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 // Mock icons
 const VideoIcon = () => (
   <View style={styles.icon}>
-    <Text style={{ color: "white", fontWeight: "bold" }}>📺</Text>
-  </View>
-);
-
-const SearchIcon = () => (
-  <View style={{ marginRight: 8 }}>
-    <Text>🔍</Text>
+    <Text style={{ color: "black", fontWeight: "bold" }}>📺</Text>
   </View>
 );
 
@@ -46,7 +40,7 @@ const PlayIcon = ({ size = 24, color = "white" }) => (
   </View>
 );
 
-const BackIcon = () => <AntDesign name="arrowleft" size={24} color="#60a5fa" />;
+const BackIcon = () => <AntDesign name="arrowleft" size={24} color="black" />;
 
 // Sample video data
 const sampleVideos = [
@@ -58,7 +52,6 @@ const sampleVideos = [
       "A comprehensive review of Matt Haig's thought-provoking novel about life choices and parallel universes.",
     category: "Reviews",
     duration: "12:45",
-
     uploadDate: "2 days ago",
     thumbnailUrl:
       "https://media.gettyimages.com/id/1426606619/video/library-background-learning-books-and-studying-at-school-university-and-college-for-exam-test.jpg?s=640x640&k=20&c=9x81CDaZaN3Qa-2pyy__23F6WiO2wCguVAGH9hCswe4=",
@@ -73,7 +66,6 @@ const sampleVideos = [
       "Personal journey and practical tips from implementing James Clear's atomic habits system.",
     category: "Self-Help",
     duration: "18:32",
-
     uploadDate: "5 days ago",
     thumbnailUrl:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPVN3J79akqUsYHdk_rih-G0dMeth_1w9h2Q&s",
@@ -88,7 +80,6 @@ const sampleVideos = [
       "Breaking down the key concepts from Morgan Housel's Psychology of Money.",
     category: "Finance",
     duration: "25:18",
-
     uploadDate: "1 week ago",
     thumbnailUrl:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSatECxe411KYZjMCvGhqoatpIxU1d10Rxqrg&s",
@@ -103,7 +94,6 @@ const sampleVideos = [
       "Top science fiction books you need to read this year, including Project Hail Mary.",
     category: "Recommendations",
     duration: "15:47",
-  
     uploadDate: "3 days ago",
     thumbnailUrl:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv_X4GwkuTABwd40Ke0oB5tlHJcg5Fm5rmUw&s",
@@ -118,7 +108,6 @@ const sampleVideos = [
       "Exclusive interview discussing Klara and the Sun and the future of AI in literature.",
     category: "Interviews",
     duration: "42:15",
-
     uploadDate: "2 weeks ago",
     thumbnailUrl:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv_X4GwkuTABwd40Ke0oB5tlHJcg5Fm5rmUw&s",
@@ -133,18 +122,45 @@ const sampleVideos = [
       "Join me as I tackle 52 books this year with tips on how to read more effectively.",
     category: "Tips",
     duration: "8:23",
-
     uploadDate: "4 days ago",
     thumbnailUrl:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQp7VwsH6-PAlG_A2DeIKTtXLFBZ-LZW6ID_g&s",
     videoUrl:
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
   },
+  {
+    id: 7,
+    title: "Classic Literature Deep Dive",
+    author: "BookTube Central",
+    description:
+      "Exploring the timeless themes in classic literature and why they still matter today.",
+    category: "Reviews",
+    duration: "22:30",
+    uploadDate: "1 week ago",
+    thumbnailUrl:
+      "https://media.gettyimages.com/id/1426606619/video/library-background-learning-books-and-studying-at-school-university-and-college-for-exam-test.jpg?s=640x640&k=20&c=9x81CDaZaN3Qa-2pyy__23F6WiO2wCguVAGH9hCswe4=",
+    videoUrl:
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  },
+  {
+    id: 8,
+    title: "Building Better Habits",
+    author: "Productivity Plus",
+    description:
+      "Advanced strategies for habit formation and breaking bad habits permanently.",
+    category: "Self-Help",
+    duration: "16:45",
+    uploadDate: "3 days ago",
+    thumbnailUrl:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPVN3J79akqUsYHdk_rih-G0dMeth_1w9h2Q&s",
+    videoUrl:
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+  },
 ];
 
 // Main Video App Component
 const VideoApp = () => {
-  const {t}=useTranslation()
+  const { t } = useTranslation();
   const [videos, setVideos] = useState(sampleVideos);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -167,9 +183,21 @@ const VideoApp = () => {
     setSelectedVideo(null);
   };
 
+  // Function to get related videos
+  const getRelatedVideos = (currentVideo) => {
+    return videos
+      .filter((video) => video.id !== currentVideo.id)
+      .filter(
+        (video) =>
+          video.category === currentVideo.category ||
+          video.author === currentVideo.author
+      )
+      .slice(0, 4);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header */}
       <View style={styles.header}>
@@ -179,13 +207,16 @@ const VideoApp = () => {
           </View>
           <Text style={styles.appTitle}>{t("videos.title")}</Text>
         </View>
+      </View>
 
+      {/* Search Section */}
+      <View style={styles.searchSection}>
         <View style={styles.searchContainer}>
-          <SearchIcon />
+          <Ionicons name="search" size={20} color="#6b7280" />
           <TextInput
             style={styles.searchInput}
             placeholder={t("videos.searchPlaceholder")}
-            placeholderTextColor="#999"
+            placeholderTextColor="#666"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -193,7 +224,11 @@ const VideoApp = () => {
       </View>
 
       {/* Video List */}
-      <VideoList videos={filteredVideos} onVideoPress={handleVideoPress} t={t}/>
+      <VideoList
+        videos={filteredVideos}
+        onVideoPress={handleVideoPress}
+        t={t}
+      />
 
       {/* Video Player Modal */}
       <Modal
@@ -202,7 +237,13 @@ const VideoApp = () => {
         onRequestClose={closeVideoModal}
       >
         {selectedVideo && (
-          <VideoPlayer video={selectedVideo} onClose={closeVideoModal} t={t} />
+          <VideoPlayer
+            video={selectedVideo}
+            onClose={closeVideoModal}
+            t={t}
+            relatedVideos={getRelatedVideos(selectedVideo)}
+            onRelatedVideoPress={handleVideoPress}
+          />
         )}
       </Modal>
     </SafeAreaView>
@@ -210,7 +251,7 @@ const VideoApp = () => {
 };
 
 // Video List Component
-const VideoList = ({ videos, onVideoPress,t }) => {
+const VideoList = ({ videos, onVideoPress, t }) => {
   if (videos.length === 0) {
     return (
       <View style={styles.emptyContainer}>
@@ -245,7 +286,7 @@ const VideoList = ({ videos, onVideoPress,t }) => {
         {item.author}
       </Text>
       <Text style={styles.videoViews} numberOfLines={1}>
-         {item.uploadDate}
+        {item.uploadDate}
       </Text>
     </TouchableOpacity>
   );
@@ -311,20 +352,83 @@ const VideoList = ({ videos, onVideoPress,t }) => {
         keyExtractor={(item) => item.id.toString()}
         scrollEnabled={false}
         contentContainerStyle={styles.videoList}
-      
       />
     </ScrollView>
   );
 };
 
+// Related Videos Component
+const RelatedVideos = ({ videos, onVideoPress, t }) => {
+  if (videos.length === 0) {
+    return null;
+  }
+
+  const renderRelatedItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.relatedVideoItem}
+      onPress={() => onVideoPress(item)}
+    >
+      <View style={styles.thumbnailContainer}>
+        <Image
+          source={{ uri: item.thumbnailUrl }}
+          style={styles.relatedThumbnail}
+          resizeMode="cover"
+        />
+        <View style={styles.playOverlay}>
+          <PlayIcon size={14} color="white" />
+        </View>
+        <View style={styles.durationBadge}>
+          <Text style={styles.durationText}>{item.duration}</Text>
+        </View>
+      </View>
+
+      <View style={styles.relatedVideoInfo}>
+        <Text style={styles.relatedVideoTitle} numberOfLines={2}>
+          {item.title}
+        </Text>
+        <Text style={styles.relatedVideoAuthor} numberOfLines={1}>
+          {item.author}
+        </Text>
+        <View style={styles.relatedVideoMeta}>
+          <Text style={styles.relatedVideoViews}>{item.uploadDate}</Text>
+          <View style={styles.relatedCategoryBadge}>
+            <Text style={styles.relatedCategoryText}>{item.category}</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.relatedVideosContainer}>
+      <Text style={styles.relatedVideosTitle}>
+        {t("videos.relatedVideos") || "Related Videos"}
+      </Text>
+      <FlatList
+        data={videos}
+        renderItem={renderRelatedItem}
+        keyExtractor={(item) => item.id.toString()}
+        scrollEnabled={false}
+        contentContainerStyle={styles.relatedVideosList}
+      />
+    </View>
+  );
+};
+
 // Video Player Component
-const VideoPlayer = ({ video, onClose,t }) => {
+const VideoPlayer = ({
+  video,
+  onClose,
+  t,
+  relatedVideos,
+  onRelatedVideoPress,
+}) => {
   const videoRef = useRef(null);
   const [status, setStatus] = useState({});
 
   return (
     <SafeAreaView style={styles.playerContainer}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Back Button */}
       <View style={styles.playerHeader}>
@@ -366,6 +470,13 @@ const VideoPlayer = ({ video, onClose,t }) => {
 
           <Text style={styles.videoDescription}>{video.description}</Text>
         </View>
+
+        {/* Related Videos Section */}
+        <RelatedVideos
+          videos={relatedVideos}
+          onVideoPress={onRelatedVideoPress}
+          t={t}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -380,8 +491,6 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     padding: 16,
     backgroundColor: "white",
     shadowColor: "#000",
@@ -393,6 +502,29 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  searchSection: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    backgroundColor: "white",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    backgroundColor: "#f5f5f5",
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
   logoContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -401,7 +533,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#72b7e9",
+    backgroundColor: "#f0f0f0",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 8,
@@ -411,27 +543,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   appTitle: {
-    color: "#72b7e9",
+    color: "black",
     fontSize: 22,
     fontWeight: "bold",
   },
-  searchContainer: {
-    flex: 1,
-    flexDirection: "row",
-    backgroundColor: "#f5f5f5",
-    borderRadius: 20,
-    marginLeft: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#72b7e9",
-  },
   searchInput: {
     flex: 1,
-    color: "#333",
-    fontSize: 14,
+    color: "black",
+    fontSize: 16,
     padding: 0,
+    marginLeft: 12,
   },
   scrollContainer: {
     flex: 1,
@@ -445,38 +566,36 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    color: "#72b7e9",
+    color: "black",
     fontSize: 20,
     fontWeight: "bold",
   },
   playIconContainer: {
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-playTriangle: {
-  width: 0,
-  height: 0,
-  borderTopColor: 'transparent',
-  borderBottomColor: 'transparent',
-  borderLeftColor: 'white',
-  marginLeft: 2, // Slight offset to center the triangle visually
-},
-
-// Update the playOverlay in your existing styles to:
-playOverlay: {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: [{ translateX: -20 }, { translateY: -20 }],
-  backgroundColor: "rgba(0,0,0,0.7)",
-  borderRadius: 20,
-  width: 40,
-  height: 40,
-  alignItems: "center",
-  justifyContent: "center",
-},
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  playTriangle: {
+    width: 0,
+    height: 0,
+    borderTopColor: "transparent",
+    borderBottomColor: "transparent",
+    borderLeftColor: "white",
+    marginLeft: 2,
+  },
+  playOverlay: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: [{ translateX: -20 }, { translateY: -20 }],
+    backgroundColor: "rgba(0,0,0,0.7)",
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   viewAllText: {
-    color: "#72b7e9",
+    color: "black",
     fontSize: 14,
   },
   featuredList: {
@@ -494,30 +613,18 @@ playOverlay: {
     height: 112,
     borderRadius: 8,
     marginBottom: 8,
-    backgroundColor: "#f0f8ff",
+    backgroundColor: "#f0f0f0",
     borderWidth: 1,
-    borderColor: "#72b7e9",
+    borderColor: "#e0e0e0",
   },
   videoThumbnail: {
     width: 120,
     height: 68,
     borderRadius: 6,
-    backgroundColor: "#f0f8ff",
+    backgroundColor: "#f0f0f0",
     borderWidth: 1,
-    borderColor: "#72b7e9",
+    borderColor: "#e0e0e0",
   },
-  // playOverlay: {
-  //   position: "absolute",
-  //   top: "50%",
-  //   left: "50%",
-  //   transform: [{ translateX: -12 }, { translateY: -12 }],
-  //   backgroundColor: "rgba(0,0,0,0.7)",
-  //   borderRadius: 20,
-  //   width: 40,
-  //   height: 40,
-  //   alignItems: "center",
-  //   justifyContent: "center",
-  // },
   durationBadge: {
     position: "absolute",
     bottom: 4,
@@ -533,19 +640,19 @@ playOverlay: {
     fontWeight: "500",
   },
   videoTitle: {
-    color: "#333",
+    color: "black",
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 4,
   },
   videoAuthor: {
-    color: "#72b7e9",
+    color: "#666",
     fontSize: 14,
     fontWeight: "500",
     marginBottom: 2,
   },
   videoViews: {
-    color: "#666",
+    color: "#999",
     fontSize: 12,
   },
   videoList: {
@@ -571,7 +678,7 @@ playOverlay: {
     marginTop: 4,
   },
   categoryBadge: {
-    backgroundColor: "#72b7e9",
+    backgroundColor: "black",
     borderRadius: 12,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -588,25 +695,27 @@ playOverlay: {
     backgroundColor: "white",
   },
   emptyText: {
-    color: "#666",
+    color: "black",
     marginTop: 12,
     fontSize: 16,
   },
   // Player Styles
   playerContainer: {
     flex: 1,
-    backgroundColor: "black",
+    backgroundColor: "white",
   },
   playerHeader: {
     padding: 16,
-    backgroundColor: "rgba(0,0,0,0.8)",
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
   },
   backButton: {
     flexDirection: "row",
     alignItems: "center",
   },
   backText: {
-    color: "#72b7e9",
+    color: "black",
     marginLeft: 8,
     fontSize: 16,
     fontWeight: "500",
@@ -624,9 +733,11 @@ playOverlay: {
   },
   videoDetailCard: {
     padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
   },
   playerVideoTitle: {
-    color: "#333",
+    color: "black",
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 8,
@@ -638,13 +749,13 @@ playOverlay: {
     marginBottom: 8,
   },
   playerVideoAuthor: {
-    color: "#72b7e9",
+    color: "#666",
     fontSize: 16,
     fontWeight: "600",
     flex: 1,
   },
   playerCategoryBadge: {
-    backgroundColor: "#72b7e9",
+    backgroundColor: "black",
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -653,13 +764,81 @@ playOverlay: {
     marginBottom: 12,
   },
   videoStatsText: {
-    color: "#666",
+    color: "#999",
     fontSize: 14,
   },
   videoDescription: {
     color: "#666",
     fontSize: 14,
     lineHeight: 20,
+  },
+  // Related Videos Styles
+  relatedVideosContainer: {
+    padding: 16,
+    backgroundColor: "white",
+  },
+  relatedVideosTitle: {
+    color: "black",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  relatedVideosList: {
+    paddingBottom: 20,
+  },
+  relatedVideoItem: {
+    flexDirection: "row",
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  relatedThumbnail: {
+    width: 100,
+    height: 56,
+    borderRadius: 6,
+    backgroundColor: "#f0f0f0",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  relatedVideoInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  relatedVideoTitle: {
+    color: "black",
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  relatedVideoAuthor: {
+    color: "#666",
+    fontSize: 12,
+    fontWeight: "500",
+    marginBottom: 2,
+  },
+  relatedVideoMeta: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 4,
+  },
+  relatedVideoViews: {
+    color: "#999",
+    fontSize: 10,
+  },
+  relatedCategoryBadge: {
+    backgroundColor: "black",
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  relatedCategoryText: {
+    color: "white",
+    fontSize: 8,
+    fontWeight: "500",
   },
 });
 

@@ -13,9 +13,9 @@ import {
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import axios from "axios";
+import { API_BASE_URL } from "@/constants";
 
-// API Configuration
-const API_BASE_URL = "https://your-api-domain.com/api"; // Replace with your API URL
+
 
 // Validation constants
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -143,13 +143,13 @@ export default function ForgotPasswordScreen(): React.ReactElement {
 
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/auth/forgot-password`,
+        `${API_BASE_URL}/api/v1/auth/forgot-password`,
         {
           email: email.trim(),
         }
       );
-
-      if (response.data.success) {
+console.log("response",response.status)
+      if (response.status===200) {
         setOtpToken(response.data.token); // Store the token for OTP verification
         setCurrentStep("otp");
         setResendTimer(60); // Start 60 second timer
@@ -185,13 +185,13 @@ export default function ForgotPasswordScreen(): React.ReactElement {
     setErrors({});
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/verify-otp`, {
+      const response = await axios.post(`${API_BASE_URL}/api/v1/auth/verify-otp`, {
         email: email.trim(),
         otp: otp.trim(),
         token: otpToken,
       });
 
-      if (response.data.success) {
+      if (response.status===200) {
         setCurrentStep("password");
         Alert.alert("OTP Verified", "Please enter your new password.", [
           { text: "OK" },
@@ -230,14 +230,14 @@ export default function ForgotPasswordScreen(): React.ReactElement {
     setErrors({});
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/reset-password`, {
+      const response = await axios.post(`${API_BASE_URL}/api/v1/auth/reset-password/${otp}`, {
         email: email.trim(),
         password: password,
         otp: otp.trim(),
         token: otpToken,
       });
 
-      if (response.data.success) {
+      if (response.status===200) {
         Alert.alert(
           "Password Reset Successful",
           "Your password has been reset successfully. Please sign in with your new password.",
@@ -291,7 +291,7 @@ export default function ForgotPasswordScreen(): React.ReactElement {
           fontSize: 16,
         }}
       >
-        Enter your email address and we'll send you a verification code
+        Enter your email address and we&apos;ll send you a verification code
       </ThemedText>
 
       <View style={{ marginBottom: 24 }}>

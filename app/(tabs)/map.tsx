@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import * as Location from "expo-location";
 import type { LocationObject } from "expo-location";
+import { Linking } from "react-native";
 
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import {
@@ -17,6 +18,7 @@ import {
   Modal,
   FlatList,
   StatusBar,
+  Alert,
 } from "react-native";
 
 const { width, height } = Dimensions.get("window");
@@ -47,7 +49,7 @@ const facilities = [
     images: [
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcuY5InCgdkAdP6kX5gVMohZiBD5_wMqp1mQ&s",
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCKctjjFnkWIPZDzL-exZXW6wEZ8geAgewEQ&s",
-      "https://cdn.getyourguide.com/image/format=auto,fit=contain,gravity=auto,quality=60,width=1440,height=650,dpr=1/tour_img/749a88d51f4edcb6513a72cd1d080f0c4bc47468232e32175d003af2fd4c479e.jpg",
+      "https://cdn.getyourguide.com/image/format=auto,fit=contain,gravity=auto,quality=60,width=1440,height=650,dpr=1/tour_img/749a88d51f4edcb6513a72cd1d080f0c4bc47368232e32175d003af2fd4c479e.jpg",
       "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop",
     ],
     description: "Former church, now memorial site",
@@ -108,6 +110,7 @@ export default function MapScreen() {
   const [showGallery, setShowGallery] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const mapRef = useRef<MapView>(null);
+  const galleryRef = useRef<FlatList>(null);
 
   useEffect(() => {
     (async () => {
@@ -172,6 +175,46 @@ export default function MapScreen() {
     }
   };
 
+  const goToNextImage = () => {
+    if (selectedMemorial !== null) {
+      const nextIndex =
+        (currentImageIndex + 1) % facilities[selectedMemorial].images.length;
+      setCurrentImageIndex(nextIndex);
+      galleryRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+    }
+  };
+
+  const goToPrevImage = () => {
+    if (selectedMemorial !== null) {
+      const prevIndex =
+        currentImageIndex === 0
+          ? facilities[selectedMemorial].images.length - 1
+          : currentImageIndex - 1;
+      setCurrentImageIndex(prevIndex);
+      galleryRef.current?.scrollToIndex({ index: prevIndex, animated: true });
+    }
+  };
+
+  const openGoogleMaps = () => {
+    if (selectedMemorial !== null) {
+      const memorial = facilities[selectedMemorial];
+      const url = `https://www.google.com/maps/search/?api=1&query=${memorial.latitude},${memorial.longitude}`;
+
+      Linking.canOpenURL(url)
+        .then((supported) => {
+          if (supported) {
+            Linking.openURL(url);
+          } else {
+            Alert.alert("Error", "Cannot open Google Maps");
+          }
+        })
+        .catch((err) => {
+          console.error("Error opening Google Maps:", err);
+          Alert.alert("Error", "Failed to open Google Maps");
+        });
+    }
+  };
+
   const renderGalleryItem = ({ item, index }) => (
     <View style={styles.galleryImageContainer}>
       <Image
@@ -179,12 +222,6 @@ export default function MapScreen() {
         style={styles.galleryImage}
         resizeMode="cover"
       />
-      <Text style={styles.imageCounter}>
-        {index + 1} /{" "}
-        {selectedMemorial !== null
-          ? facilities[selectedMemorial].images.length
-          : 0}
-      </Text>
     </View>
   );
 
@@ -271,8 +308,7 @@ export default function MapScreen() {
                 styles.memorialCard,
                 selectedMemorial === index && styles.selectedCard,
               ]}
-              onPress={() => handleMemorialTap(index)}
-              onLongPress={() => openGallery(index)}
+              onPress={() => openGallery(index)}
             >
               <Image
                 source={{ uri: facility.images[0] }}
@@ -292,23 +328,21 @@ export default function MapScreen() {
                 </Text>
               </View>
               <View style={styles.tapHint}>
-                <Text style={styles.tapHintText}>
-                  Tap to view • Hold for gallery
-                </Text>
+                <Text style={styles.tapHintText}>Tap to view gallery</Text>
               </View>
             </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
 
-      {/* Gallery Modal */}
+      {/* Enhanced Gallery Modal */}
       <Modal
         visible={showGallery}
         animationType="fade"
         statusBarTranslucent={true}
         onRequestClose={closeGallery}
       >
-        <StatusBar backgroundColor="rgba(0,0,0,0.9)" barStyle="light-content" />
+        <StatusBar backgroundColor="white" barStyle="dark-content" />
         <View style={styles.galleryContainer}>
           {/* Header */}
           <View style={styles.galleryHeader}>
@@ -323,33 +357,79 @@ export default function MapScreen() {
             <View style={styles.headerSpacer} />
           </View>
 
-          {/* Image Gallery */}
-          {selectedMemorial !== null && (
-            <FlatList
-              data={facilities[selectedMemorial].images}
-              renderItem={renderGalleryItem}
-              keyExtractor={(item, index) => index.toString()}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={(event) => {
-                const index = Math.round(
-                  event.nativeEvent.contentOffset.x / width
-                );
-                setCurrentImageIndex(index);
-              }}
-            />
-          )}
+          {/* Image Gallery with Navigation */}
+          <View style={styles.galleryImageSection}>
+            {selectedMemorial !== null && (
+              <>
+                <FlatList
+                  ref={galleryRef}
+                  data={facilities[selectedMemorial].images}
+                  renderItem={renderGalleryItem}
+                  keyExtractor={(item, index) => index.toString()}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onMomentumScrollEnd={(event) => {
+                    const index = Math.round(
+                      event.nativeEvent.contentOffset.x / width
+                    );
+                    setCurrentImageIndex(index);
+                  }}
+                  getItemLayout={(data, index) => ({
+                    length: width,
+                    offset: width * index,
+                    index,
+                  })}
+                />
 
-          {/* Memorial Info */}
+                {/* Navigation Arrows */}
+                <TouchableOpacity
+                  style={[styles.navArrow, styles.leftArrow]}
+                  onPress={goToPrevImage}
+                >
+                  <Text style={styles.navArrowText}>‹</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.navArrow, styles.rightArrow]}
+                  onPress={goToNextImage}
+                >
+                  <Text style={styles.navArrowText}>›</Text>
+                </TouchableOpacity>
+
+                {/* Image Counter */}
+                <View style={styles.imageCounter}>
+                  <Text style={styles.imageCounterText}>
+                    {currentImageIndex + 1} /{" "}
+                    {facilities[selectedMemorial].images.length}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+
+          {/* Memorial Info Section */}
           {selectedMemorial !== null && (
-            <View style={styles.galleryInfo}>
-              <Text style={styles.galleryInfoTitle}>
-                {facilities[selectedMemorial].name}
-              </Text>
-              <Text style={styles.galleryInfoDescription}>
-                {facilities[selectedMemorial].fullDescription}
-              </Text>
+            <View style={styles.galleryInfoSection}>
+              <ScrollView style={styles.galleryInfoScroll}>
+                <Text style={styles.galleryInfoTitle}>
+                  {facilities[selectedMemorial].name}
+                </Text>
+                <Text style={styles.galleryInfoDescription}>
+                  {facilities[selectedMemorial].fullDescription}
+                </Text>
+
+                {/* Google Maps Button */}
+                <TouchableOpacity
+                  style={styles.googleMapsButton}
+                  onPress={openGoogleMaps}
+                >
+                  <Text style={styles.googleMapsIcon}>📍</Text>
+                  <Text style={styles.googleMapsButtonText}>
+                    View on Google Maps
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
           )}
         </View>
@@ -493,10 +573,10 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Gallery Modal Styles
+  // Enhanced Gallery Modal Styles
   galleryContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.95)",
+    backgroundColor: "white",
   },
   galleryHeader: {
     flexDirection: "row",
@@ -505,23 +585,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 16 : 50,
     paddingBottom: 16,
-    backgroundColor: "rgba(0,0,0,0.8)",
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5E5",
   },
   closeButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "#F5F5F5",
     justifyContent: "center",
     alignItems: "center",
   },
   closeButtonText: {
-    color: "white",
+    color: "#333",
     fontSize: 18,
     fontWeight: "bold",
   },
   galleryTitle: {
-    color: "white",
+    color: "#333",
     fontSize: 16,
     fontWeight: "600",
     flex: 1,
@@ -530,45 +612,95 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 40,
   },
+  galleryImageSection: {
+    height: height * 0.5,
+    position: "relative",
+    backgroundColor: "#F8F9FA",
+  },
   galleryImageContainer: {
     width: width,
-    height: height * 0.6,
+    height: height * 0.5,
     justifyContent: "center",
     alignItems: "center",
-    position: "relative",
   },
   galleryImage: {
     width: width - 32,
-    height: height * 0.5,
+    height: height * 0.45,
     borderRadius: 8,
+  },
+  navArrow: {
+    position: "absolute",
+    top: "50%",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1,
+  },
+  leftArrow: {
+    left: 16,
+  },
+  rightArrow: {
+    right: 16,
+  },
+  navArrowText: {
+    color: "white",
+    fontSize: 24,
+    fontWeight: "bold",
   },
   imageCounter: {
     position: "absolute",
     bottom: 16,
-    right: 32,
+    right: 16,
     backgroundColor: "rgba(0,0,0,0.7)",
-    color: "white",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+  },
+  imageCounterText: {
+    color: "white",
     fontSize: 12,
     fontWeight: "500",
   },
-  galleryInfo: {
+  galleryInfoSection: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.8)",
+    backgroundColor: "white",
     paddingHorizontal: 16,
     paddingTop: 16,
   },
+  galleryInfoScroll: {
+    flex: 1,
+  },
   galleryInfoTitle: {
-    color: "white",
-    fontSize: 18,
+    color: "#333",
+    fontSize: 20,
     fontWeight: "600",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   galleryInfoDescription: {
-    color: "#CCCCCC",
+    color: "#666",
     fontSize: 14,
     lineHeight: 20,
+    marginBottom: 20,
+  },
+  googleMapsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#4285F4",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  googleMapsIcon: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+  googleMapsButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

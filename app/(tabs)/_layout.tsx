@@ -11,7 +11,7 @@ import ChatBot from "@/components/chatbot";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export default function TabLayout() {
-   const { t } = useLanguage();
+  const { t } = useLanguage();
   const { user } = useAuthStore();
   const [showChatBot] = useState(true);
   const [chatBotVisible, setChatBotVisible] = useState(true);
@@ -65,8 +65,8 @@ export default function TabLayout() {
       <View style={{ flex: 1 }} {...panResponder.panHandlers}>
         <Tabs
           screenOptions={{
-            tabBarActiveTintColor: "#72b7e9", // Custom color for active tab only
-            tabBarInactiveTintColor: "#8E8E93", // Gray color for inactive tabs
+            tabBarActiveTintColor: "#000000", // Black for active tab
+            tabBarInactiveTintColor: "#666666", // Dark gray for inactive tabs
             headerShown: false,
             tabBarButton: HapticTab,
             tabBarBackground: TabBarBackground,
@@ -74,11 +74,12 @@ export default function TabLayout() {
               ios: {
                 position: "absolute",
                 borderTopColor: "transparent",
-                backgroundColor: "rgba(114, 183, 233, 0.1)", // Updated to use #72b7e9 with transparency
+                backgroundColor: "rgba(255, 255, 255, 0.95)", // White background with slight transparency
               },
               android: {
                 borderTopWidth: 0,
                 elevation: 0,
+                backgroundColor: "#FFFFFF", // Solid white background for Android
               },
             }),
           }}
@@ -89,7 +90,7 @@ export default function TabLayout() {
             options={{
               title: t("tabs.audio"),
               tabBarIcon: ({ color }) => (
-                <IconSymbol size={28} name="headphones" color={color} />
+                <IconSymbol size={28} name="house.fill" color={color} />
               ),
             }}
           />

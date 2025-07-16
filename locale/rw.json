@@ -52,7 +52,7 @@
     "reset": "Subiza"
   },
   "tabs": {
-    "audio": "Ijwi",
+    "audio": "Ahabanza",
     "dashboard": "Imbonerahamwe",
     "subscribers": "Abiyandikishije",
     "library": "Isomero",
@@ -94,12 +94,13 @@
   "isbn": "ISBN"
 },
 "videos": {
-  "title": "BookSpot Amashusho",
+  "title": "Amashusho",
   "searchPlaceholder": "Shakisha amashusho...",
   "noVideosFound": "Nta mashusho yabonetse",
   "featuredVideos": "Amashusho Yagaragarizwe",
   "allVideos": "Amashusho Yose",
-  "backToVideos": "Subira ku mashusho"
+  "backToVideos": "Subira ku mashusho",
+  "relatedVideos": "Amashusho afitanye isano"
 },
   "common": {
     "loading": "Biyuzuza...",

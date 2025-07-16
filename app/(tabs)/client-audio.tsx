@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-
   View,
   Text,
   Image,
@@ -14,7 +13,7 @@ import {
 } from "react-native";
 
 import { API_BASE_URL } from "@/constants";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 
@@ -25,18 +24,11 @@ const BookIcon = () => (
   </View>
 );
 
-const SearchIcon = () => (
-  <View className="mr-3">
-    <Text className="text-lg">🔍</Text>
-  </View>
-);
-
 const DownloadIcon = () => (
   <View className="mr-2">
     <AntDesign name="download" size={20} color="white" />
   </View>
 );
-
 
 const HeartIcon = () => (
   <View className="mr-1">
@@ -46,7 +38,7 @@ const HeartIcon = () => (
 
 const EyeIcon = () => (
   <View className="mr-1">
-    <Text className="text-gray-500">👁️</Text>
+    <Text className="text-black">👁️</Text>
   </View>
 );
 
@@ -56,7 +48,7 @@ const BookApp = () => {
   const [selectedBook, setSelectedBook] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const {t}=useTranslation()
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -104,7 +96,7 @@ const BookApp = () => {
                   .pop()
                   .split("/")
                   .pop()}`
-              : `https://via.placeholder.com/150x225/72b7e9/FFFFFF?text=Book+${
+              : `https://via.placeholder.com/150x225/000000/FFFFFF?text=Book+${
                   index + 1
                 }`,
 
@@ -171,11 +163,11 @@ const BookApp = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
+    <SafeAreaView className="flex-1 bg-white">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Main Content */}
-      <View className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-white">
         {/* Enhanced Header with Gradient Effect */}
         <View
           className="p-5 bg-white"
@@ -187,14 +179,13 @@ const BookApp = () => {
             elevation: 8,
           }}
         >
-          <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-row items-center justify-between mb-3">
             <View className="flex-row items-center">
-              <View className="w-12 h-12 rounded-2xl bg-[#72b7e9] items-center justify-center mr-3 shadow-lg">
+              <View className="w-12 h-12 rounded-2xl bg-black items-center justify-center mr-3 shadow-lg">
                 <BookIcon />
               </View>
               <View>
-                <Text className="text-[#72b7e9] text-2xl font-bold">
-                  
+                <Text className="text-black text-2xl font-bold">
                   {t("books.title")}
                 </Text>
                 <Text className="text-gray-500 text-sm">
@@ -204,12 +195,17 @@ const BookApp = () => {
             </View>
           </View>
 
-          <View className="flex-row bg-gray-50 rounded-2xl px-4 py-3 items-center border-2 border-gray-100 shadow-sm">
-            <SearchIcon />
+          <View className="flex-row bg-gray-100 rounded-2xl px-4 py-1 items-center border-2 border-gray-200 shadow-sm">
+            <Ionicons
+              name="search"
+              size={20}
+              color="#6b7280"
+              className="mr-2"
+            />
             <TextInput
-              className="flex-1 text-gray-800 text-base"
+              className="flex-1 text-black text-base"
               placeholder={t("books.searchPlaceholder")}
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#6b7280"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -238,13 +234,13 @@ const BookApp = () => {
 };
 
 // Enhanced Book List Component
-const BookList = ({ books, onSelectBook, loading,t }) => {
+const BookList = ({ books, onSelectBook, loading, t }) => {
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50">
-        <View className="bg-white rounded-3xl p-8 shadow-lg items-center">
-          <ActivityIndicator size="large" color="#72b7e9" />
-          <Text className="text-gray-600 mt-4 text-lg font-medium">
+      <View className="flex-1 items-center justify-center bg-white">
+        <View className="bg-white rounded-3xl p-8 shadow-lg items-center border border-gray-200">
+          <ActivityIndicator size="large" color="#000000" />
+          <Text className="text-black mt-4 text-lg font-medium">
             {t("books.loading")}
           </Text>
         </View>
@@ -254,12 +250,12 @@ const BookList = ({ books, onSelectBook, loading,t }) => {
 
   if (books.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50">
-        <View className="bg-white rounded-3xl p-8 shadow-lg items-center">
+      <View className="flex-1 items-center justify-center bg-white">
+        <View className="bg-white rounded-3xl p-8 shadow-lg items-center border border-gray-200">
           <View className="w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-4">
             <BookIcon />
           </View>
-          <Text className="text-gray-600 text-lg font-medium">
+          <Text className="text-black text-lg font-medium">
             {t("books.noBooks")}
           </Text>
           <Text className="text-gray-400 text-sm mt-2">
@@ -272,7 +268,7 @@ const BookList = ({ books, onSelectBook, loading,t }) => {
 
   const renderFeaturedItem = ({ item }) => (
     <TouchableOpacity
-      className="mr-4 bg-white rounded-3xl p-4 shadow-lg"
+      className="mr-4 bg-white rounded-3xl p-4  border border-gray-200"
       style={{ width: 160 }}
       onPress={() => onSelectBook(item)}
     >
@@ -282,24 +278,21 @@ const BookList = ({ books, onSelectBook, loading,t }) => {
         style={{ height: 200 }}
         resizeMode="cover"
       />
-      <Text
-        className="text-gray-800 text-base font-bold mb-1"
-        numberOfLines={2}
-      >
+      <Text className="text-black text-base font-bold mb-1" numberOfLines={2}>
         {item.title}
       </Text>
       <Text className="text-gray-500 text-sm mb-2" numberOfLines={1}>
         by {item.author}
       </Text>
       <View className="flex-row items-center justify-between">
-        <View className="bg-[#72b7e9] rounded-full px-3 py-1">
+        <View className="bg-black rounded-full px-3 py-1">
           <Text className="text-white text-xs font-medium">
             {item.category}
           </Text>
         </View>
         <View className="flex-row items-center">
           <HeartIcon />
-          <Text className="text-gray-400 text-xs">{item.likes}</Text>
+          <Text className="text-gray-600 text-xs">{item.likes}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -311,7 +304,7 @@ const BookList = ({ books, onSelectBook, loading,t }) => {
 
     return (
       <TouchableOpacity
-        className="mb-4 bg-white rounded-3xl p-4 shadow-lg"
+        className="mb-4 bg-white rounded-3xl p-4 shadow-lg border border-gray-200"
         style={{ width: itemWidth, marginHorizontal: 4 }}
         onPress={() => onSelectBook(item)}
       >
@@ -321,22 +314,19 @@ const BookList = ({ books, onSelectBook, loading,t }) => {
           style={{ height: 140 }}
           resizeMode="cover"
         />
-        <Text
-          className="text-gray-800 text-sm font-bold mb-1"
-          numberOfLines={2}
-        >
+        <Text className="text-black text-sm font-bold mb-1" numberOfLines={2}>
           {item.title}
         </Text>
         <Text className="text-gray-500 text-xs mb-2" numberOfLines={1}>
           {item.author}
         </Text>
         <View className="flex-row items-center justify-between">
-          <View className="bg-[#72b7e9] rounded-full px-2 py-1">
+          <View className="bg-black rounded-full px-2 py-1">
             <Text className="text-white text-xs">{item.category}</Text>
           </View>
           <View className="flex-row items-center">
             <EyeIcon />
-            <Text className="text-gray-400 text-xs">{item.reads}</Text>
+            <Text className="text-gray-600 text-xs">{item.reads}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -345,23 +335,20 @@ const BookList = ({ books, onSelectBook, loading,t }) => {
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-50"
+      className="flex-1 bg-white"
       showsVerticalScrollIndicator={false}
     >
       {/* Featured Books Section */}
-      <View className="px-5 pt-5">
+      <View className="px-5 pt-0">
         <View className="flex-row justify-between items-center mb-4">
           <View>
-            <Text className="text-gray-800 text-2xl font-bold">
+            <Text className="text-black text-2xl font-bold">
               {t("books.featured")}
             </Text>
             <Text className="text-gray-500 text-sm">
               {t("books.featuredSubtitle")}
             </Text>
           </View>
-          {/* <TouchableOpacity className="bg-[#72b7e9] rounded-full px-4 py-2">
-            <Text className="text-white text-sm font-medium">View all</Text>
-          </TouchableOpacity> */}
         </View>
 
         <FlatList
@@ -377,7 +364,7 @@ const BookList = ({ books, onSelectBook, loading,t }) => {
       {/* All Books Section */}
       <View className="px-5 pt-8 pb-5">
         <View className="mb-4">
-          <Text className="text-gray-800 text-2xl font-bold mb-1">
+          <Text className="text-black text-2xl font-bold mb-1">
             {t("books.allBooks")}
           </Text>
           <Text className="text-gray-500 text-sm">
@@ -400,24 +387,24 @@ const BookList = ({ books, onSelectBook, loading,t }) => {
 };
 
 // Enhanced Book Detail Component
-const BookDetail = ({ book, onBack, onDownload ,t}) => {
+const BookDetail = ({ book, onBack, onDownload, t }) => {
   return (
     <SafeAreaView
-      className="flex-1 bg-gray-50"
+      className="flex-1 bg-white"
       showsVerticalScrollIndicator={false}
     >
       <View className="p-5">
         <TouchableOpacity
-          className="flex-row items-center mb-6 bg-white rounded-2xl px-4 py-3 shadow-sm"
+          className="flex-row items-center mb-6 bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-200"
           onPress={onBack}
         >
           <AntDesign name="arrowleft" size={24} color="black" />
-          <Text className="text-[#72b7e9] ml-3 text-base font-medium">
+          <Text className="text-black ml-3 text-base font-medium">
             {t("books.backToBooks")}
           </Text>
         </TouchableOpacity>
 
-        <View className="bg-white rounded-3xl p-6 shadow-lg mb-6">
+        <View className="bg-white rounded-3xl p-6 shadow-lg mb-6 border border-gray-200">
           <View className="items-center mb-6">
             <Image
               source={{ uri: book.coverUrl }}
@@ -428,25 +415,25 @@ const BookDetail = ({ book, onBack, onDownload ,t}) => {
           </View>
 
           <View className="items-center">
-            <Text className="text-gray-800 text-2xl font-bold text-center mb-2">
+            <Text className="text-black text-2xl font-bold text-center mb-2">
               {book.title}
             </Text>
             <Text className="text-gray-500 text-lg mb-4">by {book.author}</Text>
 
             <View className="flex-row flex-wrap justify-center mb-6">
-              <View className="bg-[#72b7e9] rounded-full px-4 py-2 mx-1 mb-2">
+              <View className="bg-black rounded-full px-4 py-2 mx-1 mb-2">
                 <Text className="text-white text-sm font-medium">
                   {book.category}
                 </Text>
               </View>
               <View className="bg-gray-100 rounded-full px-4 py-2 mx-1 mb-2">
-                <Text className="text-gray-600 text-sm font-medium">
+                <Text className="text-black text-sm font-medium">
                   {book.pages} pages
                 </Text>
               </View>
               <View className="bg-gray-100 rounded-full px-4 py-2 mx-1 mb-2 flex-row items-center">
                 <HeartIcon />
-                <Text className="text-gray-600 text-sm font-medium">
+                <Text className="text-black text-sm font-medium">
                   {book.likes} likes
                 </Text>
               </View>
@@ -461,8 +448,8 @@ const BookDetail = ({ book, onBack, onDownload ,t}) => {
                 book.downloading
                   ? "bg-gray-400"
                   : book.downloaded
-                    ? "bg-green-500"
-                    : "bg-[#72b7e9]"
+                    ? "bg-black"
+                    : "bg-black"
               } rounded-full flex-row items-center justify-center py-4 px-8 shadow-lg`}
               style={{ width: "100%" }}
               onPress={() => onDownload(book.id)}
@@ -484,8 +471,8 @@ const BookDetail = ({ book, onBack, onDownload ,t}) => {
           </View>
         </View>
 
-        <View className="bg-white rounded-3xl p-6 shadow-lg mb-6">
-          <Text className="text-gray-800 text-xl font-bold mb-4">
+        <View className="bg-white rounded-3xl p-6 shadow-lg mb-6 border border-gray-200">
+          <Text className="text-black text-xl font-bold mb-4">
             {t("books.aboutBook")}
           </Text>
           <Text className="text-gray-600 leading-6 mb-6 text-base">
@@ -495,18 +482,18 @@ const BookDetail = ({ book, onBack, onDownload ,t}) => {
           <View className="space-y-4">
             <View className="flex-row">
               <View className="flex-1 bg-gray-50 rounded-2xl p-4 mr-2">
-                <Text className="text-[#72b7e9] text-sm font-bold mb-1">
+                <Text className="text-black text-sm font-bold mb-1">
                   {t("books.publisher")}
                 </Text>
-                <Text className="text-gray-800 text-base font-medium">
+                <Text className="text-black text-base font-medium">
                   {book.publisher}
                 </Text>
               </View>
               <View className="flex-1 bg-gray-50 rounded-2xl p-4 ml-2">
-                <Text className="text-[#72b7e9] text-sm font-bold mb-1">
+                <Text className="text-black text-sm font-bold mb-1">
                   {t("books.published")}
                 </Text>
-                <Text className="text-gray-800 text-base font-medium">
+                <Text className="text-black text-base font-medium">
                   {book.publicationDate}
                 </Text>
               </View>
@@ -514,18 +501,18 @@ const BookDetail = ({ book, onBack, onDownload ,t}) => {
 
             <View className="flex-row">
               <View className="flex-1 bg-gray-50 rounded-2xl p-4 mr-2">
-                <Text className="text-[#72b7e9] text-sm font-bold mb-1">
+                <Text className="text-black text-sm font-bold mb-1">
                   {t("books.language")}
                 </Text>
-                <Text className="text-gray-800 text-base font-medium">
+                <Text className="text-black text-base font-medium">
                   {book.language}
                 </Text>
               </View>
               <View className="flex-1 bg-gray-50 rounded-2xl p-4 ml-2">
-                <Text className="text-[#72b7e9] text-sm font-bold mb-1">
+                <Text className="text-black text-sm font-bold mb-1">
                   {t("books.isbn")}
                 </Text>
-                <Text className="text-gray-800 text-base font-medium">
+                <Text className="text-black text-base font-medium">
                   {book.isbn}
                 </Text>
               </View>

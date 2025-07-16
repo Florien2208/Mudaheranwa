@@ -52,7 +52,7 @@
     "reset": "Réinitialiser"
   },
   "tabs": {
-    "audio": "Audio",
+    "audio": "Accueil",
     "dashboard": "Tableau de Bord",
     "subscribers": "Abonnés",
     "library": "Bibliothèque",
@@ -94,12 +94,13 @@
   "isbn": "ISBN"
 },
 "videos": {
-  "title": "BookSpot Vidéos",
+  "title": "Vidéos",
   "searchPlaceholder": "Rechercher des vidéos...",
   "noVideosFound": "Aucune vidéo trouvée",
   "featuredVideos": "Vidéos en vedette",
   "allVideos": "Toutes les vidéos",
-  "backToVideos": "Retour aux vidéos"
+  "backToVideos": "Retour aux vidéos",
+  "relatedVideos": "Vidéos associées"
 },
   "common": {
     "loading": "Chargement...",

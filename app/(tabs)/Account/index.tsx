@@ -25,41 +25,33 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-// Enhanced Constants with better color palette
+// Black and White Color Palette
 const COLORS = {
-  primary: "#3B82F6",
-  primaryLight: "#60A5FA",
-  primaryDark: "#1D4ED8",
-  secondary: "#F1F5F9",
-  accent: "#EF4444",
-  success: "#10B981",
-  warning: "#F59E0B",
-  error: "#EF4444",
-  purple: "#8B5CF6",
-  orange: "#F97316",
-  pink: "#EC4899",
-  emerald: "#059669",
-  indigo: "#6366F1",
-  textPrimary: "#0F172A",
-  textSecondary: "#475569",
-  textTertiary: "#64748B",
-  textMuted: "#94A3B8",
-  lightBg: "#F8FAFC",
-  darkBg: "#0F172A",
+  primary: "#000000",
+  primaryLight: "#333333",
+  primaryDark: "#000000",
+  secondary: "#FFFFFF",
+  accent: "#000000",
+  success: "#000000",
+  warning: "#000000",
+  error: "#000000",
+  purple: "#000000",
+  orange: "#000000",
+  pink: "#000000",
+  emerald: "#000000",
+  indigo: "#000000",
+  textPrimary: "#000000",
+  textSecondary: "#333333",
+  textTertiary: "#666666",
+  textMuted: "#999999",
+  lightBg: "#FFFFFF",
+  darkBg: "#000000",
   cardLight: "#FFFFFF",
-  cardDark: "#1E293B",
-  borderLight: "#E2E8F0",
-  borderDark: "#334155",
-  shadowColor: "#000",
+  cardDark: "#1A1A1A",
+  borderLight: "#E0E0E0",
+  borderDark: "#333333",
+  shadowColor: "#000000",
   overlay: "rgba(0, 0, 0, 0.5)",
-} as const;
-
-const GRADIENTS = {
-  primary: ["#3B82F6", "#1D4ED8"],
-  success: ["#10B981", "#059669"],
-  warning: ["#F59E0B", "#D97706"],
-  purple: ["#8B5CF6", "#7C3AED"],
-  pink: ["#EC4899", "#BE185D"],
 } as const;
 
 const ANIMATION_CONFIG = {
@@ -79,7 +71,7 @@ const ANIMATION_CONFIG = {
   },
 } as const;
 
-// Enhanced MenuItem component with better animations and accessibility
+// Enhanced MenuItem component with black and white styling
 const MenuItem = React.memo(
   ({
     icon,
@@ -143,8 +135,8 @@ const MenuItem = React.memo(
           shadowOffset: { width: 0, height: 2 },
           shadowColor: COLORS.shadowColor,
         }}
-        className={`mx-1 mb-1 rounded-2xl overflow-hidden ${
-          isDark ? "bg-slate-800" : "bg-white"
+        className={`mx-1 mb-1 rounded-2xl overflow-hidden border ${
+          isDark ? "bg-zinc-900 border-zinc-800" : "bg-white border-gray-200"
         }`}
       >
         <Pressable
@@ -168,30 +160,27 @@ const MenuItem = React.memo(
           {/* Icon Container */}
           <View className="relative mr-4">
             <View
-              className="w-12 h-12 rounded-2xl justify-center items-center shadow-sm"
+              className="w-12 h-12 rounded-2xl justify-center items-center border"
               style={{
                 backgroundColor: disabled
                   ? isDark
                     ? COLORS.borderDark
                     : COLORS.borderLight
-                  : iconColor,
-                shadowColor: iconColor,
-                shadowOpacity: disabled ? 0 : 0.2,
-                shadowRadius: 4,
-                shadowOffset: { width: 0, height: 2 },
+                  : isDark ? COLORS.secondary : COLORS.primary,
+                borderColor: isDark ? COLORS.borderDark : COLORS.borderLight,
               }}
             >
               <IconSymbol
                 name={icon}
                 size={22}
-                color={disabled ? COLORS.textMuted : "#FFFFFF"}
+                color={disabled ? COLORS.textMuted : isDark ? COLORS.primary : COLORS.secondary}
               />
             </View>
             {badge && (
               <View
                 className="absolute -top-1 -right-1 w-5 h-5 rounded-full justify-center items-center border-2"
                 style={{
-                  backgroundColor: COLORS.error,
+                  backgroundColor: COLORS.primary,
                   borderColor: isDark ? COLORS.cardDark : COLORS.cardLight,
                 }}
               >
@@ -205,7 +194,7 @@ const MenuItem = React.memo(
             <Text
               className="text-base font-semibold mb-1"
               style={{
-                color: isDark ? "#FFFFFF" : COLORS.textPrimary,
+                color: isDark ? COLORS.secondary : COLORS.textPrimary,
               }}
               numberOfLines={1}
             >
@@ -243,15 +232,12 @@ const MenuItem = React.memo(
 
 MenuItem.displayName = "MenuItem";
 
-// Enhanced ProfileSection with better visual hierarchy
+// Enhanced ProfileSection with black and white styling
 const ProfileSection = React.memo(
   ({ user, isArtist, colorScheme, onEditPress, isDark, t }) => {
     const [imageLoading, setImageLoading] = useState(true);
     const [imageError, setImageError] = useState(false);
     const pulseValue = useRef(new Animated.Value(1)).current;
-
-    console.log("Profile user data:", user);
-    console.log("Profile picture URL:", user?.profilePicture);
 
     // Pulse animation for loading state
     React.useEffect(() => {
@@ -304,18 +290,14 @@ const ProfileSection = React.memo(
         {/* Profile Picture */}
         <View className="relative mb-4">
           <Animated.View
-            className="w-32 h-32 rounded-full justify-center items-center shadow-2xl overflow-hidden"
+            className="w-32 h-32 rounded-full justify-center items-center shadow-2xl overflow-hidden border-4"
             style={{
               backgroundColor:
                 user?.profilePicture && !imageError
                   ? "transparent"
                   : COLORS.primary,
-              shadowColor: COLORS.primary,
-              shadowOpacity: 0.3,
-              shadowRadius: 12,
-              shadowOffset: { width: 0, height: 6 },
-              elevation: 8,
-              transform: [{ scale: pulseValue }],
+              borderColor: isDark ? COLORS.secondary : COLORS.primary,
+           
             }}
           >
             {user?.profilePicture && !imageError ? (
@@ -325,7 +307,7 @@ const ProfileSection = React.memo(
                     <IconSymbol
                       name="person.crop.circle.fill"
                       size={70}
-                      color="#FFFFFF"
+                      color={isDark ? COLORS.primary : COLORS.secondary}
                     />
                   </View>
                 )}
@@ -341,26 +323,26 @@ const ProfileSection = React.memo(
               <IconSymbol
                 name="person.crop.circle.fill"
                 size={70}
-                color="#FFFFFF"
+                color={isDark ? COLORS.primary : COLORS.secondary}
               />
             )}
 
             {/* Artist Badge */}
             {isArtist && (
               <View
-                className="absolute -top-1 -right-1 w-8 h-8 rounded-full justify-center items-center border-4 shadow-lg"
+                className="absolute -top-1 -right-1 w-8 h-8 rounded-full justify-center items-center border-4"
                 style={{
-                  backgroundColor: COLORS.warning,
+                  backgroundColor: COLORS.primary,
                   borderColor: isDark ? COLORS.cardDark : COLORS.cardLight,
                 }}
               >
-                <IconSymbol name="star.fill" size={14} color="#FFFFFF" />
+                <IconSymbol name="star.fill" size={14} color={COLORS.secondary} />
               </View>
             )}
 
             {/* Edit Button */}
             <TouchableOpacity
-              className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full justify-center items-center border-4 shadow-lg"
+              className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full justify-center items-center border-4"
               style={{
                 backgroundColor: COLORS.primary,
                 borderColor: isDark ? COLORS.cardDark : COLORS.cardLight,
@@ -368,7 +350,7 @@ const ProfileSection = React.memo(
               onPress={onEditPress}
               activeOpacity={0.8}
             >
-              <IconSymbol name="pencil" size={12} color="#FFFFFF" />
+              <IconSymbol name="pencil" size={12} color={COLORS.secondary} />
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -378,7 +360,7 @@ const ProfileSection = React.memo(
           <Text
             className="text-3xl font-bold mb-2"
             style={{
-              color: isDark ? "#FFFFFF" : COLORS.textPrimary,
+              color: isDark ? COLORS.secondary : COLORS.textPrimary,
             }}
             numberOfLines={1}
           >
@@ -395,16 +377,13 @@ const ProfileSection = React.memo(
           {/* Artist Badge */}
           {isArtist && (
             <View
-              className="flex-row items-center px-4 py-2 rounded-full shadow-sm"
+              className="flex-row items-center px-4 py-2 rounded-full border"
               style={{
-                backgroundColor: COLORS.warning,
-                shadowColor: COLORS.warning,
-                shadowOpacity: 0.3,
-                shadowRadius: 4,
-                shadowOffset: { width: 0, height: 2 },
+                backgroundColor: COLORS.primary,
+                borderColor: isDark ? COLORS.secondary : COLORS.primary,
               }}
             >
-              <IconSymbol name="paintbrush.fill" size={14} color="#FFFFFF" />
+              <IconSymbol name="paintbrush.fill" size={14} color={COLORS.secondary} />
               <Text className="text-white text-sm font-bold ml-2">
                 {t("profile.verifiedArtist")}
               </Text>
@@ -415,30 +394,30 @@ const ProfileSection = React.memo(
         {/* Artist Stats */}
         {profileStats && (
           <View
-            className="flex-row w-full rounded-3xl p-6 shadow-lg"
+            className="flex-row w-full rounded-3xl p-6 border"
             style={{
               backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
-              shadowColor: COLORS.shadowColor,
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              shadowOffset: { width: 0, height: 4 },
+              borderColor: isDark ? COLORS.borderDark : COLORS.borderLight,
             }}
           >
             {profileStats.map((stat, index) => (
               <View key={stat.label} className="flex-1 items-center">
                 <View
-                  className="w-12 h-12 rounded-2xl justify-center items-center mb-2"
-                  style={{ backgroundColor: COLORS.primary + "20" }}
+                  className="w-12 h-12 rounded-2xl justify-center items-center mb-2 border"
+                  style={{ 
+                    backgroundColor: isDark ? COLORS.primary + "20" : COLORS.primary + "10",
+                    borderColor: isDark ? COLORS.secondary : COLORS.primary,
+                  }}
                 >
                   <IconSymbol
                     name={stat.icon}
                     size={20}
-                    color={COLORS.primary}
+                    color={isDark ? COLORS.secondary : COLORS.primary}
                   />
                 </View>
                 <Text
                   className="text-2xl font-bold mb-1"
-                  style={{ color: isDark ? "#FFFFFF" : COLORS.textPrimary }}
+                  style={{ color: isDark ? COLORS.secondary : COLORS.textPrimary }}
                 >
                   {stat.value}
                 </Text>
@@ -471,7 +450,7 @@ const ProfileSection = React.memo(
 
 ProfileSection.displayName = "ProfileSection";
 
-// Enhanced MenuSection with better visual grouping
+// Enhanced MenuSection with black and white styling
 const MenuSection = ({ title, children, isDark, icon }) => (
   <View className="mb-6">
     {title && (
@@ -494,24 +473,13 @@ const MenuSection = ({ title, children, isDark, icon }) => (
         </Text>
       </View>
     )}
-    <View
-      className="rounded-3xl p-2 shadow-lg"
-      style={{
-        backgroundColor: isDark
-          ? COLORS.cardDark + "80"
-          : COLORS.cardLight + "80",
-        shadowColor: COLORS.shadowColor,
-        shadowOpacity: 0.05,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 4 },
-      }}
-    >
+    <View className="rounded-3xl p-2">
       {children}
     </View>
   </View>
 );
 
-// Enhanced Language Modal with better animations
+// Enhanced Language Modal with black and white styling
 const LanguageModal = React.memo(
   ({
     visible,
@@ -576,9 +544,10 @@ const LanguageModal = React.memo(
             onPress={handleBackdropPress}
           />
           <Animated.View
-            className="w-full max-w-md max-h-3/4 rounded-3xl overflow-hidden"
+            className="w-full max-w-md max-h-3/4 rounded-3xl overflow-hidden border"
             style={{
               backgroundColor: isDark ? COLORS.cardDark : COLORS.cardLight,
+              borderColor: isDark ? COLORS.borderDark : COLORS.borderLight,
               transform: [{ translateY: slideAnim }],
               shadowColor: COLORS.shadowColor,
               shadowOpacity: 0.3,
@@ -599,32 +568,36 @@ const LanguageModal = React.memo(
             >
               <View className="flex-row items-center">
                 <View
-                  className="w-10 h-10 rounded-2xl justify-center items-center mr-3"
-                  style={{ backgroundColor: COLORS.primary }}
+                  className="w-10 h-10 rounded-2xl justify-center items-center mr-3 border"
+                  style={{ 
+                    backgroundColor: COLORS.primary,
+                    borderColor: isDark ? COLORS.secondary : COLORS.primary,
+                  }}
                 >
-                  <IconSymbol name="globe" size={20} color="#FFFFFF" />
+                  <IconSymbol name="globe" size={20} color={COLORS.secondary} />
                 </View>
                 <Text
                   className="text-xl font-bold"
-                  style={{ color: isDark ? "#FFFFFF" : COLORS.textPrimary }}
+                  style={{ color: isDark ? COLORS.secondary : COLORS.textPrimary }}
                 >
                   {t("profile.selectLanguage")}
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={onClose}
-                className="w-10 h-10 rounded-2xl justify-center items-center"
+                className="w-10 h-10 rounded-2xl justify-center items-center border"
                 style={{
                   backgroundColor: isDark
                     ? COLORS.borderDark
                     : COLORS.borderLight,
+                  borderColor: isDark ? COLORS.borderDark : COLORS.borderLight,
                 }}
                 activeOpacity={0.8}
               >
                 <IconSymbol
                   name="xmark"
                   size={18}
-                  color={isDark ? "#FFFFFF" : COLORS.textPrimary}
+                  color={isDark ? COLORS.secondary : COLORS.textPrimary}
                 />
               </TouchableOpacity>
             </View>
@@ -637,8 +610,8 @@ const LanguageModal = React.memo(
               {languages.map((language, index) => (
                 <TouchableOpacity
                   key={language.code}
-                  className={`flex-row items-center justify-between p-4 m-1 rounded-2xl ${
-                    currentLanguage === language.name ? "shadow-lg" : ""
+                  className={`flex-row items-center justify-between p-4 m-1 rounded-2xl border ${
+                    currentLanguage === language.name ? "" : ""
                   }`}
                   style={{
                     backgroundColor:
@@ -647,10 +620,9 @@ const LanguageModal = React.memo(
                         : isDark
                           ? COLORS.cardDark
                           : COLORS.lightBg,
-                    shadowColor: COLORS.primary,
-                    shadowOpacity: currentLanguage === language.name ? 0.3 : 0,
-                    shadowRadius: 8,
-                    shadowOffset: { width: 0, height: 4 },
+                    borderColor: currentLanguage === language.name
+                      ? COLORS.primary
+                      : isDark ? COLORS.borderDark : COLORS.borderLight,
                   }}
                   onPress={() => onLanguageSelect(language)}
                   activeOpacity={0.8}
@@ -661,9 +633,9 @@ const LanguageModal = React.memo(
                       style={{
                         color:
                           currentLanguage === language.name
-                            ? "#FFFFFF"
+                            ? COLORS.secondary
                             : isDark
-                              ? "#FFFFFF"
+                              ? COLORS.secondary
                               : COLORS.textPrimary,
                       }}
                     >
@@ -675,7 +647,7 @@ const LanguageModal = React.memo(
                         style={{
                           color:
                             currentLanguage === language.name
-                              ? "#FFFFFF"
+                              ? COLORS.secondary
                               : isDark
                                 ? COLORS.textMuted
                                 : COLORS.textSecondary,
@@ -690,7 +662,7 @@ const LanguageModal = React.memo(
                       className="w-6 h-6 rounded-full justify-center items-center"
                       style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
                     >
-                      <IconSymbol name="checkmark" size={14} color="#FFFFFF" />
+                      <IconSymbol name="checkmark" size={14} color={COLORS.secondary} />
                     </View>
                   )}
                 </TouchableOpacity>
@@ -705,18 +677,15 @@ const LanguageModal = React.memo(
 
 LanguageModal.displayName = "LanguageModal";
 
-// Enhanced Logout Button
+// Enhanced Logout Button with black and white styling
 const LogoutButton = ({ onPress, isLoading, isDark, t }) => (
   <TouchableOpacity
-    className={`rounded-3xl p-4 items-center shadow-lg ${
+    className={`rounded-3xl p-4 items-center border ${
       isLoading ? "opacity-70" : ""
     }`}
     style={{
-      backgroundColor: COLORS.error,
-      shadowColor: COLORS.error,
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 4 },
+      backgroundColor: COLORS.primary,
+      borderColor: COLORS.primary,
     }}
     onPress={onPress}
     disabled={isLoading}
@@ -728,7 +697,7 @@ const LogoutButton = ({ onPress, isLoading, isDark, t }) => (
           isLoading ? "arrow.clockwise" : "rectangle.portrait.and.arrow.right"
         }
         size={20}
-        color="#FFFFFF"
+        color={COLORS.secondary}
         className="mr-2"
       />
       <Text className="text-white text-lg font-bold">
@@ -849,7 +818,7 @@ export default function AccountScreen({ navigation }) {
     [changeLanguage, t]
   );
 
-  // Memoized menu sections with better organization
+  // Memoized menu sections with black and white styling
   const menuSections = useMemo(() => {
     const accountItems = [
       {
@@ -864,8 +833,8 @@ export default function AccountScreen({ navigation }) {
         subtitle: t("profile.customizeNotifications"),
         icon: "bell.fill",
         onPress: () => navigateTo("notification-settings"),
-        iconColor: COLORS.orange,
-        badge: "3",
+        iconColor: COLORS.primary,
+        // badge: "3",
       },
     ];
 
@@ -875,23 +844,28 @@ export default function AccountScreen({ navigation }) {
         subtitle: t("profile.managePlan"),
         icon: "crown.fill",
         onPress: () => navigateTo("subscription"),
-        iconColor: COLORS.warning,
+        iconColor: COLORS.primary,
       },
       {
         title: t("profile.language"),
         subtitle: t("profile.currentlySet", { language: currentLanguageName }),
         icon: "globe",
         onPress: () => setLanguageModalVisible(true),
-        iconColor: COLORS.indigo,
+        iconColor: COLORS.primary,
         rightContent: (
           <View className="flex-row items-center">
             <View
-              className="px-3 py-1 rounded-full mr-2"
-              style={{ backgroundColor: COLORS.indigo + "20" }}
+              className="px-3 py-1 rounded-full mr-2 border"
+              style={{
+                backgroundColor: isDark
+                  ? COLORS.primary + "20"
+                  : COLORS.primary + "10",
+                borderColor: isDark ? COLORS.secondary : COLORS.primary,
+              }}
             >
               <Text
                 className="text-sm font-semibold"
-                style={{ color: COLORS.indigo }}
+                style={{ color: isDark ? COLORS.secondary : COLORS.primary }}
               >
                 {currentLanguageName}
               </Text>
@@ -913,14 +887,14 @@ export default function AccountScreen({ navigation }) {
         subtitle: t("profile.getHelp"),
         icon: "questionmark.circle",
         onPress: () => navigateTo("helpCenter"),
-        iconColor: COLORS.purple,
+        iconColor: COLORS.primary,
       },
       {
         title: t("profile.about"),
         subtitle: t("profile.appInfo"),
         icon: "info.circle",
         onPress: () => navigateTo("about"),
-        iconColor: COLORS.emerald,
+        iconColor: COLORS.primary,
       },
     ];
 
@@ -931,7 +905,7 @@ export default function AccountScreen({ navigation }) {
         subtitle: "Manage your earnings and payouts",
         icon: "dollarsign.circle",
         onPress: () => navigateTo("PayoutSettings"),
-        iconColor: COLORS.success,
+        iconColor: COLORS.primary,
       });
     }
 
